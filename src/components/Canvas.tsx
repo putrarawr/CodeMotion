@@ -14,6 +14,9 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
     tabs,
     activeTabId,
     diffMode,
+    isPlayingMotion,
+    motionSpeed,
+    controlledTypedLength,
     theme,
     fontFamily,
     fontSize,
@@ -61,7 +64,7 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
       id: newId,
       title: `utils-${tabs.length + 1}.ts`,
       language: 'typescript',
-      code: `// New file tab\nexport function example() {\n  console.log("Hello CodeSnap");\n}`,
+      code: `// New file tab\nexport function example() {\n  console.log("Hello CodeMotion");\n}`,
     };
     setSettings((prev) => ({
       ...prev,
@@ -81,6 +84,10 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
     }));
   };
 
+  const handleMotionFinish = () => {
+    setSettings((prev) => ({ ...prev, isPlayingMotion: false }));
+  };
+
   const getAspectRatioStyle = () => {
     switch (aspectRatio) {
       case '1:1':
@@ -97,7 +104,7 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
   const isTransparent = background === 'transparent';
 
   return (
-    <div className="w-full flex items-center justify-center p-2 sm:p-4">
+    <div className="w-full flex items-center justify-center p-1 sm:p-4">
       <div
         className={`relative w-full max-w-4xl transition-all duration-300 rounded-3xl overflow-hidden shadow-2xl ${
           isTransparent ? 'bg-checkerboard border border-zinc-800' : ''
@@ -109,7 +116,7 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
           className={`w-full flex flex-col items-center transition-all duration-200 ${getAspectRatioStyle()}`}
           style={{
             background: background,
-            padding: `${padding}px`,
+            padding: `clamp(12px, 4vw, ${padding}px)`,
             borderRadius: `${borderRadius}px`,
           }}
         >
@@ -141,13 +148,17 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
                 lineHeight={lineHeight}
                 showLineNumbers={lineNumbers}
                 diffMode={diffMode}
+                isPlayingMotion={isPlayingMotion}
+                motionSpeed={motionSpeed}
+                controlledTypedLength={controlledTypedLength}
+                onMotionFinish={handleMotionFinish}
               />
             </WindowFrame>
           </div>
 
           {watermark && watermarkText && (
-            <div className="w-full flex justify-end mt-3 opacity-60 hover:opacity-100 transition-opacity">
-              <span className="text-[11px] font-medium font-sans text-zinc-300 tracking-wider bg-zinc-950/40 px-2.5 py-0.5 rounded-full border border-white/10 select-none">
+            <div className="w-full flex justify-end mt-2 sm:mt-3 opacity-60 hover:opacity-100 transition-opacity">
+              <span className="text-[10px] sm:text-[11px] font-medium font-sans text-zinc-300 tracking-wider bg-zinc-950/40 px-2 sm:px-2.5 py-0.5 rounded-full border border-white/10 select-none">
                 {watermarkText}
               </span>
             </div>

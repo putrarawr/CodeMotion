@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -10,7 +10,9 @@ import { Canvas } from './components/Canvas';
 import { ControlPanel } from './components/ControlPanel';
 import { PresetBar } from './components/PresetBar';
 import { LandingPage } from './components/LandingPage';
-import { Toaster } from 'sonner';
+import { VideoLoadingOverlay } from './components/VideoLoadingOverlay';
+import { Toaster, toast } from 'sonner';
+import { recordMotionVideo, downloadBlob } from './utils/recorder';
 
 function EditorWorkspace({
   settings,
@@ -20,6 +22,8 @@ function EditorWorkspace({
   setSettings: React.Dispatch<React.SetStateAction<SnippetSettings>>;
 }) {
   const { isExporting, downloadPng, downloadSvg, copyToClipboard } = useExport();
+  const [recordingProgress, setRecordingProgress] = useState<number | null>(null);
+
   const isDark = settings.appTheme === 'dark';
 
   const handleReset = () => {
@@ -27,6 +31,48 @@ function EditorWorkspace({
   };
 
   const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
+
+  const handleRecordVideo = async () => {
+    const exportEl = document.getElementById('export-container');
+    if (!exportEl) {
+      toast.error('Export element not found');
+      return;
+    }
+
+    try {
+      setRecordingProgress(0);
+
+      const totalChars = activeTab?.code?.length || 100;
+
+      const videoBlob = await recordMotionVideo({
+        element: exportEl,
+        totalChars,
+        motionSpeed: settings.motionSpeed || 1,
+        onSetTypedLength: (len) => {
+          setSettings((prev) => ({
+            ...prev,
+            controlledTypedLength: len,
+            isPlayingMotion: true,
+          }));
+        },
+        onProgress: (pct) => setRecordingProgress(pct),
+      });
+
+      const filename = `${activeTab?.title ? activeTab.title.replace(/\.[^/.]+$/, '') : 'codemotion'}-motion.webm`;
+      downloadBlob(videoBlob, filename);
+      toast.success('Motion Code Video exported successfully!');
+    } catch (err) {
+      console.error('Failed to record video:', err);
+      toast.error('Failed to record Motion Video.');
+    } finally {
+      setRecordingProgress(null);
+      setSettings((prev) => ({
+        ...prev,
+        controlledTypedLength: null,
+        isPlayingMotion: false,
+      }));
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -57,6 +103,13 @@ function EditorWorkspace({
     >
       <Toaster position="bottom-right" theme={isDark ? 'dark' : 'light'} closeButton />
 
+      {/* Full Screen Video Recording Overlay Spinner */}
+      <AnimatePresence>
+        {recordingProgress !== null && (
+          <VideoLoadingOverlay progress={recordingProgress} isDark={isDark} />
+        )}
+      </AnimatePresence>
+
       {/* Editor Header Bar */}
       <Header
         settings={settings}
@@ -64,8 +117,9 @@ function EditorWorkspace({
         onCopyImage={() => copyToClipboard(3, 'export-container')}
         onDownloadPng={(ratio) => downloadPng(ratio, activeTab?.title || 'codesnap.png', 'export-container')}
         onDownloadSvg={() => downloadSvg(activeTab?.title || 'codesnap.svg', 'export-container')}
+        onRecordVideo={handleRecordVideo}
         onReset={handleReset}
-        isExporting={isExporting}
+        isExporting={isExporting || recordingProgress !== null}
       />
 
       {/* Main Workspace Layout (Canvas & Sidebar) */}
@@ -88,7 +142,12 @@ function EditorWorkspace({
 
           {/* Right Customization Sidebar (Independent Scroll) */}
           <div className="lg:col-span-4 h-full overflow-y-auto min-h-0">
-            <ControlPanel settings={settings} setSettings={setSettings} />
+            <ControlPanel
+              settings={settings}
+              setSettings={setSettings}
+              onRecordVideo={handleRecordVideo}
+              recordingProgress={recordingProgress}
+            />
           </div>
         </main>
       </div>
@@ -124,7 +183,27 @@ function AnimatedRoutes({
 }
 
 export default function App() {
-  const [settings, setSettings] = useLocalStorage<SnippetSettings>('codesnap_settings', DEFAULT_SETTINGS);
+  const [settings, setSettings] = useLocalStorage<SnippetSettings>(
+    'codemotion_settings',
+    DEFAULT_SETTINGS
+  );
+
+  useEffect(() => {
+    // Reset motion playing state on initial mount so editor is 100% editable
+    setSettings((prev) => ({
+      ...prev,
+      isPlayingMotion: false,
+      controlledTypedLength: null,
+    }));
+  }, []);
+
+  useEffect(() => {
+    if (settings.appTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [settings.appTheme]);
 
   const toggleAppTheme = () => {
     setSettings((prev) => ({

@@ -46,8 +46,12 @@ export interface SnippetSettings {
   tabs: SnippetTab[];
   activeTabId: string;
   
-  // Diff Mode
+  // Diff Mode & Motion Mode
   diffMode: boolean;
+  motionMode: boolean;
+  motionSpeed: number; // 1 = 1x, 2 = 2x, 0.5 = 0.5x
+  isPlayingMotion: boolean;
+  controlledTypedLength?: number | null;
 
   // Styling & Customization
   theme: SupportedTheme;

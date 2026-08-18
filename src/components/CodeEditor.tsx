@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import type { SupportedLanguage, SupportedTheme } from '../types';
 import { useShiki } from '../hooks/useShiki';
 
@@ -12,6 +12,10 @@ interface CodeEditorProps {
   lineHeight: number;
   showLineNumbers: boolean;
   diffMode: boolean;
+  isPlayingMotion?: boolean;
+  motionSpeed?: number;
+  controlledTypedLength?: number | null;
+  onMotionFinish?: () => void;
 }
 
 export const CodeEditor: React.FC<CodeEditorProps> = ({
@@ -24,12 +28,67 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   lineHeight,
   showLineNumbers,
   diffMode,
+  isPlayingMotion = false,
+  motionSpeed = 1,
+  controlledTypedLength = null,
+  onMotionFinish,
 }) => {
-  const { highlightedHtml, isLoading } = useShiki(code, language, theme);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [internalTypedLength, setInternalTypedLength] = useState<number>(
+    isPlayingMotion ? 0 : code.length
+  );
+  const timerRef = useRef<number | null>(null);
+
+  // If motion play state changes to true, reset internal typed length to 0
+  useEffect(() => {
+    if (isPlayingMotion && controlledTypedLength === null) {
+      setInternalTypedLength(0);
+    } else if (!isPlayingMotion && controlledTypedLength === null) {
+      setInternalTypedLength(code.length);
+    }
+  }, [isPlayingMotion, controlledTypedLength, code]);
+
+  // Motion Typing Animation Interval (when not manually controlled by video recorder)
+  useEffect(() => {
+    if (!isPlayingMotion || controlledTypedLength !== null) {
+      if (timerRef.current !== null) window.clearInterval(timerRef.current);
+      return;
+    }
+
+    const intervalMs = Math.max(10, Math.floor(35 / motionSpeed));
+    timerRef.current = window.setInterval(() => {
+      setInternalTypedLength((prev) => {
+        if (prev >= code.length) {
+          if (timerRef.current !== null) window.clearInterval(timerRef.current);
+          if (onMotionFinish) onMotionFinish();
+          return code.length;
+        }
+        return prev + 1;
+      });
+    }, intervalMs);
+
+    return () => {
+      if (timerRef.current !== null) window.clearInterval(timerRef.current);
+    };
+  }, [isPlayingMotion, controlledTypedLength, code, motionSpeed, onMotionFinish]);
+
+  // Effective typed length (manually controlled during video recording, or internal state during playback)
+  const isCurrentlyInMotion = isPlayingMotion || (controlledTypedLength !== null && controlledTypedLength !== undefined);
+
+  const activeLength =
+    controlledTypedLength !== null && controlledTypedLength !== undefined
+      ? controlledTypedLength
+      : isPlayingMotion
+      ? internalTypedLength
+      : code.length;
+
+  const displayCode = isCurrentlyInMotion ? code.slice(0, activeLength) : code;
+
+  const { highlightedHtml, isLoading } = useShiki(displayCode, language, theme);
 
   // Compute line metadata for line numbers & diff highlighting
   const linesInfo = useMemo(() => {
-    const lines = code.split('\n');
+    const lines = displayCode.split('\n');
     return lines.map((line, idx) => {
       const trimmed = line.trimStart();
       const isAdded = diffMode && (trimmed.startsWith('+') || line.startsWith('+'));
@@ -41,11 +100,18 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         lineText: line,
       };
     });
-  }, [code, diffMode]);
+  }, [displayCode, diffMode]);
+
+  const handleContainerClick = () => {
+    if (textareaRef.current && !isCurrentlyInMotion) {
+      textareaRef.current.focus();
+    }
+  };
 
   return (
     <div
-      className="relative w-full flex items-start text-left font-mono select-none"
+      onClick={handleContainerClick}
+      className="relative w-full flex items-start text-left font-mono select-text cursor-text"
       style={{
         fontFamily,
         fontSize: `${fontSize}px`,
@@ -109,13 +175,15 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
         {/* Editable Overlay Textarea */}
         <textarea
+          ref={textareaRef}
           value={code}
           onChange={(e) => onChange(e.target.value)}
           spellCheck={false}
           autoCapitalize="off"
           autoComplete="off"
           autoCorrect="off"
-          className="code-textarea absolute inset-0 w-full h-full font-mono bg-transparent text-transparent caret-indigo-400 resize-none outline-none border-none p-0 m-0 overflow-hidden whitespace-pre z-10"
+          readOnly={isCurrentlyInMotion}
+          className="code-textarea absolute inset-0 w-full h-full font-mono bg-transparent text-transparent caret-indigo-400 resize-none outline-none border-none p-0 m-0 overflow-hidden whitespace-pre z-20 pointer-events-auto cursor-text"
           style={{
             fontFamily,
             fontSize: `${fontSize}px`,
@@ -126,25 +194,30 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         {/* Shiki Highlighted Pre HTML */}
         {isLoading ? (
           <pre
-            className="m-0 p-0 font-mono whitespace-pre opacity-70 text-zinc-400 relative z-1"
+            className="m-0 p-0 font-mono whitespace-pre opacity-70 text-zinc-400 relative z-1 pointer-events-none"
             style={{
               fontFamily,
               fontSize: `${fontSize}px`,
               lineHeight: `${lineHeight}`,
             }}
           >
-            {code}
+            {displayCode}
           </pre>
         ) : (
-          <div
-            className="shiki-container code-highlighted w-full font-mono whitespace-pre m-0 p-0 relative z-1"
-            style={{
-              fontFamily,
-              fontSize: `${fontSize}px`,
-              lineHeight: `${lineHeight}`,
-            }}
-            dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-          />
+          <div className="relative inline-block w-full pointer-events-none">
+            <div
+              className="shiki-container code-highlighted w-full font-mono whitespace-pre m-0 p-0 relative z-1 pointer-events-none"
+              style={{
+                fontFamily,
+                fontSize: `${fontSize}px`,
+                lineHeight: `${lineHeight}`,
+              }}
+              dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+            />
+            {isCurrentlyInMotion && activeLength < code.length && (
+              <span className="inline-block w-2 h-4 bg-sky-400 ml-0.5 animate-pulse rounded-xs opacity-90 align-middle" />
+            )}
+          </div>
         )}
       </div>
     </div>

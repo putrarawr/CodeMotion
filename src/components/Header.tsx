@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Camera, Copy, Download, Sparkles, RefreshCw, FileCode2, Image, ChevronDown, Sun, Moon, Check, Home } from 'lucide-react';
+import { Copy, Download, Sparkles, RefreshCw, FileCode2, Image, ChevronDown, Sun, Moon, Check, Home, Video } from 'lucide-react';
 import type { SnippetSettings, AestheticPreset } from '../types';
 import { AESTHETIC_PRESETS } from '../utils/presets';
+import { Logo } from './Logo';
 
 interface HeaderProps {
   settings: SnippetSettings;
@@ -10,6 +11,7 @@ interface HeaderProps {
   onCopyImage: () => void;
   onDownloadPng: (ratio: number) => void;
   onDownloadSvg: () => void;
+  onRecordVideo: () => void;
   onReset: () => void;
   isExporting: boolean;
 }
@@ -20,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   onCopyImage,
   onDownloadPng,
   onDownloadSvg,
+  onRecordVideo,
   onReset,
   isExporting,
 }) => {
@@ -69,34 +72,36 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header
-      className={`h-14 flex-shrink-0 w-full border-b px-4 lg:px-6 flex items-center justify-between shadow-xs transition-colors duration-200 z-40 sticky top-0 ${
+      className={`h-14 flex-shrink-0 w-full border-b px-3 sm:px-6 flex items-center justify-between shadow-xs transition-colors duration-200 z-40 sticky top-0 ${
         isDark
           ? 'bg-zinc-950/90 backdrop-blur-md border-zinc-800/80 text-zinc-100'
           : 'bg-white/90 backdrop-blur-md border-zinc-200 text-zinc-900'
       }`}
     >
-      {/* Brand & Logo - CodeMotion */}
-      <Link to="/" className="flex items-center gap-3 no-underline group" title="Return to Landing Page">
+      {/* Brand & Custom Logo - CodeMotion */}
+      <Link to="/" className="flex items-center gap-2 sm:gap-3 no-underline group flex-shrink-0" title="Return to Landing Page">
         <div
-          className={`h-8 w-8 rounded-lg flex items-center justify-center border transition-all ${
+          className={`h-8 w-8 sm:h-9 sm:w-9 rounded-xl flex items-center justify-center border transition-all ${
             isDark
-              ? 'bg-zinc-900 border-zinc-700 text-zinc-100 group-hover:border-zinc-500'
+              ? 'bg-zinc-900 border-zinc-700 text-zinc-100 group-hover:border-zinc-500 shadow-inner'
               : 'bg-zinc-100 border-zinc-300 text-zinc-900 group-hover:border-zinc-400'
           }`}
         >
-          <Camera className="h-4 w-4" />
+          <Logo className="w-4 h-4 sm:w-5 sm:h-5" />
         </div>
         <div className="flex items-center gap-2">
-          <h1 className="text-base font-bold tracking-tight font-sans m-0">CodeMotion</h1>
+          <h1 className="text-sm sm:text-base font-bold tracking-tight font-sans m-0">
+            CodeMotion
+          </h1>
         </div>
       </Link>
 
-      {/* Quick Presets, Theme Toggle & Export Actions */}
-      <div className="flex items-center gap-2">
+      {/* Quick Actions & Responsive Controls */}
+      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar">
         {/* Landing Page Route Link */}
         <Link
           to="/"
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all no-underline ${
+          className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all no-underline ${
             isDark
               ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white'
               : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black'
@@ -104,14 +109,14 @@ export const Header: React.FC<HeaderProps> = ({
           title="Return to Landing Page"
         >
           <Home className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Landing Page</span>
+          <span className="hidden md:inline">Landing</span>
         </Link>
 
         {/* Presets Dropdown */}
         <div className="relative" ref={presetsRef}>
           <button
             onClick={() => setShowPresetsMenu(!showPresetsMenu)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
               isDark
                 ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
                 : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-zinc-200'
@@ -157,7 +162,7 @@ export const Header: React.FC<HeaderProps> = ({
               : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
           }`}
         >
-          {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-zinc-800" />}
+          {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-zinc-800" />}
         </button>
 
         {/* Reset Button */}
@@ -170,26 +175,26 @@ export const Header: React.FC<HeaderProps> = ({
               : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black hover:bg-zinc-200'
           }`}
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className="w-3.5 h-3.5" />
         </button>
 
-        <div className={`h-4 w-[1px] mx-1 hidden sm:block ${isDark ? 'bg-zinc-800' : 'bg-zinc-300'}`} />
+        <div className={`h-4 w-[1px] mx-0.5 hidden sm:block ${isDark ? 'bg-zinc-800' : 'bg-zinc-300'}`} />
 
         {/* Copy Image Button */}
         <button
           onClick={onCopyImage}
           disabled={isExporting}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all shadow-xs disabled:opacity-50 ${
+          className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-lg border transition-all shadow-xs disabled:opacity-50 ${
             isDark
               ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
               : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-zinc-200'
           }`}
         >
           <Copy className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Copy Image</span>
+          <span className="hidden md:inline">Copy</span>
         </button>
 
-        {/* Download PNG Split Dropdown Button */}
+        {/* Download Split Dropdown Button (PNG, SVG, Video WebM) */}
         <div className="relative" ref={pngDropdownRef}>
           <div
             className={`flex items-center rounded-lg border shadow-xs transition-all overflow-hidden ${
@@ -201,15 +206,15 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => onDownloadPng(selectedRatio)}
               disabled={isExporting}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-colors disabled:opacity-50"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold transition-colors disabled:opacity-50"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>PNG ({selectedRatio}x DPI)</span>
+              <span>Export</span>
             </button>
             <button
               onClick={() => setShowPngDropdown(!showPngDropdown)}
               disabled={isExporting}
-              className={`px-2 py-1.5 border-l transition-colors ${
+              className={`px-1.5 sm:px-2 py-1.5 border-l transition-colors ${
                 isDark ? 'border-zinc-300 hover:bg-zinc-200' : 'border-zinc-700 hover:bg-zinc-800'
               }`}
             >
@@ -219,7 +224,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {showPngDropdown && (
             <div
-              className={`absolute right-0 mt-2 w-48 rounded-xl border shadow-xl p-1.5 z-50 transition-all ${
+              className={`absolute right-0 mt-2 w-52 rounded-xl border shadow-xl p-1.5 z-50 transition-all ${
                 isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'
               }`}
             >
@@ -231,7 +236,7 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <div className="flex items-center gap-2">
                   <Image className="w-3.5 h-3.5 opacity-60" />
-                  <span>Standard (2x DPI)</span>
+                  <span>PNG Standard (2x DPI)</span>
                 </div>
                 {selectedRatio === 2 && <Check className="w-3.5 h-3.5" />}
               </button>
@@ -244,9 +249,25 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <div className="flex items-center gap-2">
                   <Image className="w-3.5 h-3.5" />
-                  <span>Retina High (3x DPI)</span>
+                  <span>PNG Retina High (3x DPI)</span>
                 </div>
                 {selectedRatio === 3 && <Check className="w-3.5 h-3.5" />}
+              </button>
+
+              {/* Record Video Option */}
+              <button
+                onClick={() => {
+                  onRecordVideo();
+                  setShowPngDropdown(false);
+                }}
+                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between border-t mt-1 pt-2 transition-colors ${
+                  isDark ? 'hover:bg-zinc-800 border-zinc-800 text-sky-400 font-bold' : 'hover:bg-zinc-100 border-zinc-200 text-sky-600 font-bold'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Video className="w-3.5 h-3.5" />
+                  <span>Record Motion Video (WebM)</span>
+                </div>
               </button>
 
               <button
@@ -254,8 +275,8 @@ export const Header: React.FC<HeaderProps> = ({
                   onDownloadSvg();
                   setShowPngDropdown(false);
                 }}
-                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between border-t mt-1 pt-2 transition-colors ${
-                  isDark ? 'hover:bg-zinc-800 border-zinc-800' : 'hover:bg-zinc-100 border-zinc-200'
+                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors ${
+                  isDark ? 'hover:bg-zinc-800' : 'hover:bg-zinc-100'
                 }`}
               >
                 <div className="flex items-center gap-2">

@@ -21,14 +21,25 @@ import {
   Check,
   Wand2,
   GitCompare,
+  Play,
+  Pause,
+  Zap,
+  Video,
 } from 'lucide-react';
 
 interface ControlPanelProps {
   settings: SnippetSettings;
   setSettings: React.Dispatch<React.SetStateAction<SnippetSettings>>;
+  onRecordVideo?: () => void;
+  recordingProgress?: number | null;
 }
 
-export const ControlPanel: React.FC<ControlPanelProps> = ({ settings, setSettings }) => {
+export const ControlPanel: React.FC<ControlPanelProps> = ({
+  settings,
+  setSettings,
+  onRecordVideo,
+  recordingProgress,
+}) => {
   const isDark = settings.appTheme === 'dark';
 
   const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
@@ -70,70 +81,167 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ settings, setSetting
           : 'bg-zinc-50/90 border-zinc-200 text-zinc-800'
       }`}
     >
-      <div className={`flex items-center justify-between pb-3 border-b ${isDark ? 'border-zinc-800' : 'border-zinc-200'}`}>
+      {/* Title Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-zinc-800/40">
         <div className="flex items-center gap-2">
-          <Sliders className={`w-4 h-4 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`} />
-          <h2 className={`text-xs font-bold tracking-wider uppercase m-0 ${isDark ? 'text-white' : 'text-black'}`}>
-            Customization
-          </h2>
+          <Sliders className="w-4 h-4 opacity-70" />
+          <h2 className="text-xs font-bold uppercase tracking-wider font-sans m-0">Customization</h2>
         </div>
       </div>
 
-      {/* Code Diff / Refactoring Mode Banner Switch */}
+      {/* Feature 1: Code Diff Mode Banner */}
       <div
-        className={`p-3 rounded-2xl border transition-all flex items-center justify-between ${
+        className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${
           settings.diffMode
-            ? isDark
-              ? 'bg-emerald-950/30 border-emerald-500/50 text-emerald-300'
-              : 'bg-emerald-50 border-emerald-300 text-emerald-900'
+            ? 'bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border-emerald-500/30'
             : isDark
-            ? 'bg-zinc-900/60 border-zinc-800 text-zinc-400'
-            : 'bg-white border-zinc-300 text-zinc-600 shadow-xs'
+            ? 'bg-zinc-900/60 border-zinc-800/80'
+            : 'bg-white border-zinc-200 shadow-xs'
         }`}
       >
-        <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
+        <div className="flex items-center gap-3">
+          <div
+            className={`p-2 rounded-xl border ${
+              settings.diffMode
+                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                : isDark
+                ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                : 'bg-zinc-100 text-zinc-600 border-zinc-300'
+            }`}
+          >
             <GitCompare className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-xs font-bold">Code Diff Mode</div>
-            <div className="text-[10px] opacity-75">Highlight + and - lines for refactoring</div>
+            <h3 className="text-xs font-bold m-0 font-sans">Code Diff Mode</h3>
+            <p className={`text-[11px] m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              Highlight + and - lines for refactoring
+            </p>
           </div>
         </div>
-        <input
-          type="checkbox"
-          checked={settings.diffMode}
-          onChange={(e) => updateSetting('diffMode', e.target.checked)}
-          className={`w-4 h-4 rounded cursor-pointer ${isDark ? 'accent-emerald-500' : 'accent-emerald-600'}`}
-        />
+
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={settings.diffMode}
+            onChange={(e) => updateSetting('diffMode', e.target.checked)}
+            className="sr-only peer"
+          />
+          <div className="w-9 h-5 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500" />
+        </label>
       </div>
 
-      {/* Language */}
-      <div className="flex flex-col gap-3">
+      {/* Feature 2: Code Motion (Animated Typing Simulator) Card */}
+      <div
+        className={`p-4 rounded-2xl border transition-all flex flex-col gap-3 ${
+          settings.isPlayingMotion
+            ? 'bg-gradient-to-r from-sky-500/10 via-sky-500/5 to-transparent border-sky-500/30'
+            : isDark
+            ? 'bg-zinc-900/60 border-zinc-800/80'
+            : 'bg-white border-zinc-200 shadow-xs'
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div
+              className={`p-2 rounded-xl border ${
+                settings.isPlayingMotion
+                  ? 'bg-sky-500/20 text-sky-400 border-sky-500/40 animate-pulse'
+                  : isDark
+                  ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                  : 'bg-zinc-100 text-zinc-600 border-zinc-300'
+              }`}
+            >
+              <Zap className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold m-0 font-sans">Motion Code Animation</h3>
+              <p className={`text-[11px] m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                Simulate real-time character typing
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => updateSetting('isPlayingMotion', !settings.isPlayingMotion)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              settings.isPlayingMotion
+                ? 'bg-sky-500 text-white shadow-md'
+                : isDark
+                ? 'bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
+                : 'bg-zinc-100 text-zinc-800 hover:bg-zinc-200'
+            }`}
+          >
+            {settings.isPlayingMotion ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+            <span>{settings.isPlayingMotion ? 'Pause' : 'Play Motion'}</span>
+          </button>
+        </div>
+
+        {/* Speed presets & Video Export Button */}
+        <div className="flex flex-col gap-2 pt-2 border-t border-zinc-800/30">
+          <div className="flex items-center justify-between">
+            <span className={`text-[11px] font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Typing Speed</span>
+            <div className="flex items-center gap-1">
+              {[0.5, 1, 2].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => updateSetting('motionSpeed', s)}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${
+                    settings.motionSpeed === s
+                      ? 'bg-sky-500/20 text-sky-400 border-sky-500/40'
+                      : isDark
+                      ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                      : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black'
+                  }`}
+                >
+                  {s}x
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {onRecordVideo && (
+            <button
+              onClick={onRecordVideo}
+              disabled={recordingProgress !== null && recordingProgress !== undefined}
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold bg-sky-500/20 text-sky-400 border border-sky-500/40 hover:bg-sky-500/30 transition-all disabled:opacity-50"
+            >
+              <Video className="w-4 h-4" />
+              <span>
+                {recordingProgress !== null && recordingProgress !== undefined
+                  ? `Recording... ${recordingProgress}%`
+                  : 'Record Video (WebM / GIF Motion)'}
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* 1. Active Tab Language Selector */}
+      <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-            <Code className="w-3.5 h-3.5 opacity-75" />
-            Active Tab Language
+            <Code className="w-3.5 h-3.5" />
+            <span>Active Tab Language</span>
           </label>
           <button
             onClick={handleAutoDetectLanguage}
-            className={`text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 px-2 py-0.5 rounded border transition-colors ${
+            className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 transition-colors ${
               isDark
-                ? 'bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-800'
-                : 'bg-zinc-200 text-zinc-700 border-zinc-300 hover:bg-zinc-300'
+                ? 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:bg-zinc-800'
+                : 'bg-zinc-100 text-zinc-700 border-zinc-300 hover:bg-zinc-200'
             }`}
+            title="Auto detect language from current code"
           >
-            <Wand2 className="w-3 h-3" />
-            Auto Detect
+            <Wand2 className="w-3 h-3 text-amber-400" />
+            <span>Auto Detect</span>
           </button>
         </div>
+
         <select
           value={activeTab?.language || 'typescript'}
           onChange={(e) => handleLanguageChange(e.target.value as SupportedLanguage)}
-          className={`w-full rounded-xl px-3 py-2 text-xs font-medium focus:outline-none border transition-colors ${
-            isDark
-              ? 'bg-zinc-900 border-zinc-800 text-zinc-200 focus:border-zinc-500'
-              : 'bg-white border-zinc-300 text-zinc-900 focus:border-zinc-400 shadow-xs'
+          className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer ${
+            isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900'
           }`}
         >
           {LANGUAGES.map((lang) => (
@@ -144,51 +252,39 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ settings, setSetting
         </select>
       </div>
 
-      {/* Syntax Theme */}
-      <div className="flex flex-col gap-3">
+      {/* 2. Syntax Theme Selector */}
+      <div className="flex flex-col gap-2">
         <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          <Palette className="w-3.5 h-3.5 opacity-75" />
-          Syntax Theme
+          <Palette className="w-3.5 h-3.5" />
+          <span>Syntax Theme</span>
         </label>
         <select
           value={settings.theme}
           onChange={(e) => updateSetting('theme', e.target.value as SupportedTheme)}
-          className={`w-full rounded-xl px-3 py-2 text-xs font-medium focus:outline-none border transition-colors ${
-            isDark
-              ? 'bg-zinc-900 border-zinc-800 text-zinc-200 focus:border-zinc-500'
-              : 'bg-white border-zinc-300 text-zinc-900 focus:border-zinc-400 shadow-xs'
+          className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer ${
+            isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900'
           }`}
         >
-          <optgroup label="Dark Themes">
-            {THEMES.filter((t) => t.type === 'dark').map((theme) => (
-              <option key={theme.id} value={theme.id}>
-                {theme.name}
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="Light Themes">
-            {THEMES.filter((t) => t.type === 'light').map((theme) => (
-              <option key={theme.id} value={theme.id}>
-                {theme.name}
-              </option>
-            ))}
-          </optgroup>
+          {THEMES.map((theme) => (
+            <option key={theme.id} value={theme.id}>
+              {theme.name} ({theme.type})
+            </option>
+          ))}
         </select>
       </div>
 
-      {/* Font Selection */}
+      {/* 3. Font & Typography */}
       <div className="flex flex-col gap-3">
         <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          <Type className="w-3.5 h-3.5 opacity-75" />
-          Font & Typography
+          <Type className="w-3.5 h-3.5" />
+          <span>Font & Typography</span>
         </label>
+
         <select
           value={settings.fontFamily}
           onChange={(e) => updateSetting('fontFamily', e.target.value)}
-          className={`w-full rounded-xl px-3 py-2 text-xs font-mono focus:outline-none border transition-colors ${
-            isDark
-              ? 'bg-zinc-900 border-zinc-800 text-zinc-200 focus:border-zinc-500'
-              : 'bg-white border-zinc-300 text-zinc-900 focus:border-zinc-400 shadow-xs'
+          className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer ${
+            isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900'
           }`}
         >
           {FONTS.map((font) => (
@@ -198,174 +294,121 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ settings, setSetting
           ))}
         </select>
 
-        <div className={`flex items-center justify-between text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-          <span>Font Size</span>
-          <span className="font-mono font-semibold">{settings.fontSize}px</span>
-        </div>
-        <input
-          type="range"
-          min={12}
-          max={20}
-          step={1}
-          value={settings.fontSize}
-          onChange={(e) => updateSetting('fontSize', Number(e.target.value))}
-          className={`w-full h-1.5 rounded-lg cursor-pointer ${isDark ? 'accent-white bg-zinc-800' : 'accent-black bg-zinc-300'}`}
-        />
-      </div>
-
-      {/* Window Frame Style */}
-      <div className="flex flex-col gap-3">
-        <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          <Layout className="w-3.5 h-3.5 opacity-75" />
-          Window Frame
-        </label>
-        <div className="grid grid-cols-4 gap-2">
-          {(['macos', 'windows', 'minimal', 'none'] as WindowStyle[]).map((style) => {
-            const isSelected = settings.windowStyle === style;
-            return (
-              <button
-                key={style}
-                onClick={() => updateSetting('windowStyle', style)}
-                className={`px-2 py-2 rounded-xl text-xs font-semibold capitalize border transition-all ${
-                  isSelected
-                    ? isDark
-                      ? 'bg-white text-black border-white shadow'
-                      : 'bg-black text-white border-black shadow'
-                    : isDark
-                    ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
-                    : 'bg-white border-zinc-300 text-zinc-600 hover:text-zinc-900 shadow-xs'
-                }`}
-              >
-                <span>{style}</span>
-              </button>
-            );
-          })}
+        <div className="flex flex-col gap-1.5">
+          <div className="flex justify-between text-xs">
+            <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Font Size</span>
+            <span className="font-mono font-bold text-xs">{settings.fontSize}px</span>
+          </div>
+          <input
+            type="range"
+            min="12"
+            max="24"
+            step="1"
+            value={settings.fontSize}
+            onChange={(e) => updateSetting('fontSize', Number(e.target.value))}
+            className="w-full accent-indigo-500 cursor-pointer"
+          />
         </div>
       </div>
 
-      {/* Canvas Background Presets */}
-      <div className="flex flex-col gap-3">
-        <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          <Palette className="w-3.5 h-3.5 opacity-75" />
-          Background Canvas
-        </label>
-        <div className="grid grid-cols-4 gap-2">
-          {BACKGROUND_PRESETS.map((preset) => {
-            const isSelected = settings.background === preset.value;
-            const isTrans = preset.value === 'transparent';
-            return (
-              <button
-                key={preset.id}
-                onClick={() => updateSetting('background', preset.value)}
-                title={preset.name}
-                className={`relative h-9 rounded-xl border transition-all flex items-center justify-center overflow-hidden ${
-                  isSelected
-                    ? 'border-emerald-400 ring-2 ring-emerald-500/40 scale-105 shadow'
-                    : isDark
-                    ? 'border-zinc-800 opacity-75 hover:opacity-100'
-                    : 'border-zinc-300 opacity-80 hover:opacity-100'
-                } ${isTrans ? 'bg-checkerboard' : ''}`}
-                style={{ background: isTrans ? undefined : preset.value }}
-              >
-                {isSelected && <Check className="w-4 h-4 text-white drop-shadow-md" />}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Canvas Padding Slider */}
+      {/* 4. Window Frame Style */}
       <div className="flex flex-col gap-2">
-        <div className={`flex items-center justify-between text-xs font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-          <span>Canvas Padding</span>
-          <span className="font-mono">{settings.padding}px</span>
+        <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+          <Layout className="w-3.5 h-3.5" />
+          <span>Window Frame</span>
+        </label>
+        <div className="grid grid-cols-4 gap-1.5 p-1 rounded-xl bg-zinc-900/40 border border-zinc-800/80">
+          {(['macos', 'windows', 'minimal', 'none'] as WindowStyle[]).map((style) => (
+            <button
+              key={style}
+              onClick={() => updateSetting('windowStyle', style)}
+              className={`py-1.5 text-[11px] font-semibold capitalize rounded-lg transition-colors ${
+                settings.windowStyle === style
+                  ? 'bg-white text-black shadow-xs font-bold'
+                  : isDark
+                  ? 'text-zinc-400 hover:text-white'
+                  : 'text-zinc-600 hover:text-black'
+              }`}
+            >
+              {style}
+            </button>
+          ))}
         </div>
-        <input
-          type="range"
-          min={16}
-          max={80}
-          step={8}
-          value={settings.padding}
-          onChange={(e) => updateSetting('padding', Number(e.target.value))}
-          className={`w-full h-1.5 rounded-lg cursor-pointer ${isDark ? 'accent-white bg-zinc-800' : 'accent-black bg-zinc-300'}`}
-        />
       </div>
 
-      {/* Aspect Ratio Lock */}
-      <div className="flex flex-col gap-3">
+      {/* 5. Canvas Background Presets */}
+      <div className="flex flex-col gap-2">
         <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          <Maximize2 className="w-3.5 h-3.5 opacity-75" />
-          Aspect Ratio Lock
+          <Palette className="w-3.5 h-3.5" />
+          <span>Canvas Background</span>
         </label>
+
         <div className="grid grid-cols-4 gap-2">
-          {(['auto', '1:1', '4:3', '16:9'] as AspectRatio[]).map((ratio) => {
-            const isSelected = settings.aspectRatio === ratio;
+          {BACKGROUND_PRESETS.map((bg) => {
+            const isSelected = settings.background === bg.value;
             return (
+              <button
+                key={bg.id}
+                onClick={() => updateSetting('background', bg.value)}
+                className={`h-10 rounded-xl border relative overflow-hidden transition-transform transform active:scale-95 ${
+                  isSelected ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-zinc-950 border-white' : 'border-zinc-800'
+                }`}
+                style={{ background: bg.value }}
+                title={bg.name}
+              >
+                {isSelected && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <Check className="w-4 h-4 text-white drop-shadow-md" />
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 6. Layout, Padding & Shadow Settings */}
+      <div className="flex flex-col gap-4 border-t border-zinc-800/40 pt-4">
+        <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+          <Maximize2 className="w-3.5 h-3.5" />
+          <span>Canvas Padding & Aspect Ratio</span>
+        </label>
+
+        <div className="flex flex-col gap-1.5">
+          <div className="flex justify-between text-xs">
+            <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Outer Padding</span>
+            <span className="font-mono font-bold text-xs">{settings.padding}px</span>
+          </div>
+          <input
+            type="range"
+            min="16"
+            max="80"
+            step="8"
+            value={settings.padding}
+            onChange={(e) => updateSetting('padding', Number(e.target.value))}
+            className="w-full accent-indigo-500 cursor-pointer"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Aspect Ratio Lock</span>
+          <div className="grid grid-cols-4 gap-1.5 p-1 rounded-xl bg-zinc-900/40 border border-zinc-800/80">
+            {(['auto', '1:1', '4:3', '16:9'] as AspectRatio[]).map((ratio) => (
               <button
                 key={ratio}
                 onClick={() => updateSetting('aspectRatio', ratio)}
-                className={`px-2 py-1.5 rounded-xl text-xs font-semibold uppercase border transition-all ${
-                  isSelected
-                    ? isDark
-                      ? 'bg-white text-black border-white'
-                      : 'bg-black text-white border-black'
+                className={`py-1.5 text-[11px] font-semibold uppercase rounded-lg transition-colors ${
+                  settings.aspectRatio === ratio
+                    ? 'bg-white text-black shadow-xs font-bold'
                     : isDark
-                    ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
-                    : 'bg-white border-zinc-300 text-zinc-600 hover:text-zinc-900'
+                    ? 'text-zinc-400 hover:text-white'
+                    : 'text-zinc-600 hover:text-black'
                 }`}
               >
                 {ratio}
               </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Toggles */}
-      <div className={`flex flex-col gap-3 pt-3 border-t ${isDark ? 'border-zinc-800' : 'border-zinc-200'}`}>
-        <label className={`flex items-center justify-between cursor-pointer text-xs font-medium ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-          <span>Line Numbers</span>
-          <input
-            type="checkbox"
-            checked={settings.lineNumbers}
-            onChange={(e) => updateSetting('lineNumbers', e.target.checked)}
-            className={`w-4 h-4 rounded cursor-pointer ${isDark ? 'accent-white' : 'accent-black'}`}
-          />
-        </label>
-
-        <label className={`flex items-center justify-between cursor-pointer text-xs font-medium ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-          <span>Drop Shadow</span>
-          <input
-            type="checkbox"
-            checked={settings.dropShadow}
-            onChange={(e) => updateSetting('dropShadow', e.target.checked)}
-            className={`w-4 h-4 rounded cursor-pointer ${isDark ? 'accent-white' : 'accent-black'}`}
-          />
-        </label>
-
-        <div className="flex flex-col gap-2">
-          <label className={`flex items-center justify-between cursor-pointer text-xs font-medium ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-            <span>Watermark Badge</span>
-            <input
-              type="checkbox"
-              checked={settings.watermark}
-              onChange={(e) => updateSetting('watermark', e.target.checked)}
-              className={`w-4 h-4 rounded cursor-pointer ${isDark ? 'accent-white' : 'accent-black'}`}
-            />
-          </label>
-          {settings.watermark && (
-            <input
-              type="text"
-              value={settings.watermarkText}
-              onChange={(e) => updateSetting('watermarkText', e.target.value)}
-              placeholder="e.g. @yourname"
-              className={`w-full rounded-lg px-2.5 py-1.5 text-xs focus:outline-none border transition-colors ${
-                isDark
-                  ? 'bg-zinc-900 border-zinc-800 text-zinc-200 focus:border-zinc-500'
-                  : 'bg-white border-zinc-300 text-zinc-900 focus:border-zinc-400'
-              }`}
-            />
-          )}
+            ))}
+          </div>
         </div>
       </div>
     </div>

@@ -18,7 +18,6 @@ import {
   SiMarkdown,
 } from 'react-icons/si';
 import {
-  Camera,
   Sparkles,
   Layers,
   GitCompare,
@@ -30,10 +29,11 @@ import {
   ChevronDown,
   ChevronUp,
   Download,
-  Keyboard,
   Palette,
+  Play,
 } from 'lucide-react';
 import type { SnippetSettings } from '../types';
+import { Logo } from './Logo';
 
 interface LandingPageProps {
   settings: SnippetSettings;
@@ -54,16 +54,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
       a: 'Yes, 100% free with no hidden paywalls, subscription fees, or export limits.',
     },
     {
+      q: 'What is the Motion Code feature?',
+      a: 'Motion Code simulates a real-time typing animation for your code snippet, allowing you to showcase how code is written step by step.',
+    },
+    {
       q: 'Is my source code private and secure?',
       a: 'Absolutely. CodeMotion processes everything locally in your browser using Shiki and HTML5 Canvas API. Your code is never sent to any external server.',
     },
     {
       q: 'Why is the syntax highlighting so accurate?',
       a: 'CodeMotion utilizes Shiki, the exact same syntax highlighting engine used inside VS Code with official TextMate grammars.',
-    },
-    {
-      q: 'Can I export images with transparent backgrounds?',
-      a: 'Yes! You can toggle transparent backgrounds or pick from curated monochrome and gradient presets.',
     },
     {
       q: 'What formats can I export my code snippets into?',
@@ -138,7 +138,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               isDark ? 'bg-zinc-900 border-zinc-700 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-900'
             }`}
           >
-            <Camera className="h-5 w-5" />
+            <Logo className="w-5 h-5" />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-lg font-extrabold tracking-tight">CodeMotion</span>
@@ -200,18 +200,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Zero-Friction Code Snippet Graphics</span>
+          <span>Zero-Friction Code Graphics & Typing Motion</span>
         </motion.div>
 
         <motion.h1 variants={fadeInUp} className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] mb-6 font-sans">
           Turn Code Into High-Res <br className="hidden sm:block" />
           <span className={isDark ? 'text-white underline decoration-zinc-700' : 'text-black underline decoration-zinc-300'}>
-            Production Images
+            Production & Motion Images
           </span>
         </motion.h1>
 
         <motion.p variants={fadeInUp} className={`text-base sm:text-xl max-w-2xl font-sans mb-10 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-          Create aesthetic code snippet graphics for X (Twitter), LinkedIn, blogs, and presentations without login or setup.
+          Create aesthetic code snippet graphics and animated typing motions for X, LinkedIn, blogs, and presentations.
         </motion.p>
 
         <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center gap-4 mb-12">
@@ -223,7 +223,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
                 : 'bg-black text-white hover:bg-zinc-800 shadow-black/10'
             }`}
           >
-            <Camera className="w-4 h-4" />
+            <Logo className="w-5 h-5" />
             <span>Launch CodeMotion Editor</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
@@ -251,10 +251,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
 
           <pre className="font-mono text-xs sm:text-sm text-zinc-200 leading-relaxed overflow-x-auto m-0">
             <code>
-              <span className="text-purple-400">import</span> &#123; createSnippet &#125; <span className="text-purple-400">from</span> <span className="text-emerald-400">'@codemotion/core'</span>;{'\n\n'}
-              <span className="text-blue-400">const</span> snippet = <span className="text-purple-400">await</span> <span className="text-yellow-400">createSnippet</span>(&#123;{'\n'}
+              <span className="text-purple-400">import</span> &#123; playMotion &#125; <span className="text-purple-400">from</span> <span className="text-emerald-400">'@codemotion/core'</span>;{'\n\n'}
+              <span className="text-blue-400">const</span> snippet = <span className="text-purple-400">await</span> <span className="text-yellow-400">playMotion</span>(&#123;{'\n'}
               {'  '}language: <span className="text-emerald-400">'typescript'</span>,{'\n'}
-              {'  '}theme: <span className="text-emerald-400">'vitesse-dark'</span>,{'\n'}
+              {'  '}motionSpeed: <span className="text-amber-400">2.0</span>,{'\n'}
               {'  '}pixelRatio: <span className="text-amber-400">3</span>,{'\n'}
               &#125;);
             </code>
@@ -277,12 +277,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
         <div className="text-center mb-12">
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight mb-3">Designed for Developers & Creators</h2>
           <p className={`text-sm sm:text-base ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            Everything you need to showcase beautiful code graphics on social media and documentation.
+            Everything you need to showcase beautiful code graphics & typing motion on social media.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
+            {
+              icon: <Play className="w-6 h-6" />,
+              color: 'bg-sky-500/10 text-sky-400',
+              title: 'Motion Code Typing',
+              desc: 'Simulate real-time typing animation for your code snippets with speed controls (0.5x - 2x).',
+            },
             {
               icon: <Zap className="w-6 h-6" />,
               color: 'bg-indigo-500/10 text-indigo-400',
@@ -306,12 +312,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               color: 'bg-purple-500/10 text-purple-400',
               title: 'High-DPI 3x Export',
               desc: 'Export crystal sharp PNGs at 2x/3x DPI, vector SVG graphics, or copy image blob directly to clipboard.',
-            },
-            {
-              icon: <Keyboard className="w-6 h-6" />,
-              color: 'bg-cyan-500/10 text-cyan-400',
-              title: 'Hotkeys & Productivity',
-              desc: 'Use Cmd + S for instant 3x PNG download and Cmd + Shift + C to write image blob to system clipboard.',
             },
             {
               icon: <ShieldCheck className="w-6 h-6" />,
@@ -349,13 +349,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight mb-3">How CodeMotion Works</h2>
           <p className={`text-sm sm:text-base mb-12 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            3 simple steps to transform plain text code into beautiful graphics.
+            3 simple steps to transform plain text code into beautiful graphics and motion.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             {[
               { num: '1', title: 'Paste Your Code', desc: 'Paste or type code into the dual-layer live editor. Auto-detect language is supported.' },
-              { num: '2', title: 'Customize Visuals', desc: 'Choose themes, background canvas, fonts, window frames, padding, and aspect ratio lock.' },
+              { num: '2', title: 'Customize & Play Motion', desc: 'Choose themes, background canvas, fonts, window frames, and trigger typing motion.' },
               { num: '3', title: 'Export & Share', desc: 'Export high-DPI 3x PNG, SVG, or copy image directly to system clipboard.' },
             ].map((step, i) => (
               <div key={i} className="flex flex-col items-center">
@@ -500,15 +500,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
       {/* 8. Final Call to Action */}
       <section className="py-16 px-6 text-center">
         <div className="max-w-4xl mx-auto p-8 sm:p-12 rounded-3xl bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 border border-zinc-800 text-white shadow-2xl">
-          <h2 className="text-2xl sm:text-4xl font-extrabold mb-4">Ready to Create Code Snippet Images?</h2>
+          <h2 className="text-2xl sm:text-4xl font-extrabold mb-4">Ready to Create Code Snippet Images & Motion?</h2>
           <p className="text-zinc-400 text-sm sm:text-base max-w-xl mx-auto mb-8">
-            No signup, no login required. Transform plain text code into stunning production graphics in seconds.
+            No signup, no login required. Transform plain text code into stunning production graphics and motion in seconds.
           </p>
           <Link
             to="/editor"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold bg-white text-black hover:bg-zinc-200 transition-all transform hover:scale-105 no-underline shadow-xl"
           >
-            <Camera className="w-4 h-4" />
+            <Logo className="w-5 h-5" />
             <span>Open CodeMotion Editor</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
