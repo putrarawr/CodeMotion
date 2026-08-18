@@ -41,3 +41,22 @@
 .animate-marquee-reverse:hover {
   animation-play-state: paused;
 }
+
+/* Reset Shiki pre & code defaults for exact line alignment */
+.shiki-container pre {
+  background-color: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  white-space: pre !important;
+  overflow: visible !important;
+}
+
+.shiki-container code {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  white-space: pre !important;
+}

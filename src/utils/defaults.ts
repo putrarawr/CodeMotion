@@ -28,18 +28,6 @@ async function fetchSnippet(id: string): Promise<UserProfile> {
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
 }`,
   },
-  {
-    id: 'tab-3',
-    title: 'refactor.ts',
-    language: 'typescript',
-    code: `- function calculatePrice(total) {
--   return total * 1.1;
-- }
-+ function calculateTotalPrice(subtotal: number, taxRate: number = 0.1): number {
-+   const tax = subtotal * taxRate;
-+   return Math.round((subtotal + tax) * 100) / 100;
-+ }`,
-  },
 ];
 
 export const INITIAL_CODE_SAMPLES: Record<string, string> = {
@@ -88,7 +76,7 @@ import "fmt"
 
 func main() {
     messages := make(chan string)
-    go func() { messages <- "CodeSnap high performance worker" }()
+    go func() { messages <- "CodeMotion high performance worker" }()
 
     msg := <-messages
     fmt.Println(msg)
@@ -110,7 +98,7 @@ export const DEFAULT_SETTINGS: SnippetSettings = {
   dropShadow: true,
   shadowBlur: 30,
   watermark: true,
-  watermarkText: 'codesnap.dev',
+  watermarkText: 'codemotion.dev',
   aspectRatio: 'auto',
   borderRadius: 16,
   appTheme: 'dark',

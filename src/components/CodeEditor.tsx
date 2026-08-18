@@ -115,7 +115,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           autoCapitalize="off"
           autoComplete="off"
           autoCorrect="off"
-          className="code-textarea w-full h-full min-h-[120px] font-mono bg-transparent text-transparent caret-indigo-400 resize-none outline-none border-none p-0 m-0 overflow-hidden whitespace-pre z-10"
+          className="code-textarea absolute inset-0 w-full h-full font-mono bg-transparent text-transparent caret-indigo-400 resize-none outline-none border-none p-0 m-0 overflow-hidden whitespace-pre z-10"
           style={{
             fontFamily,
             fontSize: `${fontSize}px`,

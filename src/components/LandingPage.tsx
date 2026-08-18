@@ -50,16 +50,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
 
   const faqs = [
     {
-      q: 'Is CodeSnap completely free to use?',
+      q: 'Is CodeMotion completely free to use?',
       a: 'Yes, 100% free with no hidden paywalls, subscription fees, or export limits.',
     },
     {
       q: 'Is my source code private and secure?',
-      a: 'Absolutely. CodeSnap processes everything locally in your browser using Shiki and HTML5 Canvas API. Your code is never sent to any external server.',
+      a: 'Absolutely. CodeMotion processes everything locally in your browser using Shiki and HTML5 Canvas API. Your code is never sent to any external server.',
     },
     {
       q: 'Why is the syntax highlighting so accurate?',
-      a: 'CodeSnap utilizes Shiki, the exact same syntax highlighting engine used inside VS Code with official TextMate grammars.',
+      a: 'CodeMotion utilizes Shiki, the exact same syntax highlighting engine used inside VS Code with official TextMate grammars.',
     },
     {
       q: 'Can I export images with transparent backgrounds?',
@@ -141,14 +141,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             <Camera className="h-5 w-5" />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-lg font-extrabold tracking-tight">CodeSnap</span>
-            <span
-              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                isDark ? 'bg-zinc-900 text-zinc-300 border-zinc-800' : 'bg-zinc-100 text-zinc-700 border-zinc-300'
-              }`}
-            >
-              Minimal 2.0
-            </span>
+            <span className="text-lg font-extrabold tracking-tight">CodeMotion</span>
           </div>
         </Link>
 
@@ -231,7 +224,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             }`}
           >
             <Camera className="w-4 h-4" />
-            <span>Launch CodeSnap Editor</span>
+            <span>Launch CodeMotion Editor</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </motion.div>
@@ -258,7 +251,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
 
           <pre className="font-mono text-xs sm:text-sm text-zinc-200 leading-relaxed overflow-x-auto m-0">
             <code>
-              <span className="text-purple-400">import</span> &#123; createSnippet &#125; <span className="text-purple-400">from</span> <span className="text-emerald-400">'@codesnap/core'</span>;{'\n\n'}
+              <span className="text-purple-400">import</span> &#123; createSnippet &#125; <span className="text-purple-400">from</span> <span className="text-emerald-400">'@codemotion/core'</span>;{'\n\n'}
               <span className="text-blue-400">const</span> snippet = <span className="text-purple-400">await</span> <span className="text-yellow-400">createSnippet</span>(&#123;{'\n'}
               {'  '}language: <span className="text-emerald-400">'typescript'</span>,{'\n'}
               {'  '}theme: <span className="text-emerald-400">'vitesse-dark'</span>,{'\n'}
@@ -267,7 +260,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             </code>
           </pre>
           <div className="flex justify-end mt-4">
-            <span className="text-[11px] font-mono text-zinc-400 bg-zinc-900/80 px-2.5 py-0.5 rounded-full border border-zinc-800">codesnap.dev</span>
+            <span className="text-[11px] font-mono text-zinc-400 bg-zinc-900/80 px-2.5 py-0.5 rounded-full border border-zinc-800">codemotion.dev</span>
           </div>
         </div>
       </motion.section>
@@ -354,7 +347,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
         }`}
       >
         <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight mb-3">How CodeSnap Works</h2>
+          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight mb-3">How CodeMotion Works</h2>
           <p className={`text-sm sm:text-base mb-12 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
             3 simple steps to transform plain text code into beautiful graphics.
           </p>
@@ -516,7 +509,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold bg-white text-black hover:bg-zinc-200 transition-all transform hover:scale-105 no-underline shadow-xl"
           >
             <Camera className="w-4 h-4" />
-            <span>Open CodeSnap Editor</span>
+            <span>Open CodeMotion Editor</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -524,7 +517,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
 
       {/* 9. Footer */}
       <footer className={`py-6 border-t text-center text-xs ${isDark ? 'border-zinc-800 text-zinc-500' : 'border-zinc-200 text-zinc-600'}`}>
-        <p>CodeSnap 2.0 • Zero-Friction Client-Side Code Snippet Generator</p>
+        <p>CodeMotion 2.0 • Zero-Friction Client-Side Code Snippet Generator</p>
       </footer>
     </motion.div>
   );
