@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { WindowStyle, SupportedLanguage, SnippetTab } from '../types';
-import { Minus, Square, X, Plus, FileCode2 } from 'lucide-react';
+import { Minus, Square, X, Plus, FileCode2, Edit2 } from 'lucide-react';
 
 interface WindowFrameProps {
   windowStyle: WindowStyle;
@@ -24,6 +24,8 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
   onRemoveTab,
   children,
 }) => {
+  const [editingTabId, setEditingTabId] = useState<string | null>(null);
+
   return (
     <div className="w-full flex flex-col rounded-2xl overflow-hidden shadow-2xl transition-all duration-200 border border-white/10 bg-slate-950/60 backdrop-blur-md">
       {/* Header Bar with Multi-File Tabs */}
@@ -54,6 +56,8 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
           <div className="flex-1 flex items-center gap-1.5 overflow-x-auto py-0.5">
             {tabs.map((tab) => {
               const isActive = tab.id === activeTabId;
+              const isEditing = editingTabId === tab.id;
+
               return (
                 <div
                   key={tab.id}
@@ -64,20 +68,52 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
                       : 'bg-zinc-950/40 text-zinc-400 hover:text-zinc-200 border-transparent hover:bg-zinc-900/50'
                   }`}
                 >
-                  <input
-                    type="text"
-                    value={tab.title}
-                    onChange={(e) => onUpdateTabTitle(tab.id, e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="bg-transparent text-xs font-mono outline-none border-none max-w-[110px] truncate"
-                    style={{ width: `${Math.max(tab.title.length * 7.5, 40)}px` }}
-                  />
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      autoFocus
+                      value={tab.title}
+                      onChange={(e) => onUpdateTabTitle(tab.id, e.target.value)}
+                      onBlur={() => setEditingTabId(null)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === 'Escape') {
+                          setEditingTabId(null);
+                        }
+                      }}
+                      className="bg-transparent text-xs font-mono outline-none border-b border-indigo-400 max-w-[120px]"
+                    />
+                  ) : (
+                    <span
+                      onDoubleClick={() => setEditingTabId(tab.id)}
+                      className="truncate max-w-[130px]"
+                      title="Double-click to rename file"
+                    >
+                      {tab.title}
+                    </span>
+                  )}
+
+                  {/* Rename Icon button on active tab */}
+                  {isActive && !isEditing && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingTabId(tab.id);
+                      }}
+                      title="Rename file"
+                      className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-white transition-opacity p-0.5"
+                    >
+                      <Edit2 className="w-2.5 h-2.5" />
+                    </button>
+                  )}
+
+                  {/* Remove Tab Button */}
                   {tabs.length > 1 && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onRemoveTab(tab.id);
                       }}
+                      title="Close file"
                       className="opacity-0 group-hover:opacity-100 hover:text-red-400 p-0.5 rounded transition-opacity"
                     >
                       <X className="w-3 h-3" />

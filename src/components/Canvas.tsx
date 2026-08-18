@@ -30,7 +30,6 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
     borderRadius,
   } = settings;
 
-  // Active tab resolution with fallback
   const activeTab: SnippetTab = tabs.find((t) => t.id === activeTabId) || tabs[0] || {
     id: 'tab-1',
     title: 'App.tsx',
@@ -98,7 +97,7 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
   const isTransparent = background === 'transparent';
 
   return (
-    <div className="w-full flex items-center justify-center p-2 sm:p-6 min-h-[460px]">
+    <div className="w-full flex items-center justify-center p-2 sm:p-4">
       <div
         className={`relative w-full max-w-4xl transition-all duration-300 rounded-3xl overflow-hidden shadow-2xl ${
           isTransparent ? 'bg-checkerboard border border-zinc-800' : ''
