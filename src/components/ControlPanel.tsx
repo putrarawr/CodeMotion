@@ -75,7 +75,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
   return (
     <div
-      className={`w-full h-full border-t lg:border-t-0 lg:border-l p-5 pb-16 flex flex-col gap-6 overflow-y-auto select-none transition-colors duration-200 ${
+      className={`w-full h-full border-t lg:border-t-0 lg:border-l p-5 pb-16 flex flex-col gap-6 overflow-y-auto transition-colors duration-200 ${
         isDark
           ? 'bg-zinc-950/90 border-zinc-800/80 text-zinc-200'
           : 'bg-zinc-50/90 border-zinc-200 text-zinc-800'
@@ -163,7 +163,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
           <button
             onClick={() => updateSetting('isPlayingMotion', !settings.isPlayingMotion)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               settings.isPlayingMotion
                 ? 'bg-sky-500 text-white shadow-md'
                 : isDark
@@ -185,7 +185,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 <button
                   key={s}
                   onClick={() => updateSetting('motionSpeed', s)}
-                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition-colors cursor-pointer ${
                     settings.motionSpeed === s
                       ? 'bg-sky-500/20 text-sky-400 border-sky-500/40'
                       : isDark
@@ -203,7 +203,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             <button
               onClick={onRecordVideo}
               disabled={recordingProgress !== null && recordingProgress !== undefined}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold bg-sky-500/20 text-sky-400 border border-sky-500/40 hover:bg-sky-500/30 transition-all disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold bg-sky-500/20 text-sky-400 border border-sky-500/40 hover:bg-sky-500/30 transition-all disabled:opacity-50 cursor-pointer"
             >
               <Video className="w-4 h-4" />
               <span>
@@ -225,7 +225,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           </label>
           <button
             onClick={handleAutoDetectLanguage}
-            className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 transition-colors ${
+            className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 transition-colors cursor-pointer ${
               isDark
                 ? 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:bg-zinc-800'
                 : 'bg-zinc-100 text-zinc-700 border-zinc-300 hover:bg-zinc-200'
@@ -240,7 +240,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         <select
           value={activeTab?.language || 'typescript'}
           onChange={(e) => handleLanguageChange(e.target.value as SupportedLanguage)}
-          className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer ${
+          className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer relative z-10 ${
             isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900'
           }`}
         >
@@ -261,7 +261,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         <select
           value={settings.theme}
           onChange={(e) => updateSetting('theme', e.target.value as SupportedTheme)}
-          className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer ${
+          className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer relative z-10 ${
             isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900'
           }`}
         >
@@ -283,7 +283,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         <select
           value={settings.fontFamily}
           onChange={(e) => updateSetting('fontFamily', e.target.value)}
-          className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer ${
+          className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer relative z-10 ${
             isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900'
           }`}
         >
@@ -322,7 +322,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             <button
               key={style}
               onClick={() => updateSetting('windowStyle', style)}
-              className={`py-1.5 text-[11px] font-semibold capitalize rounded-lg transition-colors ${
+              className={`py-1.5 text-[11px] font-semibold capitalize rounded-lg transition-colors cursor-pointer ${
                 settings.windowStyle === style
                   ? 'bg-white text-black shadow-xs font-bold'
                   : isDark
@@ -350,7 +350,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               <button
                 key={bg.id}
                 onClick={() => updateSetting('background', bg.value)}
-                className={`h-10 rounded-xl border relative overflow-hidden transition-transform transform active:scale-95 ${
+                className={`h-10 rounded-xl border relative overflow-hidden transition-transform transform active:scale-95 cursor-pointer ${
                   isSelected ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-zinc-950 border-white' : 'border-zinc-800'
                 }`}
                 style={{ background: bg.value }}
@@ -397,7 +397,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               <button
                 key={ratio}
                 onClick={() => updateSetting('aspectRatio', ratio)}
-                className={`py-1.5 text-[11px] font-semibold uppercase rounded-lg transition-colors ${
+                className={`py-1.5 text-[11px] font-semibold uppercase rounded-lg transition-colors cursor-pointer ${
                   settings.aspectRatio === ratio
                     ? 'bg-white text-black shadow-xs font-bold'
                     : isDark

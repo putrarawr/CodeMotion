@@ -96,8 +96,8 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </Link>
 
-      {/* Quick Actions & Responsive Controls */}
-      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar">
+      {/* Quick Actions & Navigation Controls */}
+      <div className="flex items-center gap-1.5 sm:gap-2">
         {/* Landing Page Route Link */}
         <Link
           to="/"
@@ -115,8 +115,8 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Presets Dropdown */}
         <div className="relative" ref={presetsRef}>
           <button
-            onClick={() => setShowPresetsMenu(!showPresetsMenu)}
-            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+            onClick={() => setShowPresetsMenu((prev) => !prev)}
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-xs font-medium rounded-lg border transition-all cursor-pointer ${
               isDark
                 ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
                 : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-zinc-200'
@@ -129,7 +129,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {showPresetsMenu && (
             <div
-              className={`absolute right-0 mt-2 w-56 rounded-xl border shadow-xl p-1.5 z-50 transition-all ${
+              className={`absolute right-0 mt-2 w-56 rounded-xl border shadow-2xl p-1.5 z-50 transition-all ${
                 isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'
               }`}
             >
@@ -140,7 +140,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   key={preset.id}
                   onClick={() => applyPreset(preset)}
-                  className={`w-full text-left px-2.5 py-2 rounded-lg text-xs transition-colors flex flex-col gap-0.5 ${
+                  className={`w-full text-left px-2.5 py-2 rounded-lg text-xs transition-colors flex flex-col gap-0.5 cursor-pointer ${
                     isDark ? 'hover:bg-zinc-800 text-zinc-200' : 'hover:bg-zinc-100 text-zinc-900'
                   }`}
                 >
@@ -156,7 +156,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           onClick={toggleAppTheme}
           title={isDark ? 'Switch to Light UI' : 'Switch to Dark UI'}
-          className={`p-1.5 rounded-lg border transition-colors ${
+          className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
             isDark
               ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
               : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
@@ -169,7 +169,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           onClick={onReset}
           title="Reset to default settings"
-          className={`p-1.5 rounded-lg border transition-colors ${
+          className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
             isDark
               ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
               : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black hover:bg-zinc-200'
@@ -184,7 +184,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           onClick={onCopyImage}
           disabled={isExporting}
-          className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-lg border transition-all shadow-xs disabled:opacity-50 ${
+          className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-lg border transition-all shadow-xs disabled:opacity-50 cursor-pointer ${
             isDark
               ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
               : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-zinc-200'
@@ -206,15 +206,15 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => onDownloadPng(selectedRatio)}
               disabled={isExporting}
-              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold transition-colors disabled:opacity-50"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold transition-colors disabled:opacity-50 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Export</span>
             </button>
             <button
-              onClick={() => setShowPngDropdown(!showPngDropdown)}
+              onClick={() => setShowPngDropdown((prev) => !prev)}
               disabled={isExporting}
-              className={`px-1.5 sm:px-2 py-1.5 border-l transition-colors ${
+              className={`px-1.5 sm:px-2 py-1.5 border-l transition-colors cursor-pointer ${
                 isDark ? 'border-zinc-300 hover:bg-zinc-200' : 'border-zinc-700 hover:bg-zinc-800'
               }`}
             >
@@ -224,13 +224,13 @@ export const Header: React.FC<HeaderProps> = ({
 
           {showPngDropdown && (
             <div
-              className={`absolute right-0 mt-2 w-52 rounded-xl border shadow-xl p-1.5 z-50 transition-all ${
+              className={`absolute right-0 mt-2 w-52 rounded-xl border shadow-2xl p-1.5 z-50 transition-all ${
                 isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'
               }`}
             >
               <button
                 onClick={() => handleExportPng(2)}
-                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors ${
+                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
                   isDark ? 'hover:bg-zinc-800' : 'hover:bg-zinc-100'
                 }`}
               >
@@ -243,7 +243,7 @@ export const Header: React.FC<HeaderProps> = ({
 
               <button
                 onClick={() => handleExportPng(3)}
-                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors ${
+                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
                   isDark ? 'hover:bg-zinc-800 font-semibold' : 'hover:bg-zinc-100 font-semibold'
                 }`}
               >
@@ -260,7 +260,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onRecordVideo();
                   setShowPngDropdown(false);
                 }}
-                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between border-t mt-1 pt-2 transition-colors ${
+                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between border-t mt-1 pt-2 transition-colors cursor-pointer ${
                   isDark ? 'hover:bg-zinc-800 border-zinc-800 text-sky-400 font-bold' : 'hover:bg-zinc-100 border-zinc-200 text-sky-600 font-bold'
                 }`}
               >
@@ -275,7 +275,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onDownloadSvg();
                   setShowPngDropdown(false);
                 }}
-                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors ${
+                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
                   isDark ? 'hover:bg-zinc-800' : 'hover:bg-zinc-100'
                 }`}
               >
