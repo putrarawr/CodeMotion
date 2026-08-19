@@ -30,7 +30,7 @@ export type SupportedTheme =
 
 export type WindowStyle = 'macos' | 'windows' | 'minimal' | 'none';
 
-export type AspectRatio = 'auto' | '1:1' | '4:3' | '16:9';
+export type AspectRatio = 'auto' | '1:1' | '4:3' | '16:9' | '9:16';
 
 export type AppTheme = 'dark' | 'light';
 
@@ -52,6 +52,9 @@ export interface SnippetSettings {
   motionSpeed: number; // 1 = 1x, 2 = 2x, 0.5 = 0.5x
   isPlayingMotion: boolean;
   controlledTypedLength?: number | null;
+
+  // Line Spotlight / Focus Mode
+  focusedLines?: number[];
 
   // Styling & Customization
   theme: SupportedTheme;

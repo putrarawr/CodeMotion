@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, Download, Sparkles, RefreshCw, FileCode2, Image, ChevronDown, Sun, Moon, Check, Home, Video } from 'lucide-react';
+import { Copy, Download, Sparkles, RefreshCw, FileCode2, Image, ChevronDown, Sun, Moon, Check, Home, Video, Share2, HelpCircle } from 'lucide-react';
 import type { SnippetSettings, AestheticPreset } from '../types';
 import { AESTHETIC_PRESETS } from '../utils/presets';
 import { Logo } from './Logo';
@@ -12,7 +12,9 @@ interface HeaderProps {
   onDownloadPng: (ratio: number) => void;
   onDownloadSvg: () => void;
   onRecordVideo: () => void;
+  onShareLink: () => void;
   onReset: () => void;
+  onOpenUserTour: () => void;
   isExporting: boolean;
 }
 
@@ -23,7 +25,9 @@ export const Header: React.FC<HeaderProps> = ({
   onDownloadPng,
   onDownloadSvg,
   onRecordVideo,
+  onShareLink,
   onReset,
+  onOpenUserTour,
   isExporting,
 }) => {
   const [showPresetsMenu, setShowPresetsMenu] = useState(false);
@@ -97,7 +101,21 @@ export const Header: React.FC<HeaderProps> = ({
       </Link>
 
       {/* Quick Actions & Navigation Controls */}
-      <div className="flex items-center gap-1.5 sm:gap-2">
+      <div id="header-actions" className="flex items-center gap-1.5 sm:gap-2">
+        {/* User Guide Tour Button */}
+        <button
+          onClick={onOpenUserTour}
+          title="Open User Guide & Interactive Tour"
+          className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all cursor-pointer ${
+            isDark
+              ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
+              : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
+          }`}
+        >
+          <HelpCircle className="w-3.5 h-3.5 text-sky-400" />
+          <span className="hidden lg:inline">Guide</span>
+        </button>
+
         {/* Landing Page Route Link */}
         <Link
           to="/"
@@ -179,6 +197,20 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         <div className={`h-4 w-[1px] mx-0.5 hidden sm:block ${isDark ? 'bg-zinc-800' : 'bg-zinc-300'}`} />
+
+        {/* Shareable Link Button */}
+        <button
+          onClick={onShareLink}
+          title="Copy shareable link with encoded code snippet"
+          className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-lg border transition-all shadow-xs cursor-pointer ${
+            isDark
+              ? 'bg-zinc-900 border-zinc-800 text-sky-400 hover:bg-zinc-800 hover:text-sky-300 font-semibold'
+              : 'bg-zinc-100 border-zinc-300 text-sky-600 hover:bg-zinc-200 font-semibold'
+          }`}
+        >
+          <Share2 className="w-3.5 h-3.5" />
+          <span className="hidden md:inline">Share</span>
+        </button>
 
         {/* Copy Image Button */}
         <button

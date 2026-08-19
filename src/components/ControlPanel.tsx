@@ -132,6 +132,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
       {/* Feature 2: Code Motion (Animated Typing Simulator) Card */}
       <div
+        id="motion-card"
         className={`p-4 rounded-2xl border transition-all flex flex-col gap-3 ${
           settings.isPlayingMotion
             ? 'bg-gradient-to-r from-sky-500/10 via-sky-500/5 to-transparent border-sky-500/30'
@@ -216,198 +217,201 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </div>
       </div>
 
-      {/* 1. Active Tab Language Selector */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-            <Code className="w-3.5 h-3.5" />
-            <span>Active Tab Language</span>
-          </label>
-          <button
-            onClick={handleAutoDetectLanguage}
-            className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 transition-colors cursor-pointer ${
-              isDark
-                ? 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:bg-zinc-800'
-                : 'bg-zinc-100 text-zinc-700 border-zinc-300 hover:bg-zinc-200'
-            }`}
-            title="Auto detect language from current code"
-          >
-            <Wand2 className="w-3 h-3 text-amber-400" />
-            <span>Auto Detect</span>
-          </button>
-        </div>
-
-        <select
-          value={activeTab?.language || 'typescript'}
-          onChange={(e) => handleLanguageChange(e.target.value as SupportedLanguage)}
-          className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer relative z-10 ${
-            isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900'
-          }`}
-        >
-          {LANGUAGES.map((lang) => (
-            <option key={lang.id} value={lang.id}>
-              {lang.name} ({lang.extension})
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* 2. Syntax Theme Selector */}
-      <div className="flex flex-col gap-2">
-        <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          <Palette className="w-3.5 h-3.5" />
-          <span>Syntax Theme</span>
-        </label>
-        <select
-          value={settings.theme}
-          onChange={(e) => updateSetting('theme', e.target.value as SupportedTheme)}
-          className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer relative z-10 ${
-            isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900'
-          }`}
-        >
-          {THEMES.map((theme) => (
-            <option key={theme.id} value={theme.id}>
-              {theme.name} ({theme.type})
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* 3. Font & Typography */}
-      <div className="flex flex-col gap-3">
-        <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          <Type className="w-3.5 h-3.5" />
-          <span>Font & Typography</span>
-        </label>
-
-        <select
-          value={settings.fontFamily}
-          onChange={(e) => updateSetting('fontFamily', e.target.value)}
-          className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer relative z-10 ${
-            isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900'
-          }`}
-        >
-          {FONTS.map((font) => (
-            <option key={font.id} value={font.family}>
-              {font.name}
-            </option>
-          ))}
-        </select>
-
-        <div className="flex flex-col gap-1.5">
-          <div className="flex justify-between text-xs">
-            <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Font Size</span>
-            <span className="font-mono font-bold text-xs">{settings.fontSize}px</span>
-          </div>
-          <input
-            type="range"
-            min="12"
-            max="24"
-            step="1"
-            value={settings.fontSize}
-            onChange={(e) => updateSetting('fontSize', Number(e.target.value))}
-            className="w-full accent-indigo-500 cursor-pointer"
-          />
-        </div>
-      </div>
-
-      {/* 4. Window Frame Style */}
-      <div className="flex flex-col gap-2">
-        <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          <Layout className="w-3.5 h-3.5" />
-          <span>Window Frame</span>
-        </label>
-        <div className="grid grid-cols-4 gap-1.5 p-1 rounded-xl bg-zinc-900/40 border border-zinc-800/80">
-          {(['macos', 'windows', 'minimal', 'none'] as WindowStyle[]).map((style) => (
+      {/* Customization Options Container Target */}
+      <div id="customization-card" className="flex flex-col gap-6">
+        {/* 1. Active Tab Language Selector */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+              <Code className="w-3.5 h-3.5" />
+              <span>Active Tab Language</span>
+            </label>
             <button
-              key={style}
-              onClick={() => updateSetting('windowStyle', style)}
-              className={`py-1.5 text-[11px] font-semibold capitalize rounded-lg transition-colors cursor-pointer ${
-                settings.windowStyle === style
-                  ? 'bg-white text-black shadow-xs font-bold'
-                  : isDark
-                  ? 'text-zinc-400 hover:text-white'
-                  : 'text-zinc-600 hover:text-black'
+              onClick={handleAutoDetectLanguage}
+              className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 transition-colors cursor-pointer ${
+                isDark
+                  ? 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:bg-zinc-800'
+                  : 'bg-zinc-100 text-zinc-700 border-zinc-300 hover:bg-zinc-200'
               }`}
+              title="Auto detect language from current code"
             >
-              {style}
+              <Wand2 className="w-3 h-3 text-amber-400" />
+              <span>Auto Detect</span>
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 5. Canvas Background Presets */}
-      <div className="flex flex-col gap-2">
-        <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          <Palette className="w-3.5 h-3.5" />
-          <span>Canvas Background</span>
-        </label>
-
-        <div className="grid grid-cols-4 gap-2">
-          {BACKGROUND_PRESETS.map((bg) => {
-            const isSelected = settings.background === bg.value;
-            return (
-              <button
-                key={bg.id}
-                onClick={() => updateSetting('background', bg.value)}
-                className={`h-10 rounded-xl border relative overflow-hidden transition-transform transform active:scale-95 cursor-pointer ${
-                  isSelected ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-zinc-950 border-white' : 'border-zinc-800'
-                }`}
-                style={{ background: bg.value }}
-                title={bg.name}
-              >
-                {isSelected && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <Check className="w-4 h-4 text-white drop-shadow-md" />
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 6. Layout, Padding & Shadow Settings */}
-      <div className="flex flex-col gap-4 border-t border-zinc-800/40 pt-4">
-        <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          <Maximize2 className="w-3.5 h-3.5" />
-          <span>Canvas Padding & Aspect Ratio</span>
-        </label>
-
-        <div className="flex flex-col gap-1.5">
-          <div className="flex justify-between text-xs">
-            <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Outer Padding</span>
-            <span className="font-mono font-bold text-xs">{settings.padding}px</span>
           </div>
-          <input
-            type="range"
-            min="16"
-            max="80"
-            step="8"
-            value={settings.padding}
-            onChange={(e) => updateSetting('padding', Number(e.target.value))}
-            className="w-full accent-indigo-500 cursor-pointer"
-          />
+
+          <select
+            value={activeTab?.language || 'typescript'}
+            onChange={(e) => handleLanguageChange(e.target.value as SupportedLanguage)}
+            className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer relative z-10 ${
+              isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900'
+            }`}
+          >
+            {LANGUAGES.map((lang) => (
+              <option key={lang.id} value={lang.id}>
+                {lang.name} ({lang.extension})
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Aspect Ratio Lock</span>
+        {/* 2. Syntax Theme Selector */}
+        <div className="flex flex-col gap-2">
+          <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            <Palette className="w-3.5 h-3.5" />
+            <span>Syntax Theme</span>
+          </label>
+          <select
+            value={settings.theme}
+            onChange={(e) => updateSetting('theme', e.target.value as SupportedTheme)}
+            className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer relative z-10 ${
+              isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900'
+            }`}
+          >
+            {THEMES.map((theme) => (
+              <option key={theme.id} value={theme.id}>
+                {theme.name} ({theme.type})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 3. Font & Typography */}
+        <div className="flex flex-col gap-3">
+          <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            <Type className="w-3.5 h-3.5" />
+            <span>Font & Typography</span>
+          </label>
+
+          <select
+            value={settings.fontFamily}
+            onChange={(e) => updateSetting('fontFamily', e.target.value)}
+            className={`w-full text-xs font-semibold rounded-xl border p-2.5 outline-none transition-colors cursor-pointer relative z-10 ${
+              isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900'
+            }`}
+          >
+            {FONTS.map((font) => (
+              <option key={font.id} value={font.family}>
+                {font.name}
+              </option>
+            ))}
+          </select>
+
+          <div className="flex flex-col gap-1.5">
+            <div className="flex justify-between text-xs">
+              <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Font Size</span>
+              <span className="font-mono font-bold text-xs">{settings.fontSize}px</span>
+            </div>
+            <input
+              type="range"
+              min="12"
+              max="24"
+              step="1"
+              value={settings.fontSize}
+              onChange={(e) => updateSetting('fontSize', Number(e.target.value))}
+              className="w-full accent-indigo-500 cursor-pointer"
+            />
+          </div>
+        </div>
+
+        {/* 4. Window Frame Style */}
+        <div className="flex flex-col gap-2">
+          <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            <Layout className="w-3.5 h-3.5" />
+            <span>Window Frame</span>
+          </label>
           <div className="grid grid-cols-4 gap-1.5 p-1 rounded-xl bg-zinc-900/40 border border-zinc-800/80">
-            {(['auto', '1:1', '4:3', '16:9'] as AspectRatio[]).map((ratio) => (
+            {(['macos', 'windows', 'minimal', 'none'] as WindowStyle[]).map((style) => (
               <button
-                key={ratio}
-                onClick={() => updateSetting('aspectRatio', ratio)}
-                className={`py-1.5 text-[11px] font-semibold uppercase rounded-lg transition-colors cursor-pointer ${
-                  settings.aspectRatio === ratio
+                key={style}
+                onClick={() => updateSetting('windowStyle', style)}
+                className={`py-1.5 text-[11px] font-semibold capitalize rounded-lg transition-colors cursor-pointer ${
+                  settings.windowStyle === style
                     ? 'bg-white text-black shadow-xs font-bold'
                     : isDark
                     ? 'text-zinc-400 hover:text-white'
                     : 'text-zinc-600 hover:text-black'
                 }`}
               >
-                {ratio}
+                {style}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* 5. Canvas Background Presets */}
+        <div className="flex flex-col gap-2">
+          <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            <Palette className="w-3.5 h-3.5" />
+            <span>Canvas Background</span>
+          </label>
+
+          <div className="grid grid-cols-4 gap-2">
+            {BACKGROUND_PRESETS.map((bg) => {
+              const isSelected = settings.background === bg.value;
+              return (
+                <button
+                  key={bg.id}
+                  onClick={() => updateSetting('background', bg.value)}
+                  className={`h-10 rounded-xl border relative overflow-hidden transition-transform transform active:scale-95 cursor-pointer ${
+                    isSelected ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-zinc-950 border-white' : 'border-zinc-800'
+                  }`}
+                  style={{ background: bg.value }}
+                  title={bg.name}
+                >
+                  {isSelected && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <Check className="w-4 h-4 text-white drop-shadow-md" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 6. Layout, Padding & Shadow Settings */}
+        <div className="flex flex-col gap-4 border-t border-zinc-800/40 pt-4">
+          <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            <Maximize2 className="w-3.5 h-3.5" />
+            <span>Canvas Padding & Aspect Ratio</span>
+          </label>
+
+          <div className="flex flex-col gap-1.5">
+            <div className="flex justify-between text-xs">
+              <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Outer Padding</span>
+              <span className="font-mono font-bold text-xs">{settings.padding}px</span>
+            </div>
+            <input
+              type="range"
+              min="16"
+              max="80"
+              step="8"
+              value={settings.padding}
+              onChange={(e) => updateSetting('padding', Number(e.target.value))}
+              className="w-full accent-indigo-500 cursor-pointer"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Aspect Ratio Lock</span>
+            <div className="grid grid-cols-5 gap-1 p-1 rounded-xl bg-zinc-900/40 border border-zinc-800/80">
+              {(['auto', '1:1', '4:3', '16:9', '9:16'] as AspectRatio[]).map((ratio) => (
+                <button
+                  key={ratio}
+                  onClick={() => updateSetting('aspectRatio', ratio)}
+                  className={`py-1.5 text-[10px] sm:text-[11px] font-semibold uppercase rounded-lg transition-colors cursor-pointer ${
+                    settings.aspectRatio === ratio
+                      ? 'bg-white text-black shadow-xs font-bold'
+                      : isDark
+                      ? 'text-zinc-400 hover:text-white'
+                      : 'text-zinc-600 hover:text-black'
+                  }`}
+                >
+                  {ratio}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

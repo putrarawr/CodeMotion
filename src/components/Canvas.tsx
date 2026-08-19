@@ -14,8 +14,8 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
     tabs,
     activeTabId,
     diffMode,
-    isPlayingMotion,
     motionSpeed,
+    isPlayingMotion,
     controlledTypedLength,
     theme,
     fontFamily,
@@ -25,8 +25,6 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
     padding,
     background,
     windowStyle,
-    dropShadow,
-    shadowBlur,
     watermark,
     watermarkText,
     aspectRatio,
@@ -81,6 +79,8 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
       ...prev,
       tabs: filtered,
       activeTabId: nextActive,
+      controlledTypedLength: null,
+      isPlayingMotion: false,
     }));
   };
 
@@ -96,74 +96,63 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
         return 'aspect-[4/3] justify-center';
       case '16:9':
         return 'aspect-[16/9] justify-center';
+      case '9:16':
+        return 'aspect-[9/16] justify-center';
       default:
         return 'h-auto';
     }
   };
 
-  const isTransparent = background === 'transparent';
-
   return (
-    <div className="w-full flex items-center justify-center p-1 sm:p-4">
+    <div className="w-full flex items-center justify-center p-2 sm:p-4 my-auto">
+      {/* Outer Export Container Target Element */}
       <div
-        className={`relative w-full max-w-4xl transition-all duration-300 rounded-3xl overflow-hidden shadow-2xl ${
-          isTransparent ? 'bg-checkerboard border border-zinc-800' : ''
-        }`}
+        id="export-container"
+        className={`w-full max-w-4xl relative flex flex-col items-center overflow-hidden transition-all duration-300 ${getAspectRatioStyle()}`}
+        style={{
+          background: background,
+          borderRadius: `${borderRadius}px`,
+          padding: `clamp(12px, 4vw, ${padding}px)`,
+        }}
       >
-        {/* Export Target Container */}
-        <div
-          id="export-container"
-          className={`w-full flex flex-col items-center transition-all duration-200 ${getAspectRatioStyle()}`}
-          style={{
-            background: background,
-            padding: `clamp(12px, 4vw, ${padding}px)`,
-            borderRadius: `${borderRadius}px`,
-          }}
-        >
-          <div
-            className="w-full transition-all duration-200"
-            style={{
-              boxShadow: dropShadow
-                ? `0 ${shadowBlur / 2}px ${shadowBlur}px -5px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1)`
-                : '0 0 0 1px rgba(255, 255, 255, 0.1)',
-            }}
+        {/* Inner Code Window Frame */}
+        <div className="w-full my-auto transition-all duration-300">
+          <WindowFrame
+            tabs={tabs}
+            activeTabId={activeTabId}
+            onSelectTab={handleSelectTab}
+            onUpdateTabTitle={handleUpdateTabTitle}
+            onAddTab={handleAddTab}
+            onRemoveTab={handleRemoveTab}
+            windowStyle={windowStyle}
+            language={activeTab.language}
           >
-            <WindowFrame
-              windowStyle={windowStyle}
-              tabs={tabs}
-              activeTabId={activeTab.id}
-              onSelectTab={handleSelectTab}
-              onUpdateTabTitle={handleUpdateTabTitle}
-              onAddTab={handleAddTab}
-              onRemoveTab={handleRemoveTab}
+            <CodeEditor
+              code={activeTab.code}
+              onChange={handleCodeChange}
               language={activeTab.language}
-            >
-              <CodeEditor
-                code={activeTab.code}
-                onChange={handleCodeChange}
-                language={activeTab.language}
-                theme={theme}
-                fontFamily={fontFamily}
-                fontSize={fontSize}
-                lineHeight={lineHeight}
-                showLineNumbers={lineNumbers}
-                diffMode={diffMode}
-                isPlayingMotion={isPlayingMotion}
-                motionSpeed={motionSpeed}
-                controlledTypedLength={controlledTypedLength}
-                onMotionFinish={handleMotionFinish}
-              />
-            </WindowFrame>
-          </div>
-
-          {watermark && watermarkText && (
-            <div className="w-full flex justify-end mt-2 sm:mt-3 opacity-60 hover:opacity-100 transition-opacity">
-              <span className="text-[10px] sm:text-[11px] font-medium font-sans text-zinc-300 tracking-wider bg-zinc-950/40 px-2 sm:px-2.5 py-0.5 rounded-full border border-white/10 select-none">
-                {watermarkText}
-              </span>
-            </div>
-          )}
+              theme={theme}
+              fontFamily={fontFamily}
+              fontSize={fontSize}
+              lineHeight={lineHeight}
+              showLineNumbers={lineNumbers}
+              diffMode={diffMode}
+              motionSpeed={motionSpeed}
+              isPlayingMotion={isPlayingMotion}
+              controlledTypedLength={controlledTypedLength}
+              onMotionFinish={handleMotionFinish}
+            />
+          </WindowFrame>
         </div>
+
+        {/* Optional Branding Watermark Badge */}
+        {watermark && watermarkText && (
+          <div className="w-full flex justify-end mt-3 px-1 pointer-events-none select-none">
+            <span className="text-[11px] font-mono font-medium tracking-wide text-white/50 backdrop-blur-md bg-black/30 px-2.5 py-1 rounded-full border border-white/10 shadow-xs">
+              {watermarkText}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

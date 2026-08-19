@@ -12,8 +12,10 @@ import { ControlPanel } from './components/ControlPanel';
 import { PresetBar } from './components/PresetBar';
 import { LandingPage } from './components/LandingPage';
 import { VideoLoadingOverlay } from './components/VideoLoadingOverlay';
+import { UserJourneyTour } from './components/UserJourneyTour';
 import { Toaster, toast } from 'sonner';
 import { recordMotionVideo, downloadBlob } from './utils/recorder';
+import { encodeStateToHash, decodeStateFromHash } from './utils/urlEncoder';
 
 function EditorWorkspace({
   settings,
@@ -24,6 +26,9 @@ function EditorWorkspace({
 }) {
   const { isExporting, downloadPng, downloadSvg, copyToClipboard } = useExport();
   const [recordingProgress, setRecordingProgress] = useState<number | null>(null);
+
+  // Modals state
+  const [isUserTourOpen, setIsUserTourOpen] = useState(false);
 
   const isDark = settings.appTheme === 'dark';
 
@@ -75,6 +80,18 @@ function EditorWorkspace({
     }
   };
 
+  const handleShareLink = () => {
+    const hashStr = encodeStateToHash(settings);
+    if (!hashStr) {
+      toast.error('Failed to generate share link.');
+      return;
+    }
+
+    const shareableUrl = `${window.location.origin}${window.location.pathname}#code=${hashStr}`;
+    navigator.clipboard.writeText(shareableUrl);
+    toast.success('Shareable link copied to clipboard!');
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
@@ -91,6 +108,15 @@ function EditorWorkspace({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [downloadPng, copyToClipboard, activeTab?.title]);
+
+  // First time tour check for Editor
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem('codemotion_tour_completed');
+    if (!hasSeenTour) {
+      setIsUserTourOpen(true);
+      localStorage.setItem('codemotion_tour_completed', 'true');
+    }
+  }, []);
 
   return (
     <motion.div
@@ -111,6 +137,13 @@ function EditorWorkspace({
         )}
       </AnimatePresence>
 
+      {/* Interactive User Journey Tour Modal */}
+      <UserJourneyTour
+        isOpen={isUserTourOpen}
+        onClose={() => setIsUserTourOpen(false)}
+        isDark={isDark}
+      />
+
       {/* Editor Header Bar */}
       <Header
         settings={settings}
@@ -119,7 +152,9 @@ function EditorWorkspace({
         onDownloadPng={(ratio) => downloadPng(ratio, activeTab?.title || 'codesnap.png', 'export-container')}
         onDownloadSvg={() => downloadSvg(activeTab?.title || 'codesnap.svg', 'export-container')}
         onRecordVideo={handleRecordVideo}
+        onShareLink={handleShareLink}
         onReset={handleReset}
+        onOpenUserTour={() => setIsUserTourOpen(true)}
         isExporting={isExporting || recordingProgress !== null}
       />
 
@@ -193,6 +228,21 @@ export default function App() {
   );
 
   useEffect(() => {
+    // Check if URL contains encoded code snippet hash
+    if (window.location.hash) {
+      const decodedSettings = decodeStateFromHash(window.location.hash);
+      if (decodedSettings) {
+        setSettings((prev) => ({
+          ...prev,
+          ...decodedSettings,
+          isPlayingMotion: false,
+          controlledTypedLength: null,
+        }));
+        toast.success('Loaded shared code snippet from URL!');
+        return;
+      }
+    }
+
     // Reset motion playing state on initial mount so editor is 100% editable
     setSettings((prev) => ({
       ...prev,
