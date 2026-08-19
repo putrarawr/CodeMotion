@@ -16,12 +16,11 @@ import {
   SiCss,
   SiJson,
   SiMarkdown,
+  SiGit,
 } from 'react-icons/si';
+import { VscCode } from 'react-icons/vsc';
 import {
-  Sparkles,
   Layers,
-  GitCompare,
-  Zap,
   ArrowRight,
   Sun,
   Moon,
@@ -300,16 +299,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
         variants={staggerContainer}
         className="flex flex-col items-center justify-center text-center px-6 lg:px-12 pt-16 pb-12 max-w-5xl mx-auto"
       >
-        <motion.div
-          variants={fadeInUp}
-          className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-wider mb-8 uppercase border ${
-            isDark ? 'bg-zinc-900 text-zinc-300 border-zinc-800' : 'bg-zinc-100 text-zinc-700 border-zinc-300'
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-          <span>ZERO-FRICTION CODE GRAPHICS & TYPING MOTION</span>
-        </motion.div>
-
         <motion.h1
           variants={fadeInUp}
           className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.12] mb-6 font-sans"
@@ -379,10 +368,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
       <section id="motion-preview" className={`py-16 px-6 lg:px-12 border-t ${isDark ? 'border-zinc-800/80 bg-zinc-950/40' : 'border-zinc-200 bg-zinc-50'}`}>
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-4 border text-sky-400 bg-sky-500/10 border-sky-500/30">
-              <Zap className="w-4 h-4 text-sky-400" />
-              <span>MOTION CODE SIMULATOR</span>
-            </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
               Animate Typing Character by Character
             </h2>
@@ -463,7 +448,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             <div className="flex items-center justify-between border-t border-zinc-800/80 pt-4 mt-4">
               <div className="flex-1 max-w-xs h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
                 <div
-                  className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 transition-all duration-75"
+                  className="h-full bg-sky-500 transition-all duration-75"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
@@ -493,9 +478,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className={`p-6 rounded-3xl border transition-all hover:border-zinc-600 ${isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200 shadow-sm'}`}>
-            <div className="h-12 w-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-4">
-              <Zap className="w-6 h-6" />
+          <div className={`p-6 rounded-2xl border transition-all ${isDark ? 'bg-zinc-900 border-zinc-800 hover:border-zinc-700' : 'bg-white border-zinc-200 shadow-sm'}`}>
+            <div className="h-11 w-11 rounded-xl bg-[#007ACC] flex items-center justify-center text-white mb-4 shadow-sm">
+              <VscCode className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold mb-2">VS Code Shiki Engine</h3>
             <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
@@ -503,9 +488,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             </p>
           </div>
 
-          <div className={`p-6 rounded-3xl border transition-all hover:border-zinc-600 ${isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200 shadow-sm'}`}>
-            <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4">
-              <Layers className="w-6 h-6" />
+          <div className={`p-6 rounded-2xl border transition-all ${isDark ? 'bg-zinc-900 border-zinc-800 hover:border-zinc-700' : 'bg-white border-zinc-200 shadow-sm'}`}>
+            <div className="h-11 w-11 rounded-xl bg-[#6366F1] flex items-center justify-center text-white mb-4 shadow-sm">
+              <Layers className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold mb-2">Multi-Tab File Navigation</h3>
             <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
@@ -513,9 +498,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             </p>
           </div>
 
-          <div className={`p-6 rounded-3xl border transition-all hover:border-zinc-600 ${isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200 shadow-sm'}`}>
-            <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4">
-              <GitCompare className="w-6 h-6" />
+          <div className={`p-6 rounded-2xl border transition-all ${isDark ? 'bg-zinc-900 border-zinc-800 hover:border-zinc-700' : 'bg-white border-zinc-200 shadow-sm'}`}>
+            <div className="h-11 w-11 rounded-xl bg-[#F05032] flex items-center justify-center text-white mb-4 shadow-sm">
+              <SiGit className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold mb-2">Code Diff Mode</h3>
             <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>

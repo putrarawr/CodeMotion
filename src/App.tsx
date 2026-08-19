@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -38,6 +38,8 @@ function EditorWorkspace({
 
   const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
 
+  const isCancelledRef = useRef(false);
+
   const handleRecordVideo = async () => {
     const exportEl = document.getElementById('export-container');
     if (!exportEl) {
@@ -46,6 +48,7 @@ function EditorWorkspace({
     }
 
     try {
+      isCancelledRef.current = false;
       setRecordingProgress(0);
 
       const totalChars = activeTab?.code?.length || 100;
@@ -54,6 +57,8 @@ function EditorWorkspace({
         element: exportEl,
         totalChars,
         motionSpeed: settings.motionSpeed || 1,
+        fps: settings.motionFps || 60,
+        isCancelled: () => isCancelledRef.current,
         onSetTypedLength: (len) => {
           setSettings((prev) => ({
             ...prev,
@@ -67,9 +72,13 @@ function EditorWorkspace({
       const filename = `${activeTab?.title ? activeTab.title.replace(/\.[^/.]+$/, '') : 'codemotion'}-motion.webm`;
       downloadBlob(videoBlob, filename);
       toast.success('Motion Code Video exported successfully!');
-    } catch (err) {
-      console.error('Failed to record video:', err);
-      toast.error('Failed to record Motion Video.');
+    } catch (err: any) {
+      if (err?.message === 'CANCELLED') {
+        toast.info('Video rendering cancelled.');
+      } else {
+        console.error('Failed to record video:', err);
+        toast.error('Failed to record Motion Video.');
+      }
     } finally {
       setRecordingProgress(null);
       setSettings((prev) => ({
@@ -97,12 +106,12 @@ function EditorWorkspace({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [downloadPng, copyToClipboard, activeTab?.title]);
 
-  // First time tour check for Editor
+  // Trigger User Guide Tour once when user enters /editor
   useEffect(() => {
-    const hasSeenTour = localStorage.getItem('codemotion_tour_completed');
+    const hasSeenTour = sessionStorage.getItem('codemotion_tour_session_shown');
     if (!hasSeenTour) {
       setIsUserTourOpen(true);
-      localStorage.setItem('codemotion_tour_completed', 'true');
+      sessionStorage.setItem('codemotion_tour_session_shown', 'true');
     }
   }, []);
 
@@ -121,7 +130,13 @@ function EditorWorkspace({
       {/* Full Screen Video Recording Overlay Spinner */}
       <AnimatePresence>
         {recordingProgress !== null && (
-          <VideoLoadingOverlay progress={recordingProgress} isDark={isDark} />
+          <VideoLoadingOverlay
+            progress={recordingProgress}
+            isDark={isDark}
+            onCancel={() => {
+              isCancelledRef.current = true;
+            }}
+          />
         )}
       </AnimatePresence>
 

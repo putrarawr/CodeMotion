@@ -367,6 +367,28 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               </div>
             </div>
 
+            {/* Video Frame Rate (FPS) Selector */}
+            <div className="flex items-center justify-between">
+              <span className={`text-[11px] font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Video Frame Rate</span>
+              <div className="flex items-center gap-1">
+                {([30, 60] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => updateSetting('motionFps', f)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer ${
+                      (settings.motionFps || 60) === f
+                        ? 'bg-sky-500 text-white border-sky-400 shadow-xs'
+                        : isDark
+                        ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                        : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black'
+                    }`}
+                  >
+                    {f} FPS
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {onRecordVideo && (
               <button
                 onClick={onRecordVideo}

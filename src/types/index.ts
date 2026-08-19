@@ -50,6 +50,7 @@ export interface SnippetSettings {
   diffMode: boolean;
   motionMode: boolean;
   motionSpeed: number; // 1 = 1x, 2 = 2x, 0.5 = 0.5x
+  motionFps: 30 | 60; // 30 FPS or 60 FPS ultra smooth
   isPlayingMotion: boolean;
   controlledTypedLength?: number | null;
 

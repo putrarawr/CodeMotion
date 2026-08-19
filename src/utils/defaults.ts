@@ -89,6 +89,7 @@ export const DEFAULT_SETTINGS: SnippetSettings = {
   diffMode: false,
   motionMode: false,
   motionSpeed: 1,
+  motionFps: 60,
   isPlayingMotion: false,
   theme: 'vitesse-dark',
   fontFamily: '"JetBrains Mono", monospace',
