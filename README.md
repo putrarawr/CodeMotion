@@ -12,7 +12,7 @@
 
 Try **CodeMotion** online directly in your browser without installation:
 
-👉 **[https://codemotion.vercel.app/](https://codemotion.vercel.app/)**
+👉 **[https://codemotion.biz.id/](https://codemotion.biz.id/)**
 
 ---
 
