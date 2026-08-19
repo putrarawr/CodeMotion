@@ -101,7 +101,7 @@ export const DEFAULT_SETTINGS: SnippetSettings = {
   dropShadow: true,
   shadowBlur: 30,
   watermark: true,
-  watermarkText: 'codemotion.dev',
+  watermarkText: 'codemotion.biz.id',
   aspectRatio: 'auto',
   borderRadius: 16,
   appTheme: 'dark',

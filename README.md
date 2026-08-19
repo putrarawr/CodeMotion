@@ -3,7 +3,7 @@
 > **Zero-Friction Client-Side Code Snippet & Motion Generator**  
 > Transform plain source code into aesthetic, high-resolution snippet images and butter-smooth typing motion videos for Twitter/X, LinkedIn, documentation, and presentations.
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-codemotion.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://codemotion.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-codemotion.biz.id-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://codemotion.biz.id/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
 ---
@@ -12,7 +12,7 @@
 
 Try **CodeMotion** online directly in your browser without installation:
 
-👉 **[https://codemotion.vercel.app/](https://codemotion.vercel.app/)**
+👉 **[https://codemotion.biz.id/](https://codemotion.biz.id/)**
 
 ---
 
@@ -69,7 +69,7 @@ The output production bundle will be generated inside the `dist/` directory.
 
 ## 🛠️ Technology Stack
 
-- **Deployment**: [Vercel](https://vercel.com/) ([codemotion.vercel.app](https://codemotion.vercel.app/))
+- **Deployment**: Custom Domain ([codemotion.biz.id](https://codemotion.biz.id/))
 - **Framework**: [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
 - **Build Tool**: [Vite](https://vitejs.dev/)
 - **Routing**: [React Router v7](https://reactrouter.com/)
@@ -94,8 +94,8 @@ The output production bundle will be generated inside the `dist/` directory.
 ## 📁 Project Structure
 
 ```
-codesnap/
-├── public/                  # Static assets & icons
+codemotion/
+├── public/                  # Static assets, icons, robots.txt & sitemap
 ├── src/
 │   ├── components/          # React Components
 │   │   ├── Canvas.tsx       # Main preview canvas container
@@ -110,6 +110,7 @@ codesnap/
 │   ├── hooks/               # Custom React Hooks
 │   │   ├── useExport.ts     # PNG, SVG & clipboard exporter
 │   │   ├── useLocalStorage.ts # Persistent settings state
+│   │   ├── useSEO.ts        # Dynamic SEO meta tag switcher
 │   │   └── useShiki.ts      # Shiki syntax highlighter loader
 │   ├── types/               # TypeScript interfaces & types
 │   ├── utils/               # Color palettes, languages, recorder & defaults
@@ -122,3 +123,6 @@ codesnap/
 
 ---
 
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).

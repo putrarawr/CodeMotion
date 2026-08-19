@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useExport } from './hooks/useExport';
+import { useSEO } from './hooks/useSEO';
 import type { SnippetSettings } from './types';
 import { DEFAULT_SETTINGS } from './utils/defaults';
 import { Header } from './components/Header';
@@ -165,6 +166,9 @@ function AnimatedRoutes({
   toggleAppTheme: () => void;
 }) {
   const location = useLocation();
+
+  // Dynamic SEO Hook for route changes
+  useSEO();
 
   return (
     <AnimatePresence mode="wait">

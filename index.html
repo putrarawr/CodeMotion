@@ -1,17 +1,79 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en" class="dark scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CodeMotion - Aesthetic Code Snippet Generator</title>
-    <meta name="description" content="Zero-friction tool to transform plain source code into aesthetic, high-resolution code snippet images for X, LinkedIn, docs, and presentations." />
-    <meta name="keywords" content="code snippet, code to image, syntax highlighter, shiki, carbon alternative, codemotion, developer tools" />
-    <meta property="og:title" content="CodeMotion - Aesthetic Code Snippet Generator" />
-    <meta property="og:description" content="Transform code into production-ready snippet images instantly without login." />
+    
+    <!-- Primary SEO Meta Tags -->
+    <title>CodeMotion — Turn Code into High-Res Images & Animated Videos</title>
+    <meta name="title" content="CodeMotion — Turn Code into High-Res Images & Animated Videos" />
+    <meta name="description" content="Zero-friction developer tool to turn plain source code into aesthetic, high-resolution snippet images (2x/3x DPI) and real-time typing motion videos for Twitter, LinkedIn, blogs, and presentations." />
+    <meta name="keywords" content="code snippet generator, code to image, code to video, motion code, syntax highlighter, shiki, carbon alternative, codemotion, developer tools, react snippet, visual code, code diff generator" />
+    <meta name="author" content="CodeMotion Team" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="theme-color" content="#09090b" />
+    <link rel="canonical" href="https://codemotion.biz.id/" />
+
+    <!-- Open Graph / Facebook / LinkedIn Meta Tags -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://codemotion.biz.id/" />
+    <meta property="og:site_name" content="CodeMotion" />
+    <meta property="og:title" content="CodeMotion — Turn Code into High-Res Images & Animated Videos" />
+    <meta property="og:description" content="Create aesthetic code snippet graphics and animated typing motions for X, LinkedIn, docs, and slides without login." />
+    <meta property="og:image" content="https://codemotion.biz.id/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="CodeMotion Code Snippet & Motion Generator Preview" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://codemotion.biz.id/" />
+    <meta name="twitter:title" content="CodeMotion — Turn Code into High-Res Images & Animated Videos" />
+    <meta name="twitter:description" content="Zero-friction tool to turn plain source code into aesthetic, high-resolution snippet images and typing motion videos." />
+    <meta name="twitter:image" content="https://codemotion.biz.id/og-image.png" />
+    <meta name="twitter:creator" content="@codemotion" />
+    <meta name="twitter:site" content="@codemotion" />
+
+    <!-- Performance Optimization: Preconnect & Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+
+    <!-- JSON-LD Structured Data Schema (Google Search Rich Snippet) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "CodeMotion",
+        "url": "https://codemotion.biz.id/",
+        "description": "Zero-friction client-side developer tool to turn source code into high-resolution images (2x/3x DPI) and animated typing motion videos.",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript. Requires HTML5 Canvas.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "creator": {
+          "@type": "Organization",
+          "name": "CodeMotion Team"
+        },
+        "featureList": [
+          "VS Code Shiki Syntax Highlighting",
+          "Real-time Motion Code Typing Simulator",
+          "Export 2x/3x Retina PNG and SVG",
+          "Export WebM Motion Videos",
+          "Multi-File Tabbed Snippets",
+          "Code Diff Addition & Deletion Highlights",
+          "100% Client-Side Privacy"
+        ]
+      }
+    </script>
   </head>
-  <body class="bg-[#0b0f19] text-slate-100 antialiased">
+  <body class="bg-[#09090b] text-zinc-100 antialiased selection:bg-sky-500 selection:text-white">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
