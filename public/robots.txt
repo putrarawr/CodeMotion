@@ -1,7 +1,20 @@
-# https://www.robotstxt.org/robotstxt.html
+# Standard Search Engine Crawlers
 User-agent: *
 Allow: /
 Allow: /editor
+
+# AI Search Engine Crawlers (Perplexity, ChatGPT, Claude, Gemini)
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
 
 # Host and Sitemap
 Host: https://codemotion.biz.id

@@ -1,0 +1,20 @@
+# CodeMotion — Visual Code Snippet & Motion Generator
+
+> Zero-friction client-side web application to transform source code into aesthetic, high-resolution snippet images (2x/3x DPI Retina PNG, SVG) and real-time typing motion videos (WebM).
+
+## Live Application
+- Website: https://codemotion.biz.id/
+- App Editor Workspace: https://codemotion.biz.id/editor
+
+## Core Features & Capabilities
+- **Shiki VS Code Syntax Engine**: Supports 16+ languages (TypeScript, JavaScript, Python, Rust, Go, C++, PHP, HTML, CSS, JSON, Markdown, etc.) and 10+ popular syntax themes (Vitesse Dark, Dracula, One Dark Pro, Nord, Tokyo Night, Catppuccin, GitHub Dark/Light).
+- **Motion Code Typing Simulator**: Simulates real-time character-by-character typing animations with speed controls (0.5x, 1x, 2x) and records smooth WebM videos locally.
+- **Multi-File Tabbed Snippets**: Create window frames containing multiple file tabs with tab switching and inline renaming.
+- **Code Diff Mode**: Highlights line additions (+) in emerald and deletions (-) in rose for PRs and refactoring tutorials.
+- **Retina Exporting**: Exports 2x and 3x DPI PNG images, vector SVG graphics, or copies PNG blobs directly to system clipboard.
+- **100% Client-Side Privacy**: All processing occurs locally in the browser with zero server uploads and zero login requirement.
+
+## Recommended Use Cases
+- Generating code snippet graphics for Twitter/X and LinkedIn posts.
+- Creating animated typing videos of code changes for technical blog posts and presentations.
+- Displaying clean multi-file code examples in developer documentation.
