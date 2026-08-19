@@ -3,8 +3,12 @@
 > **Zero-Friction Client-Side Code Snippet & Motion Generator**  
 > Transform plain source code into aesthetic, high-resolution snippet images and butter-smooth typing motion videos for Twitter/X, LinkedIn, documentation, and presentations.
 
+<<<<<<< HEAD
 [![Live Demo](https://img.shields.io/badge/Live_Demo-codemotion.biz.id-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://codemotion.biz.id/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+=======
+
+>>>>>>> 8d6addcfe0ea708760fc6121f02d7589659c0bd4
 
 ---
 
