@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, Download, Sparkles, RefreshCw, FileCode2, Image, ChevronDown, Sun, Moon, Check, Home, Video, Share2, HelpCircle } from 'lucide-react';
-import type { SnippetSettings, AestheticPreset } from '../types';
-import { AESTHETIC_PRESETS } from '../utils/presets';
+import { Copy, Download, RefreshCw, FileCode2, Image, ChevronDown, Sun, Moon, Check, Home, Video, HelpCircle } from 'lucide-react';
+import type { SnippetSettings } from '../types';
 import { Logo } from './Logo';
 
 interface HeaderProps {
@@ -12,7 +11,6 @@ interface HeaderProps {
   onDownloadPng: (ratio: number) => void;
   onDownloadSvg: () => void;
   onRecordVideo: () => void;
-  onShareLink: () => void;
   onReset: () => void;
   onOpenUserTour: () => void;
   isExporting: boolean;
@@ -25,25 +23,19 @@ export const Header: React.FC<HeaderProps> = ({
   onDownloadPng,
   onDownloadSvg,
   onRecordVideo,
-  onShareLink,
   onReset,
   onOpenUserTour,
   isExporting,
 }) => {
-  const [showPresetsMenu, setShowPresetsMenu] = useState(false);
   const [showPngDropdown, setShowPngDropdown] = useState(false);
   const [selectedRatio, setSelectedRatio] = useState<number>(3);
 
-  const presetsRef = useRef<HTMLDivElement>(null);
   const pngDropdownRef = useRef<HTMLDivElement>(null);
 
   const isDark = settings.appTheme === 'dark';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (presetsRef.current && !presetsRef.current.contains(event.target as Node)) {
-        setShowPresetsMenu(false);
-      }
       if (pngDropdownRef.current && !pngDropdownRef.current.contains(event.target as Node)) {
         setShowPngDropdown(false);
       }
@@ -52,14 +44,6 @@ export const Header: React.FC<HeaderProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const applyPreset = (preset: AestheticPreset) => {
-    setSettings((prev) => ({
-      ...prev,
-      ...preset.settings,
-    }));
-    setShowPresetsMenu(false);
-  };
 
   const toggleAppTheme = () => {
     setSettings((prev) => ({
@@ -130,46 +114,6 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="hidden md:inline">Landing</span>
         </Link>
 
-        {/* Presets Dropdown */}
-        <div className="relative" ref={presetsRef}>
-          <button
-            onClick={() => setShowPresetsMenu((prev) => !prev)}
-            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-xs font-medium rounded-lg border transition-all cursor-pointer ${
-              isDark
-                ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
-                : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-zinc-200'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 opacity-80" />
-            <span className="hidden sm:inline">Presets</span>
-            <ChevronDown className="w-3 h-3 opacity-60" />
-          </button>
-
-          {showPresetsMenu && (
-            <div
-              className={`absolute right-0 mt-2 w-56 rounded-xl border shadow-2xl p-1.5 z-50 transition-all ${
-                isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'
-              }`}
-            >
-              <div className={`text-[10px] font-bold px-2 py-1 uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                Aesthetic Presets
-              </div>
-              {AESTHETIC_PRESETS.map((preset) => (
-                <button
-                  key={preset.id}
-                  onClick={() => applyPreset(preset)}
-                  className={`w-full text-left px-2.5 py-2 rounded-lg text-xs transition-colors flex flex-col gap-0.5 cursor-pointer ${
-                    isDark ? 'hover:bg-zinc-800 text-zinc-200' : 'hover:bg-zinc-100 text-zinc-900'
-                  }`}
-                >
-                  <span className="font-semibold">{preset.name}</span>
-                  <span className={`text-[11px] truncate ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>{preset.description}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
         {/* UI Light / Dark Mode Toggle */}
         <button
           onClick={toggleAppTheme}
@@ -197,20 +141,6 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         <div className={`h-4 w-[1px] mx-0.5 hidden sm:block ${isDark ? 'bg-zinc-800' : 'bg-zinc-300'}`} />
-
-        {/* Shareable Link Button */}
-        <button
-          onClick={onShareLink}
-          title="Copy shareable link with encoded code snippet"
-          className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-lg border transition-all shadow-xs cursor-pointer ${
-            isDark
-              ? 'bg-zinc-900 border-zinc-800 text-sky-400 hover:bg-zinc-800 hover:text-sky-300 font-semibold'
-              : 'bg-zinc-100 border-zinc-300 text-sky-600 hover:bg-zinc-200 font-semibold'
-          }`}
-        >
-          <Share2 className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">Share</span>
-        </button>
 
         {/* Copy Image Button */}
         <button

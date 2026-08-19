@@ -14,7 +14,7 @@ interface StepItem {
   subtitle: string;
   description: string;
   tip: string;
-  arrowPosition: 'top' | 'bottom' | 'left' | 'right';
+  dialogPosition: 'bottom-right' | 'bottom-left' | 'top-left' | 'center';
 }
 
 export const UserJourneyTour: React.FC<UserJourneyTourProps> = ({ isOpen, onClose, isDark }) => {
@@ -24,35 +24,27 @@ export const UserJourneyTour: React.FC<UserJourneyTourProps> = ({ isOpen, onClos
   const steps: StepItem[] = [
     {
       targetId: 'export-container',
-      title: 'Code Editor Canvas and Multi-File Tabs',
-      subtitle: 'Step 1 of 4',
-      description: 'Type or paste code here. Create multiple tabs, switch tabs, or double-click any tab title to rename it.',
+      title: 'Interactive Canvas & Resizing',
+      subtitle: 'Step 1 of 3',
+      description: 'Type code, add tabs, and drag the side handles or slider to dynamically resize your code snippet canvas width.',
       tip: 'Double-click any tab title to rename file extensions.',
-      arrowPosition: 'bottom',
+      dialogPosition: 'bottom-right',
     },
     {
-      targetId: 'motion-card',
-      title: 'Motion Code Typing Simulator',
-      subtitle: 'Step 2 of 4',
-      description: 'Use the sidebar controls to simulate character-by-character typing animations and record WebM videos.',
-      tip: 'Adjust speed between 0.5x, 1x, and 2x.',
-      arrowPosition: 'left',
-    },
-    {
-      targetId: 'customization-card',
-      title: 'Themes and Canvas Aspect Ratios',
-      subtitle: 'Step 3 of 4',
-      description: 'Select from 16+ programming languages, 10+ VS Code syntax themes, and canvas aspect ratios including 9:16.',
-      tip: 'Toggle Code Diff Mode to highlight additions (+) and deletions (-).',
-      arrowPosition: 'left',
+      targetId: 'editor-sidebar',
+      title: 'Control Panel & Social Templates',
+      subtitle: 'Step 2 of 3',
+      description: 'Switch tabs in the sidebar for VS Code syntax themes, Motion typing animation speed, Social Media templates, and Watermark Logo upload.',
+      tip: 'Upload custom company logos or Twitter avatars to overlay on the watermark badge.',
+      dialogPosition: 'bottom-left',
     },
     {
       targetId: 'header-actions',
-      title: 'Exporting and Shareable Live Links',
-      subtitle: 'Step 4 of 4',
-      description: 'Export 3x Retina PNGs, SVGs, or click Share in the header to generate a live link with your code.',
-      tip: 'Press Cmd/Ctrl + S to quickly download high-res PNGs.',
-      arrowPosition: 'top',
+      title: 'High-Res Export & Download',
+      subtitle: 'Step 3 of 3',
+      description: 'Export 2x/3x Retina PNGs, vector SVG graphics, or record WebM video files.',
+      tip: 'Press Cmd/Ctrl + S to quickly download 3x Retina PNGs.',
+      dialogPosition: 'bottom-left',
     },
   ];
 
@@ -77,8 +69,12 @@ export const UserJourneyTour: React.FC<UserJourneyTourProps> = ({ isOpen, onClos
     };
 
     updateRect();
+    const timeout = setTimeout(updateRect, 100);
     window.addEventListener('resize', updateRect);
-    return () => window.removeEventListener('resize', updateRect);
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener('resize', updateRect);
+    };
   }, [isOpen, currentStep, step.targetId]);
 
   if (!isOpen) return null;
@@ -97,50 +93,51 @@ export const UserJourneyTour: React.FC<UserJourneyTourProps> = ({ isOpen, onClos
     }
   };
 
+  const getDialogPositionClass = () => {
+    switch (step.dialogPosition) {
+      case 'bottom-right':
+        return 'bottom-6 right-6';
+      case 'bottom-left':
+        return 'bottom-6 left-6';
+      case 'top-left':
+        return 'top-20 left-6';
+      default:
+        return 'bottom-6 right-6';
+    }
+  };
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 overflow-hidden pointer-events-auto">
-        {/* Semi-Transparent Mask Without Blur so Workspace Elements Behind Remain 100% Readable */}
-        <div className="absolute inset-0 bg-black/40 transition-all duration-300" />
+        {/* Subtle Semi-Transparent Overlay Mask */}
+        <div className="absolute inset-0 bg-black/35 transition-all duration-300" onClick={onClose} />
 
         {/* Highlight Ring around Active Element */}
         {targetRect && (
           <motion.div
             initial={false}
             animate={{
-              top: Math.max(10, targetRect.top - 8),
-              left: Math.max(10, targetRect.left - 8),
-              width: targetRect.width + 16,
-              height: targetRect.height + 16,
+              top: Math.max(10, targetRect.top - 6),
+              left: Math.max(10, targetRect.left - 6),
+              width: targetRect.width + 12,
+              height: targetRect.height + 12,
             }}
-            transition={{ type: 'spring', damping: 25, stiffness: 280 }}
-            className="absolute rounded-2xl border-2 border-sky-400 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] pointer-events-none z-10"
+            transition={{ type: 'spring', damping: 26, stiffness: 300 }}
+            className="absolute rounded-2xl border-2 border-sky-400 shadow-[0_0_0_9999px_rgba(0,0,0,0.3)] pointer-events-none z-10"
           />
         )}
 
-        {/* Dynamic Tooltip Dialog Card with Pointing Pointer Arrow */}
-        <div className="absolute inset-0 flex items-center justify-center p-4 z-20 pointer-events-none">
+        {/* Floating Tooltip Guide Card */}
+        <div className={`absolute ${getDialogPositionClass()} z-20 pointer-events-none p-2`}>
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            initial={{ opacity: 0, scale: 0.9, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            exit={{ opacity: 0, scale: 0.9, y: 15 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={`w-full max-w-sm rounded-2xl border shadow-2xl overflow-hidden flex flex-col relative pointer-events-auto ${
-              isDark ? 'bg-zinc-950/95 border-zinc-800 text-zinc-100' : 'bg-white/95 border-zinc-200 text-zinc-900'
+            className={`w-full max-w-sm rounded-2xl border shadow-2xl overflow-hidden flex flex-col pointer-events-auto ${
+              isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'
             }`}
           >
-            {/* Pointer Arrow Connector */}
-            {step.arrowPosition === 'top' && (
-              <div className={`absolute -top-2 right-12 w-4 h-4 rotate-45 border-t border-l ${
-                isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
-              }`} />
-            )}
-            {step.arrowPosition === 'bottom' && (
-              <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45 border-b border-r ${
-                isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
-              }`} />
-            )}
-
             {/* Header */}
             <div
               className={`px-4 py-3 border-b flex items-center justify-between ${

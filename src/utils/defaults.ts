@@ -102,7 +102,10 @@ export const DEFAULT_SETTINGS: SnippetSettings = {
   shadowBlur: 30,
   watermark: true,
   watermarkText: 'codemotion.biz.id',
+  watermarkAvatar: '',
   aspectRatio: 'auto',
+  activeSocialPresetId: 'twitter-x',
+  canvasWidth: 800,
   borderRadius: 16,
   appTheme: 'dark',
 };

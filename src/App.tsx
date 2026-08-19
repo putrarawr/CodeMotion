@@ -15,7 +15,7 @@ import { VideoLoadingOverlay } from './components/VideoLoadingOverlay';
 import { UserJourneyTour } from './components/UserJourneyTour';
 import { Toaster, toast } from 'sonner';
 import { recordMotionVideo, downloadBlob } from './utils/recorder';
-import { encodeStateToHash, decodeStateFromHash } from './utils/urlEncoder';
+import { decodeStateFromHash } from './utils/urlEncoder';
 
 function EditorWorkspace({
   settings,
@@ -80,18 +80,6 @@ function EditorWorkspace({
     }
   };
 
-  const handleShareLink = () => {
-    const hashStr = encodeStateToHash(settings);
-    if (!hashStr) {
-      toast.error('Failed to generate share link.');
-      return;
-    }
-
-    const shareableUrl = `${window.location.origin}/editor#code=${hashStr}`;
-    navigator.clipboard.writeText(shareableUrl);
-    toast.success('Shareable link copied to clipboard!');
-  };
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
@@ -152,7 +140,6 @@ function EditorWorkspace({
         onDownloadPng={(ratio) => downloadPng(ratio, activeTab?.title || 'codesnap.png', 'export-container')}
         onDownloadSvg={() => downloadSvg(activeTab?.title || 'codesnap.svg', 'export-container')}
         onRecordVideo={handleRecordVideo}
-        onShareLink={handleShareLink}
         onReset={handleReset}
         onOpenUserTour={() => setIsUserTourOpen(true)}
         isExporting={isExporting || recordingProgress !== null}
@@ -163,16 +150,17 @@ function EditorWorkspace({
         <main className="flex-1 lg:h-[calc(100vh-3.5rem)] grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-0">
           {/* Left Preview Area: Centered Canvas & Preset Bar (Independent Scroll) */}
           <div
-            className={`lg:col-span-8 h-full overflow-y-auto min-h-0 flex flex-col items-center justify-between p-4 sm:p-6 relative ${
+            className={`lg:col-span-8 h-full overflow-y-auto min-h-0 flex flex-col items-center p-4 sm:p-6 relative ${
               isDark ? 'bg-zinc-950/40' : 'bg-zinc-100/40'
             }`}
           >
-            <div className="w-full flex-1 flex items-center justify-center my-auto py-4">
-              <Canvas settings={settings} setSettings={setSettings} />
+            {/* Quick Styles Bar Positioned Directly Above Canvas */}
+            <div className="w-full flex justify-center mb-2 z-10">
+              <PresetBar settings={settings} setSettings={setSettings} />
             </div>
 
-            <div className="w-full max-w-4xl mt-4">
-              <PresetBar settings={settings} setSettings={setSettings} />
+            <div className="w-full flex-1 flex items-center justify-center my-auto">
+              <Canvas settings={settings} setSettings={setSettings} />
             </div>
           </div>
 

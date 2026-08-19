@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Zap, Share2, Video, GitCompare, Layers, ShieldCheck, X, ArrowRight } from 'lucide-react';
+import { Sparkles, Zap, GitCompare, X, ArrowRight, Maximize2, User, Wand2, Share } from 'lucide-react';
 
 interface WhatsNewModalProps {
   isOpen: boolean;
@@ -19,31 +19,32 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose, i
       tag: 'Popular',
     },
     {
-      icon: <Share2 className="w-3.5 h-3.5 text-indigo-400" />,
-      title: 'Instant Code Share Links',
-      description: 'Share live code snippets via shareable URL hash.',
+      icon: <Share className="w-3.5 h-3.5 text-indigo-400" />,
+      title: 'Social Canvas Templates',
+      description: 'Presets for Twitter/X (16:9), LinkedIn (4:3), IG Reels (9:16), & Square.',
       tag: 'New',
     },
     {
-      icon: <Video className="w-3.5 h-3.5 text-rose-400" />,
-      title: '9:16 Reel & Story Ratio',
-      description: 'Vertical canvas presets for Shorts, TikTok, and Stories.',
+      icon: <Maximize2 className="w-3.5 h-3.5 text-emerald-400" />,
+      title: 'Interactive Canvas Resizing',
+      description: 'Drag-to-resize canvas handles & width slider control.',
       tag: 'New',
     },
     {
-      icon: <GitCompare className="w-3.5 h-3.5 text-emerald-400" />,
+      icon: <User className="w-3.5 h-3.5 text-rose-400" />,
+      title: 'Logo & Avatar Watermark Upload',
+      description: 'Upload custom profile avatar or company logo on watermark.',
+      tag: 'New',
+    },
+    {
+      icon: <Wand2 className="w-3.5 h-3.5 text-amber-400" />,
+      title: 'High-Accuracy Auto Detect',
+      description: 'Smart multi-rule language detection with instant toasts.',
+    },
+    {
+      icon: <GitCompare className="w-3.5 h-3.5 text-teal-400" />,
       title: 'Code Diff Refactor Mode',
       description: 'Highlight line additions (+) and deletions (-).',
-    },
-    {
-      icon: <Layers className="w-3.5 h-3.5 text-amber-400" />,
-      title: 'Multi-File Tabbed Snippets',
-      description: 'Organize file tabs inside a single window frame.',
-    },
-    {
-      icon: <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />,
-      title: '100% Client-Side Privacy',
-      description: 'Zero server uploads. Processed locally in your browser.',
     },
   ];
 
@@ -77,7 +78,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose, i
                   <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-mono font-semibold border ${
                     isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-zinc-100 text-zinc-700 border-zinc-300'
                   }`}>
-                    v2.4
+                    v2.5
                   </span>
                 </div>
               </div>
@@ -129,7 +130,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose, i
           {/* Compact Footer Action */}
           <div className={`p-3 border-t flex items-center justify-between ${isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-zinc-50 border-zinc-200'}`}>
             <span className={`text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
-              v2.4.0 Release
+              v2.5.0 Release
             </span>
             <button
               onClick={onClose}

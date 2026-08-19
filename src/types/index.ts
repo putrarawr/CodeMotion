@@ -69,7 +69,10 @@ export interface SnippetSettings {
   shadowBlur: number;
   watermark: boolean;
   watermarkText: string;
+  watermarkAvatar?: string;
   aspectRatio: AspectRatio;
+  activeSocialPresetId?: string;
+  canvasWidth?: number;
   borderRadius: number;
   appTheme: AppTheme;
 }
@@ -107,4 +110,15 @@ export interface AestheticPreset {
   name: string;
   description: string;
   settings: Partial<SnippetSettings>;
+}
+
+export interface SocialPreset {
+  id: string;
+  platform: 'Twitter / X' | 'LinkedIn' | 'Instagram Reel' | 'Instagram Post' | 'Blog / Banner';
+  name: string;
+  aspectRatio: AspectRatio;
+  padding: number;
+  background: string;
+  fontSize: number;
+  iconName: string;
 }

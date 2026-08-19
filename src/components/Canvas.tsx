@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import type { SnippetSettings, SnippetTab } from '../types';
 import { WindowFrame } from './WindowFrame';
 import { CodeEditor } from './CodeEditor';
 import { INITIAL_CODE_SAMPLES } from '../utils/defaults';
+import { GripVertical } from 'lucide-react';
 
 interface CanvasProps {
   settings: SnippetSettings;
@@ -29,7 +30,11 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
     watermarkText,
     aspectRatio,
     borderRadius,
+    canvasWidth = 800,
   } = settings;
+
+  const [isResizing, setIsResizing] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const activeTab: SnippetTab = tabs.find((t) => t.id === activeTabId) || tabs[0] || {
     id: 'tab-1',
@@ -60,9 +65,9 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
     const newId = `tab-${Date.now()}`;
     const newTab: SnippetTab = {
       id: newId,
-      title: `utils-${tabs.length + 1}.ts`,
+      title: `file-${tabs.length + 1}.tsx`,
       language: 'typescript',
-      code: `// New file tab\nexport function example() {\n  console.log("Hello CodeMotion");\n}`,
+      code: '// Type code here...',
     };
     setSettings((prev) => ({
       ...prev,
@@ -73,19 +78,41 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
 
   const handleRemoveTab = (tabId: string) => {
     if (tabs.length <= 1) return;
-    const filtered = tabs.filter((t) => t.id !== tabId);
-    const nextActive = activeTabId === tabId ? filtered[0].id : activeTabId;
+    const remaining = tabs.filter((t) => t.id !== tabId);
+    const nextActive = activeTabId === tabId ? remaining[0].id : activeTabId;
     setSettings((prev) => ({
       ...prev,
-      tabs: filtered,
+      tabs: remaining,
       activeTabId: nextActive,
-      controlledTypedLength: null,
-      isPlayingMotion: false,
     }));
   };
 
   const handleMotionFinish = () => {
     setSettings((prev) => ({ ...prev, isPlayingMotion: false }));
+  };
+
+  // Interactive Drag-to-Resize Canvas Logic
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+
+    const startX = e.clientX;
+    const startWidth = canvasWidth;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = (moveEvent.clientX - startX) * 2; // dual-directional resize expand
+      const newWidth = Math.min(Math.max(startWidth + deltaX, 420), 1080);
+      setSettings((prev) => ({ ...prev, canvasWidth: Math.round(newWidth) }));
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
   };
 
   const getAspectRatioStyle = () => {
@@ -104,55 +131,92 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
   };
 
   return (
-    <div className="w-full flex items-center justify-center p-2 sm:p-4 my-auto">
-      {/* Outer Export Container Target Element */}
-      <div
-        id="export-container"
-        className={`w-full max-w-4xl relative flex flex-col items-center overflow-hidden transition-all duration-300 ${getAspectRatioStyle()}`}
-        style={{
-          background: background,
-          borderRadius: `${borderRadius}px`,
-          padding: `clamp(12px, 4vw, ${padding}px)`,
-        }}
-      >
-        {/* Inner Code Window Frame */}
-        <div className="w-full my-auto transition-all duration-300">
-          <WindowFrame
-            tabs={tabs}
-            activeTabId={activeTabId}
-            onSelectTab={handleSelectTab}
-            onUpdateTabTitle={handleUpdateTabTitle}
-            onAddTab={handleAddTab}
-            onRemoveTab={handleRemoveTab}
-            windowStyle={windowStyle}
-            language={activeTab.language}
+    <div className="w-full flex items-center justify-center p-2 sm:p-4 my-auto relative">
+      <div className="w-full flex flex-col items-center relative">
+        {/* Outer Export Container Target Element */}
+        <div
+          ref={containerRef}
+          id="export-container"
+          className={`w-full relative flex flex-col items-center overflow-hidden transition-all duration-150 ${
+            isResizing ? 'select-none ring-2 ring-sky-500/50' : ''
+          } ${getAspectRatioStyle()}`}
+          style={{
+            maxWidth: `${canvasWidth}px`,
+            background: background,
+            borderRadius: `${borderRadius}px`,
+            padding: `clamp(12px, 4vw, ${padding}px)`,
+          }}
+        >
+          {/* Left & Right Drag Handles */}
+          <div
+            onMouseDown={handleResizeStart}
+            className="absolute right-1 top-1/2 -translate-y-1/2 w-4 h-12 rounded-full bg-black/40 hover:bg-sky-500/80 border border-white/20 flex items-center justify-center cursor-ew-resize opacity-0 group-hover:opacity-100 hover:opacity-100 transition-all z-30 shadow-lg"
+            title="Drag to resize canvas width"
           >
-            <CodeEditor
-              code={activeTab.code}
-              onChange={handleCodeChange}
+            <GripVertical className="w-3 h-3 text-white" />
+          </div>
+
+          <div
+            onMouseDown={handleResizeStart}
+            className="absolute left-1 top-1/2 -translate-y-1/2 w-4 h-12 rounded-full bg-black/40 hover:bg-sky-500/80 border border-white/20 flex items-center justify-center cursor-ew-resize opacity-0 group-hover:opacity-100 hover:opacity-100 transition-all z-30 shadow-lg"
+            title="Drag to resize canvas width"
+          >
+            <GripVertical className="w-3 h-3 text-white" />
+          </div>
+
+          {/* Inner Code Window Frame */}
+          <div className="w-full my-auto transition-all duration-300">
+            <WindowFrame
+              tabs={tabs}
+              activeTabId={activeTabId}
+              onSelectTab={handleSelectTab}
+              onUpdateTabTitle={handleUpdateTabTitle}
+              onAddTab={handleAddTab}
+              onRemoveTab={handleRemoveTab}
+              windowStyle={windowStyle}
               language={activeTab.language}
-              theme={theme}
-              fontFamily={fontFamily}
-              fontSize={fontSize}
-              lineHeight={lineHeight}
-              showLineNumbers={lineNumbers}
-              diffMode={diffMode}
-              motionSpeed={motionSpeed}
-              isPlayingMotion={isPlayingMotion}
-              controlledTypedLength={controlledTypedLength}
-              onMotionFinish={handleMotionFinish}
-            />
-          </WindowFrame>
+            >
+              <CodeEditor
+                code={activeTab.code}
+                onChange={handleCodeChange}
+                language={activeTab.language}
+                theme={theme}
+                fontFamily={fontFamily}
+                fontSize={fontSize}
+                lineHeight={lineHeight}
+                showLineNumbers={lineNumbers}
+                diffMode={diffMode}
+                motionSpeed={motionSpeed}
+                isPlayingMotion={isPlayingMotion}
+                controlledTypedLength={controlledTypedLength}
+                onMotionFinish={handleMotionFinish}
+              />
+            </WindowFrame>
+          </div>
+
+          {/* Optional Branding Watermark Badge */}
+          {watermark && (watermarkText || settings.watermarkAvatar) && (
+            <div className="w-full flex justify-end mt-3 px-1 pointer-events-none select-none">
+              <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium tracking-wide text-white/70 backdrop-blur-md bg-black/40 px-3 py-1 rounded-full border border-white/10 shadow-xs">
+                {settings.watermarkAvatar && (
+                  <img
+                    src={settings.watermarkAvatar}
+                    alt="Custom Avatar/Logo"
+                    className="w-4 h-4 rounded-full object-cover border border-white/20"
+                  />
+                )}
+                {watermarkText && <span>{watermarkText}</span>}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Optional Branding Watermark Badge */}
-        {watermark && watermarkText && (
-          <div className="w-full flex justify-end mt-3 px-1 pointer-events-none select-none">
-            <span className="text-[11px] font-mono font-medium tracking-wide text-white/50 backdrop-blur-md bg-black/30 px-2.5 py-1 rounded-full border border-white/10 shadow-xs">
-              {watermarkText}
-            </span>
-          </div>
-        )}
+        {/* Canvas Dimension Indicator Label */}
+        <div className="mt-2 text-[11px] font-mono font-medium text-zinc-500 flex items-center gap-2">
+          <span>Width: {canvasWidth}px</span>
+          <span>•</span>
+          <span>Aspect Ratio: {aspectRatio}</span>
+        </div>
       </div>
     </div>
   );
