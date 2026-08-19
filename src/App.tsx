@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useExport } from './hooks/useExport';
@@ -87,7 +87,7 @@ function EditorWorkspace({
       return;
     }
 
-    const shareableUrl = `${window.location.origin}${window.location.pathname}#code=${hashStr}`;
+    const shareableUrl = `${window.location.origin}/editor#code=${hashStr}`;
     navigator.clipboard.writeText(shareableUrl);
     toast.success('Shareable link copied to clipboard!');
   };
@@ -201,9 +201,32 @@ function AnimatedRoutes({
   toggleAppTheme: () => void;
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Dynamic SEO Hook for route changes
   useSEO();
+
+  // Check URL hash/search for share code on any route change or initial load
+  useEffect(() => {
+    const rawUrl = window.location.hash || window.location.search;
+    if (rawUrl && (rawUrl.includes('code=') || rawUrl.includes('#'))) {
+      const decodedSettings = decodeStateFromHash(rawUrl);
+      if (decodedSettings) {
+        setSettings((prev) => ({
+          ...prev,
+          ...decodedSettings,
+          isPlayingMotion: false,
+          controlledTypedLength: null,
+        }));
+
+        toast.success('Loaded shared code snippet from link!');
+
+        if (location.pathname !== '/editor') {
+          navigate('/editor', { replace: true });
+        }
+      }
+    }
+  }, [location.pathname, location.hash, location.search, navigate, setSettings]);
 
   return (
     <AnimatePresence mode="wait">
@@ -216,6 +239,8 @@ function AnimatedRoutes({
           path="/editor"
           element={<EditorWorkspace settings={settings} setSettings={setSettings} />}
         />
+        {/* SPA Fallback route to prevent 404 on direct subroutes */}
+        <Route path="*" element={<Navigate to="/editor" replace />} />
       </Routes>
     </AnimatePresence>
   );
@@ -226,30 +251,6 @@ export default function App() {
     'codemotion_settings',
     DEFAULT_SETTINGS
   );
-
-  useEffect(() => {
-    // Check if URL contains encoded code snippet hash
-    if (window.location.hash) {
-      const decodedSettings = decodeStateFromHash(window.location.hash);
-      if (decodedSettings) {
-        setSettings((prev) => ({
-          ...prev,
-          ...decodedSettings,
-          isPlayingMotion: false,
-          controlledTypedLength: null,
-        }));
-        toast.success('Loaded shared code snippet from URL!');
-        return;
-      }
-    }
-
-    // Reset motion playing state on initial mount so editor is 100% editable
-    setSettings((prev) => ({
-      ...prev,
-      isPlayingMotion: false,
-      controlledTypedLength: null,
-    }));
-  }, []);
 
   useEffect(() => {
     if (settings.appTheme === 'dark') {

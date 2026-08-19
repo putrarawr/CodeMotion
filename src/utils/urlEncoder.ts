@@ -42,13 +42,25 @@ export function encodeStateToHash(settings: SnippetSettings): string {
   }
 }
 
-export function decodeStateFromHash(hash: string): Partial<SnippetSettings> | null {
-  if (!hash) return null;
-  const cleanHash = hash.replace(/^#/, '').replace(/^code=/, '');
-  if (!cleanHash) return null;
+export function decodeStateFromHash(hashOrUrl: string): Partial<SnippetSettings> | null {
+  if (!hashOrUrl) return null;
+
+  // Extract payload string from hash, query param, or raw base64
+  let raw = hashOrUrl.trim();
+  if (raw.includes('#')) raw = raw.substring(raw.indexOf('#') + 1);
+  if (raw.includes('?')) raw = raw.substring(raw.indexOf('?') + 1);
+  if (raw.startsWith('code=')) raw = raw.slice(5);
 
   try {
-    let base64 = cleanHash.replace(/-/g, '+').replace(/_/g, '/');
+    raw = decodeURIComponent(raw);
+  } catch (e) {
+    // raw was already decoded
+  }
+
+  if (!raw) return null;
+
+  try {
+    let base64 = raw.replace(/-/g, '+').replace(/_/g, '/');
     while (base64.length % 4) {
       base64 += '=';
     }
@@ -58,7 +70,7 @@ export function decodeStateFromHash(hash: string): Partial<SnippetSettings> | nu
     const jsonStr = new TextDecoder().decode(bytes);
     const payload = JSON.parse(jsonStr) as CompactSharePayload;
 
-    if (!payload.c) return null;
+    if (!payload || !payload.c) return null;
 
     return {
       tabs: [
