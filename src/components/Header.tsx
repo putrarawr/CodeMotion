@@ -59,197 +59,203 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header
-      className={`h-14 flex-shrink-0 w-full border-b px-3 sm:px-6 flex items-center justify-between shadow-xs transition-colors duration-200 z-40 sticky top-0 ${
-        isDark
-          ? 'bg-zinc-950/90 backdrop-blur-md border-zinc-800/80 text-zinc-100'
-          : 'bg-white/90 backdrop-blur-md border-zinc-200 text-zinc-900'
-      }`}
-    >
-      {/* Brand & Custom Logo - CodeMotion */}
-      <Link to="/" className="flex items-center gap-2 sm:gap-3 no-underline group flex-shrink-0" title="Return to Landing Page">
-        <div
-          className={`h-8 w-8 sm:h-9 sm:w-9 rounded-xl flex items-center justify-center border transition-all ${
-            isDark
-              ? 'bg-zinc-900 border-zinc-700 text-zinc-100 group-hover:border-zinc-500 shadow-inner'
-              : 'bg-zinc-100 border-zinc-300 text-zinc-900 group-hover:border-zinc-400'
-          }`}
-        >
-          <Logo className="w-4 h-4 sm:w-5 sm:h-5" />
-        </div>
-        <div className="flex items-center gap-2">
-          <h1 className="text-sm sm:text-base font-bold tracking-tight font-sans m-0">
-            CodeMotion
-          </h1>
-        </div>
-      </Link>
-
-      {/* Quick Actions & Navigation Controls */}
-      <div id="header-actions" className="flex items-center gap-1.5 sm:gap-2">
-        {/* User Guide Tour Button */}
-        <button
-          onClick={onOpenUserTour}
-          title="Open User Guide & Interactive Tour"
-          className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all cursor-pointer ${
-            isDark
-              ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
-              : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
-          }`}
-        >
-          <HelpCircle className="w-3.5 h-3.5 text-sky-400" />
-          <span className="hidden lg:inline">Guide</span>
-        </button>
-
-        {/* Landing Page Route Link */}
+    <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-5xl px-3 sm:px-6 flex justify-center select-none pointer-events-auto">
+      <header
+        className={`w-full rounded-full border shadow-2xl backdrop-blur-xl px-3 sm:px-4 py-2 flex items-center justify-between transition-all duration-300 ${
+          isDark
+            ? 'bg-zinc-950/85 border-zinc-800/90 text-zinc-100 shadow-black/50'
+            : 'bg-white/85 border-zinc-200/90 text-zinc-900 shadow-zinc-300/40'
+        }`}
+      >
+        {/* Left Dynamic Island Section: Logo & Brand Capsule */}
         <Link
           to="/"
-          className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all no-underline ${
+          className={`flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-full border transition-all no-underline ${
             isDark
-              ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white'
-              : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black'
+              ? 'bg-zinc-900/80 border-zinc-800 hover:border-zinc-700 text-zinc-100'
+              : 'bg-zinc-100/80 border-zinc-300 hover:border-zinc-400 text-zinc-900'
           }`}
           title="Return to Landing Page"
         >
-          <Home className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">Landing</span>
+          <div className="flex items-center gap-1.5">
+            <Logo className="w-4 h-4" />
+          </div>
+          <span className="text-xs font-bold tracking-tight font-sans">CodeMotion</span>
+          <span className={`px-1.5 py-0.2 text-[9px] font-mono font-semibold rounded-full border ${
+            isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-400' : 'bg-zinc-200 border-zinc-300 text-zinc-600'
+          }`}>
+            v2.5
+          </span>
         </Link>
 
-        {/* UI Light / Dark Mode Toggle */}
-        <button
-          onClick={toggleAppTheme}
-          title={isDark ? 'Switch to Light UI' : 'Switch to Dark UI'}
-          className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-            isDark
-              ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
-              : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
-          }`}
-        >
-          {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-zinc-800" />}
-        </button>
-
-        {/* Reset Button */}
-        <button
-          onClick={onReset}
-          title="Reset to default settings"
-          className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-            isDark
-              ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
-              : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black hover:bg-zinc-200'
-          }`}
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-        </button>
-
-        <div className={`h-4 w-[1px] mx-0.5 hidden sm:block ${isDark ? 'bg-zinc-800' : 'bg-zinc-300'}`} />
-
-        {/* Copy Image Button */}
-        <button
-          onClick={onCopyImage}
-          disabled={isExporting}
-          className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-lg border transition-all shadow-xs disabled:opacity-50 cursor-pointer ${
-            isDark
-              ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
-              : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-zinc-200'
-          }`}
-        >
-          <Copy className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">Copy</span>
-        </button>
-
-        {/* Download Split Dropdown Button (PNG, SVG, Video WebM) */}
-        <div className="relative" ref={pngDropdownRef}>
-          <div
-            className={`flex items-center rounded-lg border shadow-xs transition-all overflow-hidden ${
+        {/* Center Dynamic Island Section: Navigation & Tools */}
+        <div id="header-actions" className="flex items-center gap-1 sm:gap-1.5">
+          {/* User Guide Tour Pill */}
+          <button
+            onClick={onOpenUserTour}
+            title="Open Interactive User Guide"
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border transition-all cursor-pointer ${
               isDark
-                ? 'bg-zinc-100 text-zinc-900 border-zinc-200 hover:bg-white'
-                : 'bg-zinc-900 text-zinc-100 border-zinc-800 hover:bg-black'
+                ? 'bg-zinc-900/60 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
+                : 'bg-zinc-100/60 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
             }`}
           >
-            <button
-              onClick={() => onDownloadPng(selectedRatio)}
-              disabled={isExporting}
-              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold transition-colors disabled:opacity-50 cursor-pointer"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Export</span>
-            </button>
-            <button
-              onClick={() => setShowPngDropdown((prev) => !prev)}
-              disabled={isExporting}
-              className={`px-1.5 sm:px-2 py-1.5 border-l transition-colors cursor-pointer ${
-                isDark ? 'border-zinc-300 hover:bg-zinc-200' : 'border-zinc-700 hover:bg-zinc-800'
-              }`}
-            >
-              <ChevronDown className="w-3 h-3" />
-            </button>
-          </div>
+            <HelpCircle className="w-3.5 h-3.5 text-sky-400" />
+            <span className="hidden sm:inline">Guide</span>
+          </button>
 
-          {showPngDropdown && (
+          {/* Home / Landing Link Pill */}
+          <Link
+            to="/"
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border transition-all no-underline ${
+              isDark
+                ? 'bg-zinc-900/60 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
+                : 'bg-zinc-100/60 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
+            }`}
+            title="Return to Landing Page"
+          >
+            <Home className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="hidden sm:inline">Landing</span>
+          </Link>
+
+          {/* UI Theme Switcher Pill */}
+          <button
+            onClick={toggleAppTheme}
+            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            className={`p-1.5 rounded-full border transition-all cursor-pointer ${
+              isDark
+                ? 'bg-zinc-900/60 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
+                : 'bg-zinc-100/60 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
+            }`}
+          >
+            {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-zinc-800" />}
+          </button>
+
+          {/* Reset Pill */}
+          <button
+            onClick={onReset}
+            title="Reset to default settings"
+            className={`p-1.5 rounded-full border transition-all cursor-pointer ${
+              isDark
+                ? 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                : 'bg-zinc-100/60 border-zinc-300 text-zinc-600 hover:text-black hover:bg-zinc-200'
+            }`}
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Right Dynamic Island Section: Copy & Export Capsules */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Copy Image Button */}
+          <button
+            onClick={onCopyImage}
+            disabled={isExporting}
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border transition-all disabled:opacity-50 cursor-pointer ${
+              isDark
+                ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
+                : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-zinc-200'
+            }`}
+          >
+            <Copy className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Copy</span>
+          </button>
+
+          {/* Export Pill Dropdown */}
+          <div className="relative" ref={pngDropdownRef}>
             <div
-              className={`absolute right-0 mt-2 w-52 rounded-xl border shadow-2xl p-1.5 z-50 transition-all ${
-                isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'
+              className={`flex items-center rounded-full border shadow-xs transition-all overflow-hidden ${
+                isDark
+                  ? 'bg-white text-black border-white hover:bg-zinc-200'
+                  : 'bg-black text-white border-black hover:bg-zinc-800'
               }`}
             >
               <button
-                onClick={() => handleExportPng(2)}
-                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                  isDark ? 'hover:bg-zinc-800' : 'hover:bg-zinc-100'
-                }`}
+                onClick={() => onDownloadPng(selectedRatio)}
+                disabled={isExporting}
+                className="flex items-center gap-1.5 px-3.5 py-1 text-xs font-extrabold transition-colors disabled:opacity-50 cursor-pointer"
               >
-                <div className="flex items-center gap-2">
-                  <Image className="w-3.5 h-3.5 opacity-60" />
-                  <span>PNG Standard (2x DPI)</span>
-                </div>
-                {selectedRatio === 2 && <Check className="w-3.5 h-3.5" />}
+                <Download className="w-3.5 h-3.5" />
+                <span>Export</span>
               </button>
-
               <button
-                onClick={() => handleExportPng(3)}
-                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                  isDark ? 'hover:bg-zinc-800 font-semibold' : 'hover:bg-zinc-100 font-semibold'
+                onClick={() => setShowPngDropdown((prev) => !prev)}
+                disabled={isExporting}
+                className={`pr-2.5 py-1 transition-colors cursor-pointer ${
+                  isDark ? 'hover:text-zinc-700' : 'hover:text-zinc-300'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <Image className="w-3.5 h-3.5" />
-                  <span>PNG Retina High (3x DPI)</span>
-                </div>
-                {selectedRatio === 3 && <Check className="w-3.5 h-3.5" />}
-              </button>
-
-              {/* Record Video Option */}
-              <button
-                onClick={() => {
-                  onRecordVideo();
-                  setShowPngDropdown(false);
-                }}
-                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between border-t mt-1 pt-2 transition-colors cursor-pointer ${
-                  isDark ? 'hover:bg-zinc-800 border-zinc-800 text-sky-400 font-bold' : 'hover:bg-zinc-100 border-zinc-200 text-sky-600 font-bold'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Video className="w-3.5 h-3.5" />
-                  <span>Record Motion Video (WebM)</span>
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
-                  onDownloadSvg();
-                  setShowPngDropdown(false);
-                }}
-                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                  isDark ? 'hover:bg-zinc-800' : 'hover:bg-zinc-100'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <FileCode2 className="w-3.5 h-3.5 opacity-70" />
-                  <span>Export as SVG</span>
-                </div>
+                <ChevronDown className="w-3 h-3" />
               </button>
             </div>
-          )}
+
+            {showPngDropdown && (
+              <div
+                className={`absolute right-0 mt-3 w-56 rounded-2xl border shadow-2xl p-2 z-50 transition-all ${
+                  isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'
+                }`}
+              >
+                <button
+                  onClick={() => handleExportPng(2)}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                    isDark ? 'hover:bg-zinc-900' : 'hover:bg-zinc-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Image className="w-3.5 h-3.5 opacity-60" />
+                    <span>PNG Standard (2x DPI)</span>
+                  </div>
+                  {selectedRatio === 2 && <Check className="w-3.5 h-3.5 text-sky-400" />}
+                </button>
+
+                <button
+                  onClick={() => handleExportPng(3)}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                    isDark ? 'hover:bg-zinc-900 font-semibold' : 'hover:bg-zinc-100 font-semibold'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Image className="w-3.5 h-3.5 text-sky-400" />
+                    <span>PNG Retina High (3x DPI)</span>
+                  </div>
+                  {selectedRatio === 3 && <Check className="w-3.5 h-3.5 text-sky-400" />}
+                </button>
+
+                {/* Record Video Option */}
+                <button
+                  onClick={() => {
+                    onRecordVideo();
+                    setShowPngDropdown(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between border-t mt-1 pt-2 transition-colors cursor-pointer ${
+                    isDark ? 'hover:bg-zinc-900 border-zinc-800/80 text-sky-400 font-bold' : 'hover:bg-zinc-100 border-zinc-200 text-sky-600 font-bold'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Video className="w-3.5 h-3.5" />
+                    <span>Record Motion Video (WebM)</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onDownloadSvg();
+                    setShowPngDropdown(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                    isDark ? 'hover:bg-zinc-900' : 'hover:bg-zinc-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <FileCode2 className="w-3.5 h-3.5 opacity-70" />
+                    <span>Export as SVG</span>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </div>
   );
 };

@@ -232,65 +232,91 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
         isDark={isDark}
       />
 
-      {/* 1. Header Navigation */}
-      <header
-        className={`h-16 w-full border-b px-6 lg:px-12 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md ${
-          isDark ? 'bg-zinc-950/80 border-zinc-800/80' : 'bg-white/80 border-zinc-200'
-        }`}
-      >
-        <Link to="/" className="flex items-center gap-3 no-underline">
-          <div
-            className={`h-9 w-9 rounded-xl flex items-center justify-center border ${
-              isDark ? 'bg-zinc-900 border-zinc-700 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-900'
-            }`}
-          >
-            <Logo className="w-5 h-5" />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-extrabold tracking-tight">CodeMotion</span>
-          </div>
-        </Link>
-
-        {/* Nav Links */}
-        <nav className="hidden md:flex items-center gap-6 text-xs font-semibold">
-          <a href="#motion-preview" className={`hover:underline ${isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}>
-            Motion Demo
-          </a>
-          <a href="#features" className={`hover:underline ${isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}>
-            Features
-          </a>
-          <a href="#languages" className={`hover:underline ${isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}>
-            Languages & Themes
-          </a>
-          <a href="#faq" className={`hover:underline ${isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}>
-            FAQ
-          </a>
-        </nav>
-
-        {/* Actions */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onToggleAppTheme}
-            className={`p-2 rounded-lg border transition-colors ${
-              isDark
-                ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white'
-                : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black'
-            }`}
-          >
-            {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-zinc-800" />}
-          </button>
-
+      {/* 1. Header Navigation - Dynamic Island Style */}
+      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-5xl px-3 sm:px-6 flex justify-center select-none pointer-events-auto">
+        <header
+          className={`w-full rounded-full border shadow-2xl backdrop-blur-xl px-3 sm:px-4 py-2 flex items-center justify-between transition-all duration-300 ${
+            isDark
+              ? 'bg-zinc-950/85 border-zinc-800/90 text-zinc-100 shadow-black/50'
+              : 'bg-white/85 border-zinc-200/90 text-zinc-900 shadow-zinc-300/40'
+          }`}
+        >
+          {/* Brand & Custom Logo Capsule */}
           <Link
-            to="/editor"
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md transform hover:scale-105 no-underline ${
-              isDark ? 'bg-white text-black hover:bg-zinc-200' : 'bg-black text-white hover:bg-zinc-800'
+            to="/"
+            className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all no-underline ${
+              isDark
+                ? 'bg-zinc-900/80 border-zinc-800 hover:border-zinc-700 text-zinc-100'
+                : 'bg-zinc-100/80 border-zinc-300 hover:border-zinc-400 text-zinc-900'
             }`}
           >
-            <span>Open App Editor</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1.5">
+              <Logo className="w-4 h-4" />
+            </div>
+            <span className="text-xs font-bold tracking-tight font-sans">CodeMotion</span>
           </Link>
-        </div>
-      </header>
+
+          {/* Dynamic Nav Links */}
+          <nav className="hidden md:flex items-center gap-1.5 text-xs font-semibold">
+            <a
+              href="#motion-preview"
+              className={`px-3 py-1 rounded-full transition-all no-underline ${
+                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-900' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
+              }`}
+            >
+              Motion Demo
+            </a>
+            <a
+              href="#features"
+              className={`px-3 py-1 rounded-full transition-all no-underline ${
+                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-900' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
+              }`}
+            >
+              Features
+            </a>
+            <a
+              href="#languages"
+              className={`px-3 py-1 rounded-full transition-all no-underline ${
+                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-900' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
+              }`}
+            >
+              Languages
+            </a>
+            <a
+              href="#faq"
+              className={`px-3 py-1 rounded-full transition-all no-underline ${
+                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-900' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
+              }`}
+            >
+              FAQ
+            </a>
+          </nav>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onToggleAppTheme}
+              className={`p-1.5 rounded-full border transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-zinc-900/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
+                  : 'bg-zinc-100/80 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
+              }`}
+            >
+              {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-zinc-800" />}
+            </button>
+
+            <Link
+              to="/editor"
+              className={`flex items-center gap-1.5 px-3.5 py-1 text-xs font-extrabold rounded-full transition-all shadow-md transform hover:scale-105 no-underline ${
+                isDark ? 'bg-white text-black hover:bg-zinc-200' : 'bg-black text-white hover:bg-zinc-800'
+              }`}
+            >
+              <span>Open App Editor</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </header>
+      </div>
 
       {/* 2. Hero Section (Matching Deployed Screenshot codemotion.biz.id) */}
       <motion.section
@@ -328,9 +354,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
           </Link>
         </motion.div>
 
-        {/* Hero Code Window Preview Box (Matching Deployed Screenshot) */}
+        {/* Hero Code Window Preview Box (Matching Screenshot CTA Card Styling) */}
         <motion.div variants={fadeInUp} className="w-full max-w-3xl mx-auto">
-          <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 shadow-2xl relative overflow-hidden text-left">
+          <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white">
             <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4 mb-6">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500/80" />
@@ -341,13 +367,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               <div className="w-12" />
             </div>
 
-            <div className="font-mono text-xs sm:text-sm leading-relaxed text-zinc-300 overflow-x-auto p-2">
+            <div className="font-mono text-xs sm:text-sm leading-relaxed text-zinc-200 overflow-x-auto p-2">
               <div>
                 <span className="text-purple-400 font-semibold">import</span> &#123; playMotion &#125; <span className="text-purple-400 font-semibold">from</span> <span className="text-emerald-400">'@codemotion/core'</span>;
               </div>
               <br />
               <div>
-                <span className="text-purple-400 font-semibold">const</span> snippet = <span className="text-purple-400 font-semibold">await</span> <span className="text-yellow-300 font-semibold">playMotion</span>(&#123;
+                <span className="text-purple-400 font-semibold">const</span> snippet = <span className="text-purple-400 font-semibold">await</span> <span className="text-yellow-400 font-semibold">playMotion</span>(&#123;
               </div>
               <div>&nbsp;&nbsp;language: <span className="text-emerald-400">'typescript'</span>,</div>
               <div>&nbsp;&nbsp;motionSpeed: <span className="text-amber-400 font-mono">2.0</span>,</div>
@@ -356,15 +382,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             </div>
 
             <div className="flex justify-end mt-4">
-              <div className="px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-500">
-                codemotion.dev
+              <div className="px-3 py-1 rounded-full bg-zinc-950/80 border border-zinc-800 text-[10px] font-mono text-zinc-400">
+                codemotion.biz.id
               </div>
             </div>
           </div>
         </motion.div>
       </motion.section>
 
-      {/* 3. Dedicated Motion Code Interactive Preview Section (Matching Top Hero Card Styling & Colorful Syntax) */}
+      {/* 3. Dedicated Motion Code Interactive Preview Section */}
       <section id="motion-preview" className={`py-16 px-6 lg:px-12 border-t ${isDark ? 'border-zinc-800/80 bg-zinc-950/40' : 'border-zinc-200 bg-zinc-50'}`}>
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
@@ -376,8 +402,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             </p>
           </div>
 
-          {/* Harmonious Card Container (Same bg-[#0c0c0e] border border-zinc-800 rounded-2xl shadow-2xl p-6 as Top Hero Card) */}
-          <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 shadow-2xl relative overflow-hidden text-left">
+          {/* Harmonious Card Container (Matching Screenshot CTA Card Styling) */}
+          <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white">
             {/* Window Header Bar with Red/Yellow/Green Dots & Controls */}
             <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4 mb-6">
               <div className="flex items-center gap-2">
@@ -395,9 +421,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsMotionPlaying(!isMotionPlaying)}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                    isDark ? 'bg-zinc-900 border-zinc-800 text-white hover:bg-zinc-800' : 'bg-zinc-100 border-zinc-300 text-black hover:bg-zinc-200'
-                  }`}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border border-zinc-800 bg-zinc-950 text-white hover:bg-zinc-800 transition-all cursor-pointer"
                 >
                   {isMotionPlaying ? <Pause className="w-3 h-3 text-amber-400" /> : <Play className="w-3 h-3 text-emerald-400 fill-current" />}
                   <span>{isMotionPlaying ? 'Pause' : 'Play'}</span>
@@ -408,9 +432,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
                     setMotionTypedIndex(0);
                     setIsMotionPlaying(true);
                   }}
-                  className={`p-1.5 rounded-xl border transition-colors cursor-pointer ${
-                    isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white' : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black'
-                  }`}
+                  className="p-1.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
                   title="Restart Typing Animation"
                 >
                   <RotateCcw className="w-3 h-3" />
@@ -423,10 +445,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
                       onClick={() => setMotionSpeed(spd)}
                       className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold border transition-all cursor-pointer ${
                         motionSpeed === spd
-                          ? 'bg-sky-500 text-white border-sky-400'
-                          : isDark
-                          ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
-                          : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black'
+                          ? 'bg-sky-500 text-white border-sky-400 shadow-xs'
+                          : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white'
                       }`}
                     >
                       {spd}x
@@ -437,7 +457,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             </div>
 
             {/* Code Text Body with Real-Time Colorful Syntax Highlighting & Cursor Caret */}
-            <div className="font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto p-2 min-h-[150px]">
+            <div className="font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto p-2 min-h-[150px] text-zinc-200">
               <pre className="m-0 font-mono whitespace-pre-wrap">
                 {renderTypedTokens()}
                 <span className="inline-block w-2 h-4 bg-sky-400 animate-pulse ml-0.5 align-middle" />
@@ -446,7 +466,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
 
             {/* Footer with Progress Bar & Watermark Pill */}
             <div className="flex items-center justify-between border-t border-zinc-800/80 pt-4 mt-4">
-              <div className="flex-1 max-w-xs h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+              <div className="flex-1 max-w-xs h-1.5 rounded-full overflow-hidden border border-zinc-800 bg-zinc-950">
                 <div
                   className="h-full bg-sky-500 transition-all duration-75"
                   style={{ width: `${progressPercent}%` }}
@@ -454,11 +474,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               </div>
 
               <div className="flex items-center gap-3">
-                <span className="text-[10px] font-mono font-bold text-zinc-500">
+                <span className="text-[10px] font-mono font-bold text-zinc-400">
                   {progressPercent}%
                 </span>
-                <div className="px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-500">
-                  codemotion.dev
+                <div className="px-3 py-1 rounded-full border border-zinc-800 bg-zinc-950/80 text-[10px] font-mono text-zinc-400">
+                  codemotion.biz.id
                 </div>
               </div>
             </div>
