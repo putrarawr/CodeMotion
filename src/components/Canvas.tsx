@@ -130,6 +130,15 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
     }
   };
 
+  const handleToggleFocusedLine = (lineNum: number) => {
+    setSettings((prev) => {
+      const current = prev.focusedLines || [];
+      const exists = current.includes(lineNum);
+      const updated = exists ? current.filter((l) => l !== lineNum) : [...current, lineNum];
+      return { ...prev, focusedLines: updated };
+    });
+  };
+
   return (
     <div className="w-full flex items-center justify-center p-2 sm:p-4 my-auto relative">
       <div className="w-full flex flex-col items-center relative">
@@ -186,6 +195,9 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
                 lineHeight={lineHeight}
                 showLineNumbers={lineNumbers}
                 diffMode={diffMode}
+                focusedLines={settings.focusedLines}
+                annotations={settings.annotations}
+                onToggleFocusedLine={handleToggleFocusedLine}
                 motionSpeed={motionSpeed}
                 isPlayingMotion={isPlayingMotion}
                 controlledTypedLength={controlledTypedLength}

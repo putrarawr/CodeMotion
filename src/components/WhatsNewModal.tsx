@@ -13,36 +13,32 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose, i
 
   const updates = [
     {
-      icon: <Zap className="w-3.5 h-3.5 text-sky-400" />,
+      icon: <Zap className="w-3.5 h-3.5 text-zinc-200" />,
       title: 'Motion Code Typing Simulator',
       description: 'Simulate character typing live & export smooth WebM videos.',
-      tag: 'Popular',
     },
     {
-      icon: <Share className="w-3.5 h-3.5 text-indigo-400" />,
+      icon: <Share className="w-3.5 h-3.5 text-zinc-200" />,
       title: 'Social Canvas Templates',
       description: 'Presets for Twitter/X (16:9), LinkedIn (4:3), IG Reels (9:16), & Square.',
-      tag: 'New',
     },
     {
-      icon: <Maximize2 className="w-3.5 h-3.5 text-emerald-400" />,
+      icon: <Maximize2 className="w-3.5 h-3.5 text-zinc-200" />,
       title: 'Interactive Canvas Resizing',
       description: 'Drag-to-resize canvas handles & width slider control.',
-      tag: 'New',
     },
     {
-      icon: <User className="w-3.5 h-3.5 text-rose-400" />,
+      icon: <User className="w-3.5 h-3.5 text-zinc-200" />,
       title: 'Logo & Avatar Watermark Upload',
       description: 'Upload custom profile avatar or company logo on watermark.',
-      tag: 'New',
     },
     {
-      icon: <Wand2 className="w-3.5 h-3.5 text-amber-400" />,
+      icon: <Wand2 className="w-3.5 h-3.5 text-zinc-200" />,
       title: 'High-Accuracy Auto Detect',
       description: 'Smart multi-rule language detection with instant toasts.',
     },
     {
-      icon: <GitCompare className="w-3.5 h-3.5 text-teal-400" />,
+      icon: <GitCompare className="w-3.5 h-3.5 text-zinc-200" />,
       title: 'Code Diff Refactor Mode',
       description: 'Highlight line additions (+) and deletions (-).',
     },
@@ -60,7 +56,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose, i
             isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'
           }`}
         >
-          {/* Compact Header */}
+          {/* Header */}
           <div
             className={`px-4 py-3 border-b flex items-center justify-between ${
               isDark ? 'bg-zinc-900/90 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
@@ -68,20 +64,11 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose, i
           >
             <div className="flex items-center gap-2.5">
               <div className={`h-7 w-7 rounded-lg flex items-center justify-center border ${
-                isDark ? 'bg-zinc-800 border-zinc-700 text-sky-400' : 'bg-zinc-100 border-zinc-300 text-sky-600'
+                isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-200' : 'bg-zinc-100 border-zinc-300 text-zinc-800'
               }`}>
                 <Sparkles className="w-3.5 h-3.5" />
               </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <h2 className="text-xs font-bold tracking-tight m-0">What's New in CodeMotion</h2>
-                  <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-mono font-semibold border ${
-                    isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-zinc-100 text-zinc-700 border-zinc-300'
-                  }`}>
-                    v2.5
-                  </span>
-                </div>
-              </div>
+              <h2 className="text-xs font-bold tracking-tight m-0">What's New in CodeMotion</h2>
             </div>
 
             <button
@@ -94,7 +81,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose, i
             </button>
           </div>
 
-          {/* Compact Grid List */}
+          {/* Grid List */}
           <div className="p-3.5 overflow-y-auto flex flex-col gap-2 flex-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {updates.map((item, idx) => (
@@ -104,20 +91,11 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose, i
                     isDark ? 'bg-zinc-900/40 border-zinc-800/70 hover:border-zinc-700' : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <div className={`p-1 rounded-md border ${isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-zinc-200'}`}>
-                        {item.icon}
-                      </div>
-                      <h3 className="text-[11px] font-bold m-0 leading-tight">{item.title}</h3>
+                  <div className="flex items-center gap-1.5">
+                    <div className={`p-1 rounded-md border ${isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-zinc-200'}`}>
+                      {item.icon}
                     </div>
-                    {item.tag && (
-                      <span className={`text-[8px] font-mono font-semibold uppercase tracking-wider px-1 py-0.2 rounded border ${
-                        isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-zinc-200 text-zinc-700 border-zinc-300'
-                      }`}>
-                        {item.tag}
-                      </span>
-                    )}
+                    <h3 className="text-[11px] font-bold m-0 leading-tight">{item.title}</h3>
                   </div>
                   <p className={`text-[10px] leading-relaxed m-0 mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                     {item.description}
@@ -127,18 +105,15 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose, i
             </div>
           </div>
 
-          {/* Compact Footer Action */}
-          <div className={`p-3 border-t flex items-center justify-between ${isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-zinc-50 border-zinc-200'}`}>
-            <span className={`text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
-              v2.5.0 Release
-            </span>
+          {/* Footer Action */}
+          <div className={`p-3 border-t flex items-center justify-end ${isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-zinc-50 border-zinc-200'}`}>
             <button
               onClick={onClose}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 isDark ? 'bg-white text-black hover:bg-zinc-200' : 'bg-black text-white hover:bg-zinc-800'
               }`}
             >
-              <span>Got it, Continue</span>
+              <span>Explore Features</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>

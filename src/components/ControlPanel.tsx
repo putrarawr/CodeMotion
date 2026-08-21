@@ -28,6 +28,8 @@ import {
   Upload,
   User,
   Share,
+  Trash2,
+  Search,
 } from 'lucide-react';
 
 interface ControlPanelProps {
@@ -46,12 +48,76 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const isDark = settings.appTheme === 'dark';
 
   // Section Expansion Collapsible State for neat organization
-  const [activeTabSection, setActiveTabSection] = useState<'style' | 'motion' | 'layout' | 'watermark'>('style');
+  const [activeTabSection, setActiveTabSection] = useState<'style' | 'motion' | 'annotations' | 'layout' | 'watermark'>('style');
+
+  // Language search query state
+  const [languageSearchQuery, setLanguageSearchQuery] = useState<string>('');
+
+  // Custom Color Picker Builder State
+  const [customBgMode, setCustomBgMode] = useState<'gradient' | 'solid'>('gradient');
+  const [customColor1, setCustomColor1] = useState<string>(settings.customColor1 || '#1e1b4b');
+  const [customColor2, setCustomColor2] = useState<string>(settings.customColor2 || '#09090b');
+  const [customAngle, setCustomAngle] = useState<number>(settings.customGradientAngle || 135);
+
+  // Annotation form state
+  const [newAnnotationLineInput, setNewAnnotationLineInput] = useState<string>('1');
+  const [newAnnotationText, setNewAnnotationText] = useState<string>('');
+  const [newAnnotationColor, setNewAnnotationColor] = useState<'zinc' | 'sky' | 'emerald' | 'amber' | 'purple'>('sky');
 
   const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
 
   const updateSetting = <K extends keyof SnippetSettings>(key: K, value: SnippetSettings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleAddAnnotation = (e: React.FormEvent) => {
+    e.preventDefault();
+    const totalEditorLines = activeTab?.code ? activeTab.code.split('\n').length : 1;
+    const targetLine = parseInt(newAnnotationLineInput.trim(), 10);
+
+    if (isNaN(targetLine) || targetLine <= 0) {
+      toast.error('Baris tidak valid! Nomor baris harus minimal 1.');
+      return;
+    }
+
+    if (targetLine > totalEditorLines) {
+      toast.error(`Baris tidak valid! Editor hanya memiliki ${totalEditorLines} baris (Anda mengetik ${targetLine}).`);
+      return;
+    }
+
+    if (!newAnnotationText.trim()) {
+      toast.info('Silakan masukkan teks callout note');
+      return;
+    }
+
+    const newAnnotation = {
+      id: `ann-${Date.now()}`,
+      line: targetLine,
+      text: newAnnotationText.trim(),
+      color: newAnnotationColor,
+    };
+
+    setSettings((prev) => {
+      const current = prev.annotations || [];
+      const updated = [...current.filter((a) => a.line !== newAnnotation.line), newAnnotation];
+      return { ...prev, annotations: updated };
+    });
+
+    setNewAnnotationText('');
+    toast.success(`Callout note berhasil ditambahkan ke Line ${targetLine}`);
+  };
+
+  const handleRemoveAnnotation = (id: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      annotations: (prev.annotations || []).filter((a) => a.id !== id),
+    }));
+    toast.info('Annotation removed');
+  };
+
+  const handleClearSpotlight = () => {
+    setSettings((prev) => ({ ...prev, focusedLines: [] }));
+    toast.info('Spotlight focus cleared');
   };
 
   const handleAutoDetectLanguage = () => {
@@ -91,10 +157,28 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     }));
   };
 
+  const applyCustomThemeBackground = (c1: string, c2: string, mode: 'gradient' | 'solid', angleDeg: number) => {
+    const bgString = mode === 'solid' ? c1 : `linear-gradient(${angleDeg}deg, ${c1} 0%, ${c2} 100%)`;
+    setSettings((prev) => ({
+      ...prev,
+      background: bgString,
+      customBgType: mode,
+      customColor1: c1,
+      customColor2: c2,
+      customGradientAngle: angleDeg,
+    }));
+  };
+
+  const filteredLanguages = LANGUAGES.filter((lang) =>
+    lang.name.toLowerCase().includes(languageSearchQuery.toLowerCase()) ||
+    lang.id.toLowerCase().includes(languageSearchQuery.toLowerCase()) ||
+    lang.extension.toLowerCase().includes(languageSearchQuery.toLowerCase())
+  );
+
   return (
     <div id="editor-sidebar" className="w-full h-full flex flex-col p-4 sm:p-5 gap-4 overflow-y-auto">
       {/* Category Tab Selector Navigation Bar */}
-      <div className="grid grid-cols-4 gap-1 p-1 rounded-2xl bg-zinc-900/60 border border-zinc-800/80">
+      <div className="grid grid-cols-5 gap-1 p-1 rounded-2xl bg-zinc-900/60 border border-zinc-800/80">
         <button
           onClick={() => setActiveTabSection('style')}
           className={`py-2 px-1 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
@@ -123,6 +207,21 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         >
           <Zap className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Motion</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTabSection('annotations')}
+          className={`py-2 px-1 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+            activeTabSection === 'annotations'
+              ? 'bg-white text-black shadow-md'
+              : isDark
+              ? 'text-zinc-400 hover:text-white'
+              : 'text-zinc-600 hover:text-black'
+          }`}
+          title="Line Spotlight & Callout Notes"
+        >
+          <Code className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Notes</span>
         </button>
 
         <button
@@ -159,13 +258,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       {/* SECTION 1: Theme, Code Diff & Fonts */}
       {activeTabSection === 'style' && (
         <div className="flex flex-col gap-5">
-          {/* Code Diff Mode Toggle */}
+          {/* Diff Mode Toggle Card */}
           <div
-            className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${
+            className={`p-3.5 rounded-2xl border flex items-center justify-between transition-all ${
               settings.diffMode
                 ? 'bg-emerald-500/10 border-emerald-500/30'
                 : isDark
-                ? 'bg-zinc-900/60 border-zinc-800/80'
+                ? 'bg-zinc-900/60 border-zinc-800'
                 : 'bg-white border-zinc-200 shadow-xs'
             }`}
           >
@@ -200,12 +299,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             </label>
           </div>
 
-          {/* Active Tab Language Selector */}
+          {/* Active Tab Language Selector (Searchable & Categorized) */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                <Code className="w-3.5 h-3.5" />
-                <span>Active Language</span>
+                <Code className="w-3.5 h-3.5 text-zinc-300" />
+                <span>Active Language ({filteredLanguages.length})</span>
               </label>
               <button
                 onClick={handleAutoDetectLanguage}
@@ -221,6 +320,45 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               </button>
             </div>
 
+            {/* Language Search Input Bar */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+              <input
+                type="text"
+                placeholder="Cari bahasa... (misal: swift, vue, python)"
+                value={languageSearchQuery}
+                onChange={(e) => setLanguageSearchQuery(e.target.value)}
+                className={`w-full text-xs font-sans rounded-xl border pl-8 pr-3 py-2 outline-none ${
+                  isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-500' : 'bg-zinc-100 border-zinc-300 text-zinc-900'
+                }`}
+              />
+            </div>
+
+            {/* Quick Popular Language Pills */}
+            <div className="flex flex-wrap gap-1 py-1">
+              {(['typescript', 'javascript', 'python', 'rust', 'go', 'html', 'css', 'sql', 'cpp', 'swift', 'kotlin', 'vue'] as SupportedLanguage[]).map((langId) => {
+                const langObj = LANGUAGES.find((l) => l.id === langId);
+                const isSelected = activeTab?.language === langId;
+                return (
+                  <button
+                    key={langId}
+                    type="button"
+                    onClick={() => handleLanguageChange(langId)}
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-white text-black border-white shadow-xs'
+                        : isDark
+                        ? 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                        : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black'
+                    }`}
+                  >
+                    {langObj?.name || langId}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Dropdown Select with Filtered Options */}
             <select
               value={activeTab?.language || 'typescript'}
               onChange={(e) => handleLanguageChange(e.target.value as SupportedLanguage)}
@@ -228,7 +366,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900'
               }`}
             >
-              {LANGUAGES.map((lang) => (
+              {filteredLanguages.map((lang) => (
                 <option key={lang.id} value={lang.id}>
                   {lang.name} ({lang.extension})
                 </option>
@@ -407,7 +545,155 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </div>
       )}
 
-      {/* SECTION 3: Social Media Canvas Presets & Layout */}
+      {/* SECTION 3: Line Spotlight & Callout Notes */}
+      {activeTabSection === 'annotations' && (
+        <div className="flex flex-col gap-5">
+          {/* Spotlight Mode Box */}
+          <div className={`p-4 rounded-2xl border flex flex-col gap-3 ${isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200'}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Code className="w-4 h-4 text-zinc-200" />
+                <span className="text-xs font-bold">Line Spotlight Mode</span>
+              </div>
+              {(settings.focusedLines || []).length > 0 && (
+                <button
+                  onClick={handleClearSpotlight}
+                  className="px-2 py-1 text-[10px] font-bold rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-colors cursor-pointer"
+                >
+                  Clear Spotlight
+                </button>
+              )}
+            </div>
+            <p className={`text-[11px] leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              {(settings.focusedLines || []).length > 0
+                ? `${(settings.focusedLines || []).length} line(s) currently spotlighted (${(settings.focusedLines || []).join(', ')}). Click line numbers on the canvas to toggle.`
+                : 'Click any line number on the canvas editor to spotlight specific lines while dimming the rest.'}
+            </p>
+          </div>
+
+          {/* Add Line Annotation Form */}
+          <form onSubmit={handleAddAnnotation} className={`p-4 rounded-2xl border flex flex-col gap-3 ${isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200'}`}>
+            <span className="text-xs font-bold flex items-center gap-1.5">
+              <span>Add Callout Note Badge</span>
+            </span>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div className="flex flex-col gap-1">
+                <label className={`text-[10px] font-bold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Line #</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={newAnnotationLineInput}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (/^\d*$/.test(val)) {
+                      setNewAnnotationLineInput(val);
+                    }
+                  }}
+                  onBlur={() => {
+                    const totalEditorLines = activeTab?.code ? activeTab.code.split('\n').length : 1;
+                    const val = parseInt(newAnnotationLineInput.trim(), 10);
+                    if (isNaN(val) || val <= 0) {
+                      toast.error('Baris tidak valid! Nomor baris harus minimal 1.');
+                      setNewAnnotationLineInput('1');
+                    } else if (val > totalEditorLines) {
+                      toast.error(`Baris tidak valid! Editor hanya memiliki ${totalEditorLines} baris.`);
+                      setNewAnnotationLineInput(totalEditorLines.toString());
+                    }
+                  }}
+                  placeholder="1"
+                  className={`w-full text-xs font-mono rounded-xl border p-2 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                    isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-900'
+                  }`}
+                />
+              </div>
+
+              <div className="col-span-2 flex flex-col gap-1">
+                <label className={`text-[10px] font-bold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Callout Text</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Core logic here"
+                  value={newAnnotationText}
+                  onChange={(e) => setNewAnnotationText(e.target.value)}
+                  className={`w-full text-xs font-sans rounded-xl border p-2 outline-none ${
+                    isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-900'
+                  }`}
+                />
+              </div>
+            </div>
+
+            {/* Badge Color Selector */}
+            <div className="flex items-center justify-between gap-2">
+              <span className={`text-[10px] font-bold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Tag Color</span>
+              <div className="flex items-center gap-1.5">
+                {(['sky', 'emerald', 'amber', 'purple', 'zinc'] as const).map((clr) => (
+                  <button
+                    key={clr}
+                    type="button"
+                    onClick={() => setNewAnnotationColor(clr)}
+                    className={`w-5 h-5 rounded-full border transition-all cursor-pointer ${
+                      clr === 'sky'
+                        ? 'bg-sky-400'
+                        : clr === 'emerald'
+                        ? 'bg-emerald-400'
+                        : clr === 'amber'
+                        ? 'bg-amber-400'
+                        : clr === 'purple'
+                        ? 'bg-purple-400'
+                        : 'bg-zinc-400'
+                    } ${newAnnotationColor === clr ? 'scale-125 border-white ring-2 ring-white/30' : 'border-transparent opacity-70'}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm ${
+                isDark ? 'bg-white text-black hover:bg-zinc-200' : 'bg-black text-white hover:bg-zinc-800'
+              }`}
+            >
+              Add Callout Badge
+            </button>
+          </form>
+
+          {/* Active Callout List */}
+          {(settings.annotations || []).length > 0 && (
+            <div className="flex flex-col gap-2">
+              <span className={`text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                Active Callout Notes ({settings.annotations?.length})
+              </span>
+              <div className="flex flex-col gap-2">
+                {settings.annotations?.map((ann) => (
+                  <div
+                    key={ann.id}
+                    className={`flex items-center justify-between p-3 rounded-xl border text-xs font-sans ${
+                      isDark ? 'bg-zinc-900/60 border-zinc-800 text-zinc-200' : 'bg-white border-zinc-200 text-zinc-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <span className="px-2 py-0.5 rounded-md bg-zinc-800 text-[10px] font-mono font-bold text-zinc-300">
+                        L{ann.line}
+                      </span>
+                      <span className="truncate">{ann.text}</span>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveAnnotation(ann.id)}
+                      className="p-1 rounded-lg text-zinc-400 hover:text-red-400 transition-colors cursor-pointer"
+                      title="Delete Callout Note"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* SECTION 4: Social Media Canvas Presets & Layout */}
       {activeTabSection === 'layout' && (
         <div id="customization-card" className="flex flex-col gap-5">
           {/* Social Media Templates Bar */}
@@ -525,6 +811,106 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                   </button>
                 );
               })}
+            </div>
+
+            {/* Custom Color Palette Builder Box */}
+            <div className={`p-4 rounded-2xl border flex flex-col gap-3 mt-2 ${isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200'}`}>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold flex items-center gap-1.5">
+                  <Palette className="w-3.5 h-3.5 text-sky-400" />
+                  <span>Custom Theme Color Picker</span>
+                </span>
+                <div className="flex items-center gap-1 p-0.5 rounded-lg bg-zinc-950 border border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomBgMode('gradient');
+                      applyCustomThemeBackground(customColor1, customColor2, 'gradient', customAngle);
+                    }}
+                    className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition-colors cursor-pointer ${
+                      customBgMode === 'gradient' ? 'bg-white text-black' : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    Gradient
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomBgMode('solid');
+                      applyCustomThemeBackground(customColor1, customColor2, 'solid', customAngle);
+                    }}
+                    className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition-colors cursor-pointer ${
+                      customBgMode === 'solid' ? 'bg-white text-black' : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    Solid
+                  </button>
+                </div>
+              </div>
+
+              {/* Dual Color Pickers */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className={`text-[10px] font-bold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                    {customBgMode === 'gradient' ? 'Start Color' : 'Background Color'}
+                  </label>
+                  <div className="flex items-center gap-2 p-1.5 rounded-xl border border-zinc-800 bg-zinc-950">
+                    <input
+                      type="color"
+                      value={customColor1}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCustomColor1(val);
+                        applyCustomThemeBackground(val, customColor2, customBgMode, customAngle);
+                      }}
+                      className="w-7 h-7 rounded-lg cursor-pointer bg-transparent border-0 p-0"
+                    />
+                    <span className="text-xs font-mono font-semibold uppercase text-zinc-200">{customColor1}</span>
+                  </div>
+                </div>
+
+                {customBgMode === 'gradient' && (
+                  <div className="flex flex-col gap-1.5">
+                    <label className={`text-[10px] font-bold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>End Color</label>
+                    <div className="flex items-center gap-2 p-1.5 rounded-xl border border-zinc-800 bg-zinc-950">
+                      <input
+                        type="color"
+                        value={customColor2}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCustomColor2(val);
+                          applyCustomThemeBackground(customColor1, val, customBgMode, customAngle);
+                        }}
+                        className="w-7 h-7 rounded-lg cursor-pointer bg-transparent border-0 p-0"
+                      />
+                      <span className="text-xs font-mono font-semibold uppercase text-zinc-200">{customColor2}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Angle Slider */}
+              {customBgMode === 'gradient' && (
+                <div className="flex flex-col gap-1.5 pt-1">
+                  <div className="flex justify-between items-center text-[10px] font-bold">
+                    <span className={isDark ? 'text-zinc-400' : 'text-zinc-500'}>Gradient Direction Angle</span>
+                    <span className="font-mono text-zinc-200">{customAngle}°</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="360"
+                    step="5"
+                    value={customAngle}
+                    onChange={(e) => {
+                      const deg = Number(e.target.value);
+                      setCustomAngle(deg);
+                      applyCustomThemeBackground(customColor1, customColor2, 'gradient', deg);
+                    }}
+                    className="w-full accent-sky-500 cursor-pointer"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -61,19 +61,19 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-5xl px-3 sm:px-6 flex justify-center select-none pointer-events-auto">
       <header
-        className={`w-full rounded-full border shadow-2xl backdrop-blur-xl px-3 sm:px-4 py-2 flex items-center justify-between transition-all duration-300 ${
+        className={`w-full rounded-2xl sm:rounded-3xl border shadow-2xl backdrop-blur-xl px-4 py-2.5 flex items-center justify-between transition-all duration-300 ${
           isDark
-            ? 'bg-zinc-950/85 border-zinc-800/90 text-zinc-100 shadow-black/50'
-            : 'bg-white/85 border-zinc-200/90 text-zinc-900 shadow-zinc-300/40'
+            ? 'bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 border-zinc-800 text-white shadow-black/60'
+            : 'bg-white/95 border-zinc-200 text-zinc-900 shadow-zinc-200/50'
         }`}
       >
-        {/* Left Dynamic Island Section: Logo & Brand Capsule */}
+        {/* Left Obsidian Section: Logo & Brand Capsule */}
         <Link
           to="/"
-          className={`flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-full border transition-all no-underline ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all no-underline ${
             isDark
-              ? 'bg-zinc-900/80 border-zinc-800 hover:border-zinc-700 text-zinc-100'
-              : 'bg-zinc-100/80 border-zinc-300 hover:border-zinc-400 text-zinc-900'
+              ? 'bg-zinc-950/80 border-zinc-800 hover:border-zinc-700 text-zinc-100'
+              : 'bg-zinc-100 border-zinc-300 hover:border-zinc-400 text-zinc-900'
           }`}
           title="Return to Landing Page"
         >
@@ -81,40 +81,35 @@ export const Header: React.FC<HeaderProps> = ({
             <Logo className="w-4 h-4" />
           </div>
           <span className="text-xs font-bold tracking-tight font-sans">CodeMotion</span>
-          <span className={`px-1.5 py-0.2 text-[9px] font-mono font-semibold rounded-full border ${
-            isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-400' : 'bg-zinc-200 border-zinc-300 text-zinc-600'
-          }`}>
-            v2.5
-          </span>
         </Link>
 
-        {/* Center Dynamic Island Section: Navigation & Tools */}
-        <div id="header-actions" className="flex items-center gap-1 sm:gap-1.5">
+        {/* Center Obsidian Section: Navigation & Tools */}
+        <div id="header-actions" className="flex items-center gap-1.5 sm:gap-2">
           {/* User Guide Tour Pill */}
           <button
             onClick={onOpenUserTour}
             title="Open Interactive User Guide"
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
               isDark
-                ? 'bg-zinc-900/60 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
-                : 'bg-zinc-100/60 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
+                ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
+                : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
             }`}
           >
-            <HelpCircle className="w-3.5 h-3.5 text-sky-400" />
+            <HelpCircle className="w-3.5 h-3.5 text-zinc-300" />
             <span className="hidden sm:inline">Guide</span>
           </button>
 
           {/* Home / Landing Link Pill */}
           <Link
             to="/"
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border transition-all no-underline ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all no-underline ${
               isDark
-                ? 'bg-zinc-900/60 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
-                : 'bg-zinc-100/60 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
+                ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
+                : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
             }`}
             title="Return to Landing Page"
           >
-            <Home className="w-3.5 h-3.5 text-indigo-400" />
+            <Home className="w-3.5 h-3.5 text-zinc-300" />
             <span className="hidden sm:inline">Landing</span>
           </Link>
 
@@ -122,38 +117,38 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={toggleAppTheme}
             title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            className={`p-1.5 rounded-full border transition-all cursor-pointer ${
+            className={`p-2 rounded-xl border transition-all cursor-pointer ${
               isDark
-                ? 'bg-zinc-900/60 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
-                : 'bg-zinc-100/60 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
+                ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
+                : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
             }`}
           >
-            {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-zinc-800" />}
+            {isDark ? <Sun className="w-3.5 h-3.5 text-zinc-300" /> : <Moon className="w-3.5 h-3.5 text-zinc-800" />}
           </button>
 
           {/* Reset Pill */}
           <button
             onClick={onReset}
             title="Reset to default settings"
-            className={`p-1.5 rounded-full border transition-all cursor-pointer ${
+            className={`p-2 rounded-xl border transition-all cursor-pointer ${
               isDark
-                ? 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
-                : 'bg-zinc-100/60 border-zinc-300 text-zinc-600 hover:text-black hover:bg-zinc-200'
+                ? 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black hover:bg-zinc-200'
             }`}
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Right Dynamic Island Section: Copy & Export Capsules */}
+        {/* Right Obsidian Section: Copy & Export Capsules */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Copy Image Button */}
           <button
             onClick={onCopyImage}
             disabled={isExporting}
-            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border transition-all disabled:opacity-50 cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl border transition-all disabled:opacity-50 cursor-pointer ${
               isDark
-                ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
+                ? 'bg-zinc-950 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
                 : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-zinc-200'
             }`}
           >
@@ -164,7 +159,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Export Pill Dropdown */}
           <div className="relative" ref={pngDropdownRef}>
             <div
-              className={`flex items-center rounded-full border shadow-xs transition-all overflow-hidden ${
+              className={`flex items-center rounded-xl border shadow-xs transition-all overflow-hidden ${
                 isDark
                   ? 'bg-white text-black border-white hover:bg-zinc-200'
                   : 'bg-black text-white border-black hover:bg-zinc-800'

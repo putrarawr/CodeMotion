@@ -12,10 +12,23 @@ export const LANGUAGES: LanguageOption[] = [
   { id: 'sql', name: 'SQL', extension: '.sql' },
   { id: 'bash', name: 'Shell / Bash', extension: '.sh' },
   { id: 'cpp', name: 'C++', extension: '.cpp' },
-  { id: 'markdown', name: 'Markdown', extension: '.md' },
-  { id: 'php', name: 'PHP', extension: '.php' },
-  { id: 'java', name: 'Java', extension: '.java' },
+  { id: 'c', name: 'C', extension: '.c' },
   { id: 'csharp', name: 'C#', extension: '.cs' },
+  { id: 'java', name: 'Java', extension: '.java' },
+  { id: 'kotlin', name: 'Kotlin', extension: '.kt' },
+  { id: 'swift', name: 'Swift', extension: '.swift' },
+  { id: 'ruby', name: 'Ruby', extension: '.rb' },
+  { id: 'php', name: 'PHP', extension: '.php' },
+  { id: 'scala', name: 'Scala', extension: '.scala' },
+  { id: 'r', name: 'R', extension: '.r' },
+  { id: 'dart', name: 'Dart', extension: '.dart' },
+  { id: 'elixir', name: 'Elixir', extension: '.ex' },
+  { id: 'vue', name: 'Vue', extension: '.vue' },
+  { id: 'svelte', name: 'Svelte', extension: '.svelte' },
+  { id: 'astro', name: 'Astro', extension: '.astro' },
+  { id: 'graphql', name: 'GraphQL', extension: '.gql' },
+  { id: 'dockerfile', name: 'Dockerfile', extension: 'Dockerfile' },
+  { id: 'markdown', name: 'Markdown', extension: '.md' },
   { id: 'yaml', name: 'YAML', extension: '.yaml' },
 ];
 
@@ -26,12 +39,15 @@ export function detectLanguageFromCode(code: string, fileName?: string): Support
   // 1. Extension matching from file title
   if (fileName) {
     const ext = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
-    const matchedByExt = LANGUAGES.find((l) => l.extension === ext);
+    const matchedByExt = LANGUAGES.find((l) => l.extension.toLowerCase() === ext);
     if (matchedByExt) return matchedByExt.id;
     if (ext === '.yml') return 'yaml';
     if (ext === '.jsx' || ext === '.mjs' || ext === '.cjs') return 'javascript';
     if (ext === '.tsx') return 'typescript';
-    if (ext === '.h' || ext === '.hpp' || ext === '.c') return 'cpp';
+    if (ext === '.h' || ext === '.hpp') return 'cpp';
+    if (ext === '.rb') return 'ruby';
+    if (ext === '.exs') return 'elixir';
+    if (fileName.toLowerCase() === 'dockerfile') return 'dockerfile';
   }
 
   const trimmed = code.trim();
@@ -42,6 +58,7 @@ export function detectLanguageFromCode(code: string, fileName?: string): Support
   if (trimmed.startsWith('#!/bin/bash') || trimmed.startsWith('#!/bin/sh') || trimmed.startsWith('#!/usr/bin/env bash')) return 'bash';
   if (trimmed.startsWith('<!DOCTYPE html>') || trimmed.startsWith('<html')) return 'html';
   if (trimmed.startsWith('apiVersion:') || trimmed.startsWith('kind:')) return 'yaml';
+  if (trimmed.startsWith('FROM ') || trimmed.startsWith('RUN ') || trimmed.startsWith('CMD ')) return 'dockerfile';
 
   // 3. JSON check
   if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
@@ -64,10 +81,23 @@ export function detectLanguageFromCode(code: string, fileName?: string): Support
     sql: 0,
     bash: 0,
     cpp: 0,
-    markdown: 0,
-    php: 0,
-    java: 0,
+    c: 0,
     csharp: 0,
+    java: 0,
+    kotlin: 0,
+    swift: 0,
+    ruby: 0,
+    php: 0,
+    scala: 0,
+    r: 0,
+    dart: 0,
+    elixir: 0,
+    vue: 0,
+    svelte: 0,
+    astro: 0,
+    graphql: 0,
+    dockerfile: 0,
+    markdown: 0,
     yaml: 0,
   };
 
@@ -78,52 +108,47 @@ export function detectLanguageFromCode(code: string, fileName?: string): Support
     scores.typescript += 2;
     scores.javascript += 2;
   }
-  if (/\bconsole\.(log|error|warn)\b/.test(trimmed)) {
-    scores.typescript += 2;
-    scores.javascript += 2;
-  }
+
+  // Swift / Kotlin
+  if (/\b(import SwiftUI|import UIKit|var \w+: String|func \w+\()/.test(trimmed)) scores.swift += 5;
+  if (/\b(fun main|val \w+: String|data class \w+|package \w+)/.test(trimmed)) scores.kotlin += 5;
+
+  // Ruby / Elixir
+  if (/\b(def \w+|puts|require '|\bdo\b|\bend\b)/.test(trimmed)) scores.ruby += 3;
+  if (/\b(defmodule \w+|IO\.puts|fn \w+ ->)/.test(trimmed)) scores.elixir += 5;
+
+  // Dart
+  if (/\b(void main\(\)|Widget build|BuildContext|StatefulWidget)/.test(trimmed)) scores.dart += 5;
+
+  // Vue / Svelte / Astro
+  if (/<template>|<script setup>/.test(trimmed)) scores.vue += 5;
+  if (/<script lang="ts">|<style>/.test(trimmed) && trimmed.includes('{')) scores.svelte += 3;
+
+  // GraphQL
+  if (/\b(query \w+|mutation \w+|type \w+ \{|schema \{)/.test(trimmed)) scores.graphql += 5;
 
   // Python
   if (/\b(def|class|import|from|elif|lambda|pass)\b/.test(trimmed)) scores.python += 3;
-  if (/:\s*$/m.test(trimmed) && (trimmed.includes('def ') || trimmed.includes('if '))) scores.python += 3;
   if (/\bprint\(/.test(trimmed)) scores.python += 3;
-  if (/\bself\b/.test(trimmed)) scores.python += 3;
 
   // Rust
   if (/\b(fn|let mut|pub fn|impl|struct|enum|match|use std::)\b/.test(trimmed)) scores.rust += 5;
-  if (/\bprintln!/.test(trimmed)) scores.rust += 5;
 
   // Go
   if (/\b(package|func|fmt\.Println|type \w+ struct|import \()\b/.test(trimmed)) scores.go += 5;
 
   // HTML
-  if (/<\/?(div|span|p|a|h1|h2|h3|button|input|form|header|footer|section|body|head|meta|link|script)\b/i.test(trimmed)) scores.html += 4;
+  if (/<\/?(div|span|p|a|h1|h2|h3|button|input|form)\b/i.test(trimmed)) scores.html += 4;
 
   // CSS
-  if (/[a-zA-Z0-9_-]+\s*\{[^}]*\}/.test(trimmed) && /\b(color|background|padding|margin|display|flex|grid|border|font-size):/.test(trimmed)) scores.css += 5;
+  if (/[a-zA-Z0-9_-]+\s*\{[^}]*\}/.test(trimmed) && /\b(color|background|padding|margin):/.test(trimmed)) scores.css += 5;
 
   // SQL
-  if (/\b(SELECT|FROM|WHERE|INSERT INTO|UPDATE|DELETE|CREATE TABLE|JOIN|GROUP BY|ORDER BY)\b/i.test(trimmed)) scores.sql += 5;
+  if (/\b(SELECT|FROM|WHERE|INSERT INTO|UPDATE|DELETE|JOIN)\b/i.test(trimmed)) scores.sql += 5;
 
-  // C++
-  if (/#include\s*<[^>]+>/.test(trimmed)) scores.cpp += 5;
-  if (/\b(std::cout|std::vector|std::string|namespace|int main)\b/.test(trimmed)) scores.cpp += 5;
-
-  // PHP
-  if (/\$this->|\$[a-zA-Z_]\w*/.test(trimmed)) scores.php += 3;
-  if (/\becho\b/.test(trimmed)) scores.php += 2;
-
-  // Java
-  if (/\b(public class|public static void main|System\.out\.println|private final|import java\.)\b/.test(trimmed)) scores.java += 5;
-
-  // C#
-  if (/\b(using System;|Console\.WriteLine|namespace \w+|async Task|IEnumerable)\b/.test(trimmed)) scores.csharp += 5;
-
-  // Markdown
-  if (/^#{1,6}\s+/m.test(trimmed) || /```[a-z]*/.test(trimmed) || /^\s*[-*]\s+/m.test(trimmed)) scores.markdown += 4;
-
-  // Bash
-  if (/\b(echo|sudo|chmod|mkdir|grep|cat|cd|ls|curl|export)\b/.test(trimmed)) scores.bash += 2;
+  // C / C++
+  if (/#include\s*<stdio\.h>/.test(trimmed)) scores.c += 5;
+  if (/#include\s*<iostream>/.test(trimmed)) scores.cpp += 5;
 
   let bestLang: SupportedLanguage | null = null;
   let maxScore = 0;
@@ -135,6 +160,5 @@ export function detectLanguageFromCode(code: string, fileName?: string): Support
     }
   }
 
-  // If score threshold met, return detected language
   return maxScore >= 2 ? bestLang : null;
 }

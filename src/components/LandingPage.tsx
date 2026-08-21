@@ -31,6 +31,7 @@ import {
   Pause,
   RotateCcw,
   Video,
+  Sparkles,
 } from 'lucide-react';
 import type { SnippetSettings } from '../types';
 import { Logo } from './Logo';
@@ -41,7 +42,6 @@ interface LandingPageProps {
   onToggleAppTheme: () => void;
 }
 
-// Tokenized code tokens for colorful syntax highlighting during motion typing
 interface CodeToken {
   text: string;
   type: 'keyword' | 'function' | 'string' | 'number' | 'comment' | 'class' | 'property' | 'plain';
@@ -78,22 +78,16 @@ const TOTAL_MOTION_CHARS = MOTION_PREVIEW_TOKENS.reduce((acc, t) => acc + t.text
 export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppTheme }) => {
   const isDark = settings.appTheme === 'dark';
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(true);
+  const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
 
-  // Motion Code Simulator Interactive Demo State
   const [motionTypedIndex, setMotionTypedIndex] = useState(0);
   const [isMotionPlaying, setIsMotionPlaying] = useState(true);
   const [motionSpeed, setMotionSpeed] = useState<0.5 | 1 | 2>(1);
 
   useEffect(() => {
-    setIsWhatsNewOpen(true);
-  }, []);
-
-  // Motion Code Character Typing Interval Effect
-  useEffect(() => {
     if (!isMotionPlaying) return;
 
-    const baseDelay = 40; // ms per character
+    const baseDelay = 40;
     const intervalTime = baseDelay / motionSpeed;
 
     const interval = setInterval(() => {
@@ -144,43 +138,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
 
   const faqs = [
     {
-      q: 'Is CodeMotion completely free to use?',
-      a: 'Yes, 100% free with no hidden paywalls, subscription fees, or export limits.',
+      q: 'Is CodeMotion free to use?',
+      a: 'Yes. CodeMotion runs directly in your browser without subscription fees, paywalls, or export limits.',
     },
     {
-      q: 'What is the Motion Code feature?',
-      a: 'Motion Code simulates a real-time typing animation for your code snippet, allowing you to showcase how code is written step by step.',
+      q: 'How does syntax highlighting work?',
+      a: 'CodeMotion uses Shiki, the exact syntax engine used inside VS Code with official TextMate grammars.',
     },
     {
-      q: 'Is my source code private and secure?',
-      a: 'Absolutely. CodeMotion processes everything locally in your browser using Shiki and HTML5 Canvas API. Your code is never sent to any external server.',
+      q: 'Where is my source code processed?',
+      a: 'All rendering happens locally on your device via HTML5 Canvas. Your code is never sent to external servers.',
     },
     {
-      q: 'Why is the syntax highlighting so accurate?',
-      a: 'CodeMotion utilizes Shiki, the exact same syntax highlighting engine used inside VS Code with official TextMate grammars.',
-    },
-    {
-      q: 'What formats can I export my code snippets into?',
-      a: 'You can export high-resolution PNG images at 2x or 3x DPI (Retina), vector SVG files, or write PNG blobs directly to your clipboard.',
+      q: 'What formats can I export?',
+      a: 'You can export high-resolution PNG images at 2x or 3x DPI, vector SVG files, or smooth 60 FPS WebM typing animations.',
     },
   ];
 
   const fadeInUp: Variants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+    hidden: { opacity: 0, y: 24 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
   };
 
   const staggerContainer: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
+      transition: { staggerChildren: 0.08 },
     },
   };
 
-  // Render colorful syntax highlighted tokens up to motionTypedIndex
   const renderTypedTokens = () => {
     let charCounter = 0;
     const elements: React.ReactNode[] = [];
@@ -215,6 +202,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
 
   const progressPercent = Math.min(100, Math.round((motionTypedIndex / TOTAL_MOTION_CHARS) * 100));
 
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      const navOffset = 90;
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - navOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -225,29 +227,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
         isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
       }`}
     >
-      {/* Release Notes Update Modal Popup on Landing Page */}
       <WhatsNewModal
         isOpen={isWhatsNewOpen}
         onClose={() => setIsWhatsNewOpen(false)}
         isDark={isDark}
       />
 
-      {/* 1. Header Navigation - Dynamic Island Style */}
+      {/* 1. Header Navigation - Screenshot Card Gradient Matching Navbar Style */}
       <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-5xl px-3 sm:px-6 flex justify-center select-none pointer-events-auto">
         <header
-          className={`w-full rounded-full border shadow-2xl backdrop-blur-xl px-3 sm:px-4 py-2 flex items-center justify-between transition-all duration-300 ${
+          className={`w-full rounded-2xl sm:rounded-3xl border shadow-2xl backdrop-blur-xl px-4 py-2.5 flex items-center justify-between transition-all duration-300 ${
             isDark
-              ? 'bg-zinc-950/85 border-zinc-800/90 text-zinc-100 shadow-black/50'
-              : 'bg-white/85 border-zinc-200/90 text-zinc-900 shadow-zinc-300/40'
+              ? 'bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 border-zinc-800 text-white shadow-black/60'
+              : 'bg-white/95 border-zinc-200 text-zinc-900 shadow-zinc-200/50'
           }`}
         >
-          {/* Brand & Custom Logo Capsule */}
           <Link
             to="/"
-            className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all no-underline ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all no-underline ${
               isDark
-                ? 'bg-zinc-900/80 border-zinc-800 hover:border-zinc-700 text-zinc-100'
-                : 'bg-zinc-100/80 border-zinc-300 hover:border-zinc-400 text-zinc-900'
+                ? 'bg-zinc-950/80 border-zinc-800 hover:border-zinc-700 text-zinc-100'
+                : 'bg-zinc-100 border-zinc-300 hover:border-zinc-400 text-zinc-900'
             }`}
           >
             <div className="flex items-center gap-1.5">
@@ -256,50 +256,65 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             <span className="text-xs font-bold tracking-tight font-sans">CodeMotion</span>
           </Link>
 
-          {/* Dynamic Nav Links */}
           <nav className="hidden md:flex items-center gap-1.5 text-xs font-semibold">
             <a
               href="#motion-preview"
-              className={`px-3 py-1 rounded-full transition-all no-underline ${
-                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-900' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
+              onClick={(e) => scrollToSection(e, 'motion-preview')}
+              className={`px-3 py-1.5 rounded-xl transition-all no-underline ${
+                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
               Motion Demo
             </a>
             <a
               href="#features"
-              className={`px-3 py-1 rounded-full transition-all no-underline ${
-                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-900' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
+              onClick={(e) => scrollToSection(e, 'features')}
+              className={`px-3 py-1.5 rounded-xl transition-all no-underline ${
+                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
               Features
             </a>
             <a
               href="#languages"
-              className={`px-3 py-1 rounded-full transition-all no-underline ${
-                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-900' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
+              onClick={(e) => scrollToSection(e, 'languages')}
+              className={`px-3 py-1.5 rounded-xl transition-all no-underline ${
+                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
               Languages
             </a>
             <a
               href="#faq"
-              className={`px-3 py-1 rounded-full transition-all no-underline ${
-                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-900' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
+              onClick={(e) => scrollToSection(e, 'faq')}
+              className={`px-3 py-1.5 rounded-xl transition-all no-underline ${
+                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
               FAQ
             </a>
           </nav>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              onClick={() => setIsWhatsNewOpen(true)}
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
+                  : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
+              }`}
+              title="View Product Updates"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-zinc-300" />
+              <span>What's New</span>
+            </button>
+
             <button
               onClick={onToggleAppTheme}
-              className={`p-1.5 rounded-full border transition-all cursor-pointer ${
+              className={`p-2 rounded-xl border transition-all cursor-pointer ${
                 isDark
-                  ? 'bg-zinc-900/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
-                  : 'bg-zinc-100/80 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
+                  ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
+                  : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
               }`}
             >
               {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-zinc-800" />}
@@ -307,31 +322,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
 
             <Link
               to="/editor"
-              className={`flex items-center gap-1.5 px-3.5 py-1 text-xs font-extrabold rounded-full transition-all shadow-md transform hover:scale-105 no-underline ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-extrabold rounded-xl transition-all shadow-md transform hover:scale-105 no-underline ${
                 isDark ? 'bg-white text-black hover:bg-zinc-200' : 'bg-black text-white hover:bg-zinc-800'
               }`}
             >
-              <span>Open App Editor</span>
+              <span>Open Editor</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </header>
       </div>
 
-      {/* 2. Hero Section (Matching Deployed Screenshot codemotion.biz.id) */}
+      {/* 2. Hero Section */}
       <motion.section
         initial="hidden"
         animate="visible"
         variants={staggerContainer}
-        className="flex flex-col items-center justify-center text-center px-6 lg:px-12 pt-16 pb-12 max-w-5xl mx-auto"
+        className="flex flex-col items-center justify-center text-center px-6 lg:px-12 pt-24 pb-12 max-w-5xl mx-auto"
       >
         <motion.h1
           variants={fadeInUp}
-          className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.12] mb-6 font-sans"
+          className="text-4xl sm:text-6xl font-bold tracking-tight leading-tight max-w-4xl mb-6 font-sans"
         >
-          Turn Code Into High-Res <br />
-          <span className="underline decoration-zinc-700 underline-offset-8">Production & Motion</span> <br />
-          <span className="underline decoration-zinc-700 underline-offset-8">Images</span>
+          Turn code snippets into high-resolution graphics and animated motion.
         </motion.h1>
 
         <motion.p
@@ -340,7 +353,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             isDark ? 'text-zinc-400' : 'text-zinc-600'
           }`}
         >
-          Create aesthetic code snippet graphics and animated typing motions for X, LinkedIn, blogs, and presentations.
+          Create code snippet images and typing animations for social posts, documentation, and presentations.
         </motion.p>
 
         <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center gap-4 mb-12">
@@ -349,12 +362,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             className="flex items-center gap-2.5 px-8 py-4 rounded-2xl text-sm font-bold bg-white text-black hover:bg-zinc-200 transition-all shadow-xl transform hover:scale-105 no-underline"
           >
             <Logo className="w-5 h-5 text-black" />
-            <span>Launch CodeMotion Editor</span>
+            <span>Open Editor</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </motion.div>
 
-        {/* Hero Code Window Preview Box (Matching Screenshot CTA Card Styling) */}
+        {/* Hero Code Window Preview Card (Screenshot Card Styling) */}
         <motion.div variants={fadeInUp} className="w-full max-w-3xl mx-auto">
           <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white">
             <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4 mb-6">
@@ -394,17 +407,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
       <section id="motion-preview" className={`py-16 px-6 lg:px-12 border-t ${isDark ? 'border-zinc-800/80 bg-zinc-950/40' : 'border-zinc-200 bg-zinc-50'}`}>
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
-              Animate Typing Character by Character
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+              Character-by-Character Typing Motion
             </h2>
-            <p className={`text-sm sm:text-base max-w-xl mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Real-time typing simulation with colorful VS Code syntax highlighting.
+            <p className={`text-sm max-w-xl mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              Real-time interactive code typing simulation.
             </p>
           </div>
 
-          {/* Harmonious Card Container (Matching Screenshot CTA Card Styling) */}
           <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white">
-            {/* Window Header Bar with Red/Yellow/Green Dots & Controls */}
             <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4 mb-6">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500/80" />
@@ -413,17 +424,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               </div>
 
               <div className="flex items-center gap-2">
-                <Video className="w-4 h-4 text-sky-400" />
+                <Video className="w-4 h-4 text-zinc-300" />
                 <span className="text-xs font-mono text-zinc-400 font-semibold">MotionRecorder.ts</span>
               </div>
 
-              {/* Playback Controls & Speed Toggle */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsMotionPlaying(!isMotionPlaying)}
                   className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border border-zinc-800 bg-zinc-950 text-white hover:bg-zinc-800 transition-all cursor-pointer"
                 >
-                  {isMotionPlaying ? <Pause className="w-3 h-3 text-amber-400" /> : <Play className="w-3 h-3 text-emerald-400 fill-current" />}
+                  {isMotionPlaying ? <Pause className="w-3 h-3 text-zinc-300" /> : <Play className="w-3 h-3 text-zinc-100 fill-current" />}
                   <span>{isMotionPlaying ? 'Pause' : 'Play'}</span>
                 </button>
 
@@ -445,7 +455,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
                       onClick={() => setMotionSpeed(spd)}
                       className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold border transition-all cursor-pointer ${
                         motionSpeed === spd
-                          ? 'bg-sky-500 text-white border-sky-400 shadow-xs'
+                          ? 'bg-zinc-100 text-black border-zinc-100 shadow-xs'
                           : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white'
                       }`}
                     >
@@ -456,19 +466,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               </div>
             </div>
 
-            {/* Code Text Body with Real-Time Colorful Syntax Highlighting & Cursor Caret */}
             <div className="font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto p-2 min-h-[150px] text-zinc-200">
               <pre className="m-0 font-mono whitespace-pre-wrap">
                 {renderTypedTokens()}
-                <span className="inline-block w-2 h-4 bg-sky-400 animate-pulse ml-0.5 align-middle" />
+                <span className="inline-block w-2 h-4 bg-zinc-200 animate-pulse ml-0.5 align-middle" />
               </pre>
             </div>
 
-            {/* Footer with Progress Bar & Watermark Pill */}
             <div className="flex items-center justify-between border-t border-zinc-800/80 pt-4 mt-4">
               <div className="flex-1 max-w-xs h-1.5 rounded-full overflow-hidden border border-zinc-800 bg-zinc-950">
                 <div
-                  className="h-full bg-sky-500 transition-all duration-75"
+                  className="h-full bg-zinc-200 transition-all duration-75"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
@@ -489,42 +497,42 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
       {/* 4. Features Section */}
       <section id="features" className="py-16 px-6 lg:px-12 max-w-6xl mx-auto w-full border-t border-zinc-800/60">
         <div className="text-center mb-12">
-          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3">
-            Built for Modern Developers & Content Creators
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+            Built for Modern Developers
           </h2>
-          <p className={`text-sm sm:text-base max-w-xl mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            Everything you need to showcase clean code snippets to the world.
+          <p className={`text-sm max-w-xl mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+            Essential tools for rendering code snippet images and motion.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className={`p-6 rounded-2xl border transition-all ${isDark ? 'bg-zinc-900 border-zinc-800 hover:border-zinc-700' : 'bg-white border-zinc-200 shadow-sm'}`}>
-            <div className="h-11 w-11 rounded-xl bg-[#007ACC] flex items-center justify-center text-white mb-4 shadow-sm">
+          <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white transition-all hover:border-zinc-700">
+            <div className="h-11 w-11 rounded-2xl bg-zinc-950 border border-zinc-800 text-zinc-100 flex items-center justify-center mb-4 shadow-sm">
               <VscCode className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold mb-2">VS Code Shiki Engine</h3>
-            <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Uses the exact same syntax highlighting engine as VS Code with official TextMate grammars.
+            <h3 className="text-base font-bold mb-2 text-white">VS Code Shiki Engine</h3>
+            <p className="text-xs leading-relaxed text-zinc-400 m-0">
+              Powered by Shiki and official TextMate grammars for accurate syntax highlighting.
             </p>
           </div>
 
-          <div className={`p-6 rounded-2xl border transition-all ${isDark ? 'bg-zinc-900 border-zinc-800 hover:border-zinc-700' : 'bg-white border-zinc-200 shadow-sm'}`}>
-            <div className="h-11 w-11 rounded-xl bg-[#6366F1] flex items-center justify-center text-white mb-4 shadow-sm">
+          <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white transition-all hover:border-zinc-700">
+            <div className="h-11 w-11 rounded-2xl bg-zinc-950 border border-zinc-800 text-zinc-100 flex items-center justify-center mb-4 shadow-sm">
               <Layers className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold mb-2">Multi-Tab File Navigation</h3>
-            <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Organize multiple file tabs inside a single window frame with inline tab renaming.
+            <h3 className="text-base font-bold mb-2 text-white">Multi-Tab File Navigation</h3>
+            <p className="text-xs leading-relaxed text-zinc-400 m-0">
+              Organize multiple file tabs inside a single window frame with custom titles.
             </p>
           </div>
 
-          <div className={`p-6 rounded-2xl border transition-all ${isDark ? 'bg-zinc-900 border-zinc-800 hover:border-zinc-700' : 'bg-white border-zinc-200 shadow-sm'}`}>
-            <div className="h-11 w-11 rounded-xl bg-[#F05032] flex items-center justify-center text-white mb-4 shadow-sm">
+          <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white transition-all hover:border-zinc-700">
+            <div className="h-11 w-11 rounded-2xl bg-zinc-950 border border-zinc-800 text-zinc-100 flex items-center justify-center mb-4 shadow-sm">
               <SiGit className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold mb-2">Code Diff Mode</h3>
-            <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Highlight line additions (+) and deletions (-) to showcase refactoring and code reviews.
+            <h3 className="text-base font-bold mb-2 text-white">Code Diff Mode</h3>
+            <p className="text-xs leading-relaxed text-zinc-400 m-0">
+              Highlight line additions (+) and deletions (-) for code reviews and refactoring.
             </p>
           </div>
         </div>
@@ -542,13 +550,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
         }`}
       >
         <div className="text-center mb-10 px-6">
-          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight mb-3">Supported Languages & VS Code Themes</h2>
-          <p className={`text-sm sm:text-base max-w-xl mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            Out-of-the-box support for your favorite stacks and color schemes.
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">Languages & Themes</h2>
+          <p className={`text-sm max-w-xl mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+            Out-of-the-box support for major programming stacks and color themes.
           </p>
         </div>
 
-        {/* Infinite Moving Marquee Ticker Container */}
         <div className="relative w-full flex flex-col gap-5 py-4 overflow-hidden">
           <div
             className={`pointer-events-none absolute inset-y-0 left-0 w-24 sm:w-48 z-20 ${
@@ -565,7 +572,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             }`}
           />
 
-          {/* Row 1: Languages with Official Tech Icons Moving Left */}
           <div className="flex w-max animate-marquee gap-3">
             {[...languages, ...languages].map((lang, idx) => (
               <div
@@ -582,7 +588,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             ))}
           </div>
 
-          {/* Row 2: Themes Moving Right */}
           <div className="flex w-max animate-marquee-reverse gap-3">
             {[...themes, ...themes].map((t, idx) => (
               <div
@@ -621,7 +626,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
                 className="w-full p-4 text-left flex items-center justify-between gap-4 cursor-pointer"
               >
                 <span className="text-xs sm:text-sm font-bold">{faq.q}</span>
-                {openFaqIndex === index ? <ChevronUp className="w-4 h-4 text-sky-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
+                {openFaqIndex === index ? <ChevronUp className="w-4 h-4 text-zinc-200" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
               </button>
               {openFaqIndex === index && (
                 <div className={`px-4 pb-4 text-xs leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
@@ -633,19 +638,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
         </div>
       </section>
 
-      {/* 7. Final Call to Action */}
+      {/* 7. Final Call to Action (Screenshot Card Styling) */}
       <section className="py-16 px-6 text-center">
-        <div className="max-w-4xl mx-auto p-8 sm:p-12 rounded-3xl bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 border border-zinc-800 text-white shadow-2xl">
-          <h2 className="text-2xl sm:text-4xl font-extrabold mb-4">Ready to Create Code Snippet Images & Motion?</h2>
-          <p className="text-zinc-400 text-sm sm:text-base max-w-xl mx-auto mb-8">
-            No signup, no login required. Transform plain text code into stunning production graphics and motion in seconds.
+        <div className="max-w-4xl mx-auto p-8 sm:p-12 rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 text-white shadow-2xl relative overflow-hidden text-center">
+          <h2 className="text-2xl sm:text-3xl font-extrabold mb-3">Ready to create code snippet graphics?</h2>
+          <p className="text-zinc-400 text-sm max-w-xl mx-auto mb-8">
+            No account required. Start creating code graphics instantly in your browser.
           </p>
           <Link
             to="/editor"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold bg-white text-black hover:bg-zinc-200 transition-all transform hover:scale-105 no-underline shadow-xl"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl text-sm font-bold bg-white text-black hover:bg-zinc-200 transition-all transform hover:scale-105 no-underline shadow-lg"
           >
             <Logo className="w-5 h-5 text-black" />
-            <span>Open CodeMotion Editor</span>
+            <span>Open Editor</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -653,7 +658,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
 
       {/* Footer */}
       <footer className={`mt-auto border-t py-8 px-6 text-center text-xs ${isDark ? 'border-zinc-800 bg-zinc-950 text-zinc-500' : 'border-zinc-200 bg-zinc-100 text-zinc-600'}`}>
-        <p className="m-0">© 2026 CodeMotion : Zero-Friction Code Snippet & Motion Generator.</p>
+        <p className="m-0">© 2026 CodeMotion. Code snippet image & animation generator.</p>
       </footer>
     </motion.div>
   );

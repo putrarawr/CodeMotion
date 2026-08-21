@@ -161,8 +161,8 @@ function EditorWorkspace({
       />
 
       {/* Main Workspace Layout (Canvas & Sidebar) */}
-      <div className="flex-1 w-full flex flex-col min-h-0">
-        <main className="flex-1 lg:h-[calc(100vh-3.5rem)] grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-0">
+      <div className="flex-1 w-full flex flex-col min-h-0 pt-16 sm:pt-16">
+        <main className="flex-1 lg:h-[calc(100vh-4rem)] grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-0">
           {/* Left Preview Area: Centered Canvas & Preset Bar (Independent Scroll) */}
           <div
             className={`lg:col-span-8 h-full overflow-y-auto min-h-0 flex flex-col items-center p-4 sm:p-6 relative ${

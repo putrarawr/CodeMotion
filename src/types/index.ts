@@ -14,7 +14,20 @@ export type SupportedLanguage =
   | 'php'
   | 'java'
   | 'csharp'
-  | 'yaml';
+  | 'yaml'
+  | 'swift'
+  | 'kotlin'
+  | 'ruby'
+  | 'c'
+  | 'scala'
+  | 'r'
+  | 'dart'
+  | 'graphql'
+  | 'dockerfile'
+  | 'vue'
+  | 'svelte'
+  | 'astro'
+  | 'elixir';
 
 export type SupportedTheme =
   | 'dracula'
@@ -41,6 +54,13 @@ export interface SnippetTab {
   language: SupportedLanguage;
 }
 
+export interface LineAnnotation {
+  id: string;
+  line: number;
+  text: string;
+  color?: 'zinc' | 'sky' | 'emerald' | 'amber' | 'purple';
+}
+
 export interface SnippetSettings {
   // Multi-file tabs
   tabs: SnippetTab[];
@@ -54,8 +74,9 @@ export interface SnippetSettings {
   isPlayingMotion: boolean;
   controlledTypedLength?: number | null;
 
-  // Line Spotlight / Focus Mode
+  // Line Spotlight & Callouts
   focusedLines?: number[];
+  annotations?: LineAnnotation[];
 
   // Styling & Customization
   theme: SupportedTheme;
@@ -65,6 +86,10 @@ export interface SnippetSettings {
   lineNumbers: boolean;
   padding: number;
   background: string;
+  customBgType?: 'solid' | 'gradient';
+  customColor1?: string;
+  customColor2?: string;
+  customGradientAngle?: number;
   windowStyle: WindowStyle;
   dropShadow: boolean;
   shadowBlur: number;

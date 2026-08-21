@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import type { SupportedLanguage, SupportedTheme } from '../types';
+import type { SupportedLanguage, SupportedTheme, LineAnnotation } from '../types';
 import { useShiki } from '../hooks/useShiki';
+import { MessageSquare } from 'lucide-react';
 
 interface CodeEditorProps {
   code: string;
@@ -12,6 +13,9 @@ interface CodeEditorProps {
   lineHeight: number;
   showLineNumbers: boolean;
   diffMode: boolean;
+  focusedLines?: number[];
+  annotations?: LineAnnotation[];
+  onToggleFocusedLine?: (lineNum: number) => void;
   isPlayingMotion?: boolean;
   motionSpeed?: number;
   controlledTypedLength?: number | null;
@@ -28,6 +32,9 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   lineHeight,
   showLineNumbers,
   diffMode,
+  focusedLines = [],
+  annotations = [],
+  onToggleFocusedLine,
   isPlayingMotion = false,
   motionSpeed = 1,
   controlledTypedLength = null,
@@ -86,27 +93,37 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
   const { highlightedHtml, isLoading } = useShiki(displayCode, language, theme);
 
-  // Compute line metadata for line numbers & diff highlighting
+  // Compute line metadata for line numbers, diff highlighting, and annotations
   const linesInfo = useMemo(() => {
     const lines = displayCode.split('\n');
+    const hasSpotlight = focusedLines.length > 0;
+
     return lines.map((line, idx) => {
+      const lineNum = idx + 1;
       const trimmed = line.trimStart();
       const isAdded = diffMode && (trimmed.startsWith('+') || line.startsWith('+'));
       const isRemoved = diffMode && (trimmed.startsWith('-') || line.startsWith('-'));
+      const isFocused = !hasSpotlight || focusedLines.includes(lineNum);
+      const lineAnnotation = annotations.find((a) => a.line === lineNum);
+
       return {
-        num: idx + 1,
+        num: lineNum,
         isAdded,
         isRemoved,
+        isFocused,
+        annotation: lineAnnotation,
         lineText: line,
       };
     });
-  }, [displayCode, diffMode]);
+  }, [displayCode, diffMode, focusedLines, annotations]);
 
   const handleContainerClick = () => {
     if (textareaRef.current && !isCurrentlyInMotion) {
       textareaRef.current.focus();
     }
   };
+
+  const hasSpotlight = focusedLines.length > 0;
 
   return (
     <div
@@ -121,57 +138,68 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       {/* Optional Line Numbers Column */}
       {showLineNumbers && (
         <div
-          className="flex flex-col pr-4 text-right select-none opacity-40 border-r border-white/10 mr-4 font-mono flex-shrink-0"
+          className="flex flex-col pr-3 text-right select-none border-r border-white/10 mr-3 sm:mr-4 font-mono flex-shrink-0 z-20"
           style={{
             fontSize: `${fontSize}px`,
             lineHeight: `${lineHeight}`,
           }}
         >
           {linesInfo.map((info) => (
-            <span
+            <button
               key={info.num}
-              className={`block ${
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onToggleFocusedLine) onToggleFocusedLine(info.num);
+              }}
+              title={`Click to ${info.isFocused && hasSpotlight ? 'unfocus' : 'focus'} line ${info.num}`}
+              className={`block w-full text-right px-1 transition-all cursor-pointer hover:text-white ${
                 info.isAdded
                   ? 'text-emerald-400 font-bold'
                   : info.isRemoved
                   ? 'text-rose-400 font-bold'
-                  : 'text-zinc-400'
+                  : info.isFocused
+                  ? 'text-zinc-300 font-medium opacity-80'
+                  : 'text-zinc-600 opacity-40'
               }`}
             >
               {info.isAdded ? '+' : info.isRemoved ? '-' : info.num}
-            </span>
+            </button>
           ))}
         </div>
       )}
 
       {/* Dual Layer Textarea and Highlighting container */}
       <div className="relative flex-1 min-w-0">
-        {/* Diff line background highlights overlay */}
-        {diffMode && (
-          <div
-            className="absolute inset-0 pointer-events-none z-0 font-mono"
-            style={{
-              fontFamily,
-              fontSize: `${fontSize}px`,
-              lineHeight: `${lineHeight}`,
-            }}
-          >
-            {linesInfo.map((info) => (
+        {/* Diff line background highlights overlay & Spotlight dimmed overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none z-0 font-mono"
+          style={{
+            fontFamily,
+            fontSize: `${fontSize}px`,
+            lineHeight: `${lineHeight}`,
+          }}
+        >
+          {linesInfo.map((info) => {
+            let lineBg = 'transparent';
+            if (diffMode && info.isAdded) lineBg = 'rgba(34, 197, 94, 0.15)';
+            else if (diffMode && info.isRemoved) lineBg = 'rgba(239, 68, 68, 0.15)';
+            else if (hasSpotlight && info.isFocused) lineBg = 'rgba(255, 255, 255, 0.08)';
+
+            return (
               <div
                 key={info.num}
-                className="w-full"
+                className={`w-full flex items-center justify-between transition-all duration-150 ${
+                  hasSpotlight && info.isFocused ? 'border-l-2 border-zinc-100' : ''
+                }`}
                 style={{
                   height: `${fontSize * lineHeight}px`,
-                  backgroundColor: info.isAdded
-                    ? 'rgba(34, 197, 94, 0.15)'
-                    : info.isRemoved
-                    ? 'rgba(239, 68, 68, 0.15)'
-                    : 'transparent',
+                  backgroundColor: lineBg,
+                  opacity: info.isFocused ? 1 : 0.35,
                 }}
               />
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
 
         {/* Editable Overlay Textarea */}
         <textarea
@@ -190,6 +218,49 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             lineHeight: `${lineHeight}`,
           }}
         />
+
+        {/* Floating Callout Annotations Overlay */}
+        {annotations.length > 0 && (
+          <div
+            className="absolute inset-0 pointer-events-none z-30 font-mono"
+            style={{
+              fontFamily,
+              fontSize: `${fontSize}px`,
+              lineHeight: `${lineHeight}`,
+            }}
+          >
+            {linesInfo.map((info) => {
+              const ann = info.annotation;
+              const badgeColor =
+                ann?.color === 'emerald'
+                  ? 'border-emerald-500/50 bg-emerald-950/90 text-emerald-200'
+                  : ann?.color === 'amber'
+                  ? 'border-amber-500/50 bg-amber-950/90 text-amber-200'
+                  : ann?.color === 'sky'
+                  ? 'border-sky-500/50 bg-sky-950/90 text-sky-200'
+                  : ann?.color === 'purple'
+                  ? 'border-purple-500/50 bg-purple-950/90 text-purple-200'
+                  : 'border-zinc-700 bg-zinc-900/90 text-zinc-100';
+
+              return (
+                <div
+                  key={info.num}
+                  className="w-full flex items-center justify-end pr-2 pointer-events-none"
+                  style={{ height: `${fontSize * lineHeight}px` }}
+                >
+                  {ann && (
+                    <div
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-sans font-bold border shadow-xl backdrop-blur-md pointer-events-auto transform transition-all hover:scale-105 ${badgeColor}`}
+                    >
+                      <MessageSquare className="w-3 h-3 opacity-80" />
+                      <span>{ann.text}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Shiki Highlighted Pre HTML */}
         {isLoading ? (
