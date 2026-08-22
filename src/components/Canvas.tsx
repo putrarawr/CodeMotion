@@ -5,7 +5,7 @@ import { WindowFrame } from './WindowFrame';
 import { CodeEditor } from './CodeEditor';
 import { INITIAL_CODE_SAMPLES } from '../utils/defaults';
 import { detectLanguageFromCode } from '../utils/languages';
-import { GripVertical, FileUp } from 'lucide-react';
+import { GripVertical, FileUp, User } from 'lucide-react';
 
 interface CanvasProps {
   settings: SnippetSettings;
@@ -275,16 +275,18 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
             </WindowFrame>
           </div>
 
-          {/* Optional Branding Watermark Badge */}
+          {/* Branding & Author Watermark Badge */}
           {watermark && (watermarkText || settings.watermarkAvatar) && (
             <div className="w-full flex justify-end mt-3 px-1 pointer-events-none select-none">
-              <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium tracking-wide text-white/70 backdrop-blur-md bg-black/40 px-3 py-1 rounded-full border border-white/10 shadow-xs">
-                {settings.watermarkAvatar && (
+              <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium tracking-wide text-zinc-300 backdrop-blur-md bg-zinc-950/80 px-3 py-1 rounded-full border border-zinc-800/80 shadow-md">
+                {settings.watermarkAvatar ? (
                   <img
                     src={settings.watermarkAvatar}
                     alt="Custom Avatar/Logo"
-                    className="w-4 h-4 rounded-full object-cover border border-white/20"
+                    className="w-3.5 h-3.5 rounded-full object-cover border border-zinc-700"
                   />
+                ) : (
+                  <User className="w-3 h-3 text-zinc-400" />
                 )}
                 {watermarkText && <span>{watermarkText}</span>}
               </div>

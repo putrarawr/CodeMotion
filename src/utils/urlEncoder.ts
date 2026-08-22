@@ -10,10 +10,11 @@ interface CompactSharePayload {
   f?: string; // font family
   fs?: number; // font size
   diff?: number; // 1 for true, 0 for false
+  u?: string; // author username handle (e.g. "@putra")
 }
 
 /**
- * Encodes snippet settings and code into a ultra-short LZ-compressed URL-safe string.
+ * Encodes snippet settings and code into an ultra-short LZ-compressed URL-safe string.
  */
 export function encodeStateToHash(settings: SnippetSettings): string {
   const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
@@ -28,6 +29,7 @@ export function encodeStateToHash(settings: SnippetSettings): string {
     ...(settings.fontFamily !== '"JetBrains Mono", monospace' ? { f: settings.fontFamily } : {}),
     ...(settings.fontSize !== 14 ? { fs: settings.fontSize } : {}),
     ...(settings.diffMode ? { diff: 1 } : {}),
+    ...(settings.watermarkText ? { u: settings.watermarkText } : {}),
   };
 
   try {
@@ -109,5 +111,7 @@ function buildSettingsFromPayload(payload: CompactSharePayload): Partial<Snippet
     fontFamily: payload.f || '"JetBrains Mono", monospace',
     fontSize: payload.fs || 14,
     diffMode: Boolean(payload.diff),
+    watermarkText: payload.u || '',
+    watermark: Boolean(payload.u),
   };
 }

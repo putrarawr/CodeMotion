@@ -222,7 +222,11 @@ function AnimatedRoutes({
           controlledTypedLength: null,
         }));
 
-        toast.success('Loaded shared code snippet from link!');
+        if (decodedSettings.watermarkText) {
+          toast.success(`Shared snippet by ${decodedSettings.watermarkText} loaded!`);
+        } else {
+          toast.success('Loaded shared code snippet from link!');
+        }
 
         if (location.pathname !== '/editor') {
           navigate('/editor', { replace: true });

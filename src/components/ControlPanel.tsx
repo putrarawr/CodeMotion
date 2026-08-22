@@ -250,7 +250,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           onClick={() => setActiveTabSection('motion')}
           className={`py-2 px-1 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
             activeTabSection === 'motion'
-              ? 'bg-sky-500 text-white shadow-md'
+              ? 'bg-white text-black shadow-md'
               : isDark
               ? 'text-zinc-400 hover:text-white'
               : 'text-zinc-600 hover:text-black'
@@ -300,10 +300,10 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               ? 'text-zinc-400 hover:text-white'
               : 'text-zinc-600 hover:text-black'
           }`}
-          title="Branding Watermark & Logo"
+          title="Author Username, Watermark & Logo"
         >
           <User className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Logo</span>
+          <span className="hidden sm:inline">Author</span>
         </button>
       </div>
 
@@ -1026,13 +1026,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </div>
       )}
 
-      {/* SECTION 4: Branding Watermark & Logo Upload */}
+      {/* SECTION 4: Author Username & Branding Watermark */}
       {activeTabSection === 'watermark' && (
         <div className="flex flex-col gap-4 p-4 rounded-2xl border bg-zinc-900/60 border-zinc-800/80">
           <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
             <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-              <User className="w-3.5 h-3.5 text-sky-400" />
-              <span>Branding Watermark & Logo</span>
+              <User className="w-3.5 h-3.5 text-zinc-300" />
+              <span>Author Username & Watermark</span>
             </label>
 
             <label className="relative inline-flex items-center cursor-pointer">
@@ -1042,19 +1042,19 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 onChange={(e) => updateSetting('watermark', e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-8 h-4 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-sky-500" />
+              <div className="w-8 h-4 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-white" />
             </label>
           </div>
 
           {settings.watermark && (
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1.5">
-                <span className={`text-[11px] font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Handle Text</span>
+                <span className={`text-[11px] font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Your Handle / Username</span>
                 <input
                   type="text"
                   value={settings.watermarkText}
                   onChange={(e) => updateSetting('watermarkText', e.target.value)}
-                  placeholder="e.g. @username or codemotion.biz.id"
+                  placeholder="e.g. @putra or @username"
                   className={`w-full text-xs font-mono rounded-xl border p-2.5 outline-none transition-colors ${
                     isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-600' : 'bg-white border-zinc-300 text-zinc-900'
                   }`}
