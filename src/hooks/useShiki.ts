@@ -5,6 +5,15 @@ import type { SupportedLanguage, SupportedTheme } from '../types';
 
 let highlighterPromise: Promise<Highlighter> | null = null;
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function getHighlighterInstance() {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighter({
@@ -37,6 +46,21 @@ function getHighlighterInstance() {
         'java',
         'csharp',
         'yaml',
+        'swift',
+        'kotlin',
+        'ruby',
+        'c',
+        'scala',
+        'r',
+        'dart',
+        'graphql',
+        'dockerfile',
+        'vue',
+        'svelte',
+        'astro',
+        'elixir',
+        'jsx',
+        'tsx',
       ],
     });
   }
@@ -52,6 +76,12 @@ export function useShiki(code: string, language: SupportedLanguage, theme: Suppo
     let isMounted = true;
 
     async function highlight() {
+      if (!code) {
+        setHighlightedHtml('');
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
         if (!highlighterRef.current) {
@@ -59,28 +89,42 @@ export function useShiki(code: string, language: SupportedLanguage, theme: Suppo
         }
         const highlighter = highlighterRef.current;
 
-        // Ensure language and theme are loaded
+        // Ensure language and theme are loaded safely
         const loadedLangs = highlighter.getLoadedLanguages();
-        if (!loadedLangs.includes(language)) {
-          await highlighter.loadLanguage(language as any);
+        if (language && !loadedLangs.includes(language as any)) {
+          try {
+            await highlighter.loadLanguage(language as any);
+          } catch (langErr) {
+            console.warn(`Could not load Shiki language '${language}', falling back to txt`, langErr);
+          }
         }
 
         const loadedThemes = highlighter.getLoadedThemes();
-        if (!loadedThemes.includes(theme)) {
-          await highlighter.loadTheme(theme as any);
+        if (theme && !loadedThemes.includes(theme as any)) {
+          try {
+            await highlighter.loadTheme(theme as any);
+          } catch (themeErr) {
+            console.warn(`Could not load Shiki theme '${theme}'`, themeErr);
+          }
         }
 
         if (isMounted) {
-          const html = highlighter.codeToHtml(code, {
-            lang: language,
-            theme: theme,
-          });
-          setHighlightedHtml(html);
+          try {
+            const html = highlighter.codeToHtml(code, {
+              lang: language || 'typescript',
+              theme: theme || 'vitesse-dark',
+            });
+            setHighlightedHtml(html);
+          } catch (renderErr) {
+            console.error('Shiki codeToHtml error:', renderErr);
+            setHighlightedHtml(`<span style="color: #e4e4e7">${escapeHtml(code)}</span>`);
+          }
           setIsLoading(false);
         }
       } catch (err) {
-        console.error('Shiki highlighting error:', err);
+        console.error('Shiki initialization error:', err);
         if (isMounted) {
+          setHighlightedHtml(`<span style="color: #e4e4e7">${escapeHtml(code)}</span>`);
           setIsLoading(false);
         }
       }

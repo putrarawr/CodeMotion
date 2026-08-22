@@ -262,10 +262,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
         )}
 
-        {/* Shiki Highlighted Pre HTML */}
-        {isLoading ? (
+        {/* Shiki Highlighted Pre HTML with fail-safe fallback */}
+        {isLoading || !highlightedHtml ? (
           <pre
-            className="m-0 p-0 font-mono whitespace-pre opacity-70 text-zinc-400 relative z-1 pointer-events-none"
+            className="m-0 p-0 font-mono whitespace-pre opacity-90 text-zinc-100 relative z-1 pointer-events-none"
             style={{
               fontFamily,
               fontSize: `${fontSize}px`,
