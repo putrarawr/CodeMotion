@@ -15,7 +15,7 @@
   <circle cx="230" cy="140" r="6" fill="#27c93f" />
 
   <!-- Header Title -->
-  <text x="600" y="145" text-anchor="middle" fill="#94a3b8" font-family="sans-serif" font-size="14" font-weight="600">App.tsx — CodeMotion 2.0</text>
+  <text x="600" y="145" text-anchor="middle" fill="#94a3b8" font-family="sans-serif" font-size="14" font-weight="600">App.tsx - CodeMotion 2.0</text>
 
   <!-- Code Snippet Mockup -->
   <text x="200" y="210" fill="#c084fc" font-family="monospace" font-size="20" font-weight="bold">import</text>

@@ -236,7 +236,25 @@ function AnimatedRoutes({
       <Routes location={location} key={location.pathname}>
         <Route
           path="/"
-          element={<LandingPage settings={settings} onToggleAppTheme={toggleAppTheme} />}
+          element={
+            <LandingPage
+              settings={settings}
+              onToggleAppTheme={toggleAppTheme}
+              onSelectTemplate={(template) => {
+                setSettings((prev) => ({
+                  ...prev,
+                  theme: template.theme || prev.theme,
+                  background: template.background || prev.background,
+                  tabs: prev.tabs.map((t) =>
+                    t.id === prev.activeTabId
+                      ? { ...t, code: template.code, title: template.fileName, language: template.language }
+                      : t
+                  ),
+                }));
+                navigate('/editor');
+              }}
+            />
+          }
         />
         <Route
           path="/editor"

@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, Download, RefreshCw, FileCode2, Image, ChevronDown, Sun, Moon, Check, Home, Video, HelpCircle } from 'lucide-react';
+import { Copy, Download, RefreshCw, FileCode2, Image, ChevronDown, Sun, Moon, Check, Home, Video, HelpCircle, Share2 } from 'lucide-react';
+import { encodeStateToHash } from '../utils/urlEncoder';
+import { toast } from 'sonner';
 import type { SnippetSettings } from '../types';
 import { Logo } from './Logo';
 
@@ -58,10 +60,21 @@ export const Header: React.FC<HeaderProps> = ({
     setShowPngDropdown(false);
   };
 
+  const handleShareLink = () => {
+    const hash = encodeStateToHash(settings);
+    if (!hash) {
+      toast.error('Gagal membuat share link.');
+      return;
+    }
+    const shareUrl = `${window.location.origin}/editor#code=${hash}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast.success('Share link disalin ke clipboard!');
+  };
+
   return (
     <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-5xl px-3 sm:px-6 flex justify-center select-none pointer-events-auto">
       <header
-        className={`w-full rounded-2xl sm:rounded-3xl border shadow-2xl backdrop-blur-xl px-4 py-2.5 flex items-center justify-between transition-all duration-300 ${
+        className={`w-full rounded-2xl sm:rounded-3xl border shadow-2xl backdrop-blur-xl px-4 py-2.5 flex items-center justify-between relative transition-all duration-300 ${
           isDark
             ? 'bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 border-zinc-800 text-white shadow-black/60'
             : 'bg-white/95 border-zinc-200 text-zinc-900 shadow-zinc-200/50'
@@ -83,8 +96,8 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="text-xs font-bold tracking-tight font-sans">CodeMotion</span>
         </Link>
 
-        {/* Center Obsidian Section: Navigation & Tools */}
-        <div id="header-actions" className="flex items-center gap-1.5 sm:gap-2">
+        {/* Center Obsidian Section: Navigation & Tools (Dead-Centered) */}
+        <div id="header-actions" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 sm:gap-2">
           {/* User Guide Tour Pill */}
           <button
             onClick={onOpenUserTour}
@@ -142,6 +155,21 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Obsidian Section: Copy & Export Capsules */}
         <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Share Link Button */}
+          <button
+            onClick={handleShareLink}
+            disabled={isExporting}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all disabled:opacity-50 cursor-pointer ${
+              isDark
+                ? 'bg-zinc-950 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
+                : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-zinc-200'
+            }`}
+            title="Share snippet via URL hash link"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Share</span>
+          </button>
+
           {/* Copy Image Button */}
           <button
             onClick={onCopyImage}

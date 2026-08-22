@@ -32,14 +32,18 @@ import {
   RotateCcw,
   Video,
   Sparkles,
+  FileCode,
+  ArrowUpRight,
 } from 'lucide-react';
 import type { SnippetSettings } from '../types';
+import { SNIPPET_TEMPLATES, TEMPLATE_CATEGORIES, type SnippetTemplate } from '../utils/snippetTemplates';
 import { Logo } from './Logo';
 import { WhatsNewModal } from './WhatsNewModal';
 
 interface LandingPageProps {
   settings: SnippetSettings;
   onToggleAppTheme: () => void;
+  onSelectTemplate?: (template: SnippetTemplate) => void;
 }
 
 interface CodeToken {
@@ -75,10 +79,11 @@ const MOTION_PREVIEW_TOKENS: CodeToken[] = [
 
 const TOTAL_MOTION_CHARS = MOTION_PREVIEW_TOKENS.reduce((acc, t) => acc + t.text.length, 0);
 
-export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppTheme }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppTheme, onSelectTemplate }) => {
   const isDark = settings.appTheme === 'dark';
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
+  const [landingTemplateCategory, setLandingTemplateCategory] = useState<string>('all');
 
   const [motionTypedIndex, setMotionTypedIndex] = useState(0);
   const [isMotionPlaying, setIsMotionPlaying] = useState(true);
@@ -202,6 +207,40 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
 
   const progressPercent = Math.min(100, Math.round((motionTypedIndex / TOTAL_MOTION_CHARS) * 100));
 
+  // Hero Section Dynamic Typing Effect
+  const HERO_TYPING_PHRASES = [
+    'high-resolution graphics.',
+    'animated motion videos.',
+    'beautiful social posts.',
+    'clean documentation.',
+  ];
+
+  const [heroPhraseIndex, setHeroPhraseIndex] = useState(0);
+  const [heroDisplayedText, setHeroDisplayedText] = useState('');
+  const [heroIsDeleting, setHeroIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentPhrase = HERO_TYPING_PHRASES[heroPhraseIndex];
+    const speed = heroIsDeleting ? 30 : 65;
+
+    const timer = setTimeout(() => {
+      if (!heroIsDeleting) {
+        setHeroDisplayedText(currentPhrase.slice(0, heroDisplayedText.length + 1));
+        if (heroDisplayedText === currentPhrase) {
+          setTimeout(() => setHeroIsDeleting(true), 2000);
+        }
+      } else {
+        setHeroDisplayedText(heroDisplayedText.slice(0, heroDisplayedText.length - 1));
+        if (heroDisplayedText === '') {
+          setHeroIsDeleting(false);
+          setHeroPhraseIndex((prev) => (prev + 1) % HERO_TYPING_PHRASES.length);
+        }
+      }
+    }, speed);
+
+    return () => clearTimeout(timer);
+  }, [heroDisplayedText, heroIsDeleting, heroPhraseIndex]);
+
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     const element = document.getElementById(id);
@@ -233,34 +272,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
         isDark={isDark}
       />
 
-      {/* 1. Header Navigation - Screenshot Card Gradient Matching Navbar Style */}
+      {/* 1. Header Navigation - Clean Dead-Centered Layout */}
       <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-5xl px-3 sm:px-6 flex justify-center select-none pointer-events-auto">
         <header
-          className={`w-full rounded-2xl sm:rounded-3xl border shadow-2xl backdrop-blur-xl px-4 py-2.5 flex items-center justify-between transition-all duration-300 ${
+          className={`w-full rounded-2xl sm:rounded-3xl border shadow-2xl backdrop-blur-xl px-4 py-2 flex items-center justify-between relative transition-all duration-300 ${
             isDark
               ? 'bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 border-zinc-800 text-white shadow-black/60'
               : 'bg-white/95 border-zinc-200 text-zinc-900 shadow-zinc-200/50'
           }`}
         >
+          {/* Left: Brand Logo */}
           <Link
             to="/"
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all no-underline ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border transition-all no-underline flex-shrink-0 z-10 ${
               isDark
                 ? 'bg-zinc-950/80 border-zinc-800 hover:border-zinc-700 text-zinc-100'
                 : 'bg-zinc-100 border-zinc-300 hover:border-zinc-400 text-zinc-900'
             }`}
           >
-            <div className="flex items-center gap-1.5">
-              <Logo className="w-4 h-4" />
-            </div>
-            <span className="text-xs font-bold tracking-tight font-sans">CodeMotion</span>
+            <Logo className="w-3.5 h-3.5" />
+            <span className="text-[11px] font-bold tracking-tight font-sans">CodeMotion</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1.5 text-xs font-semibold">
+          {/* Center Nav: Shifted Slightly Left */}
+          <nav className="absolute left-1/2 -translate-x-1/2 -ml-6 md:-ml-10 lg:-ml-12 hidden md:flex items-center gap-1 sm:gap-2 text-[11px] font-semibold">
             <a
-              href="#motion-preview"
-              onClick={(e) => scrollToSection(e, 'motion-preview')}
-              className={`px-3 py-1.5 rounded-xl transition-all no-underline ${
+              href="#hero-preview"
+              onClick={(e) => scrollToSection(e, 'hero-preview')}
+              className={`px-2.5 py-1 rounded-lg transition-all no-underline ${
                 isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
@@ -269,25 +308,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             <a
               href="#features"
               onClick={(e) => scrollToSection(e, 'features')}
-              className={`px-3 py-1.5 rounded-xl transition-all no-underline ${
+              className={`px-2.5 py-1 rounded-lg transition-all no-underline ${
                 isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
               Features
             </a>
             <a
-              href="#languages"
-              onClick={(e) => scrollToSection(e, 'languages')}
-              className={`px-3 py-1.5 rounded-xl transition-all no-underline ${
+              href="#templates"
+              onClick={(e) => scrollToSection(e, 'templates')}
+              className={`px-2.5 py-1 rounded-lg transition-all no-underline ${
                 isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
-              Languages
+              Templates
             </a>
             <a
               href="#faq"
               onClick={(e) => scrollToSection(e, 'faq')}
-              className={`px-3 py-1.5 rounded-xl transition-all no-underline ${
+              className={`px-2.5 py-1 rounded-lg transition-all no-underline ${
                 isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
@@ -295,113 +334,132 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             </a>
           </nav>
 
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Right: Actions */}
+          <div className="flex items-center gap-1.5 flex-shrink-0 z-10">
             <button
               onClick={() => setIsWhatsNewOpen(true)}
-              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+              className={`hidden sm:flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-lg border transition-all cursor-pointer ${
                 isDark
                   ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
                   : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
               }`}
               title="View Product Updates"
             >
-              <Sparkles className="w-3.5 h-3.5 text-zinc-300" />
+              <Sparkles className="w-3 h-3 text-zinc-300" />
               <span>What's New</span>
             </button>
 
             <button
               onClick={onToggleAppTheme}
-              className={`p-2 rounded-xl border transition-all cursor-pointer ${
+              className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
                 isDark
                   ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
                   : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
               }`}
             >
-              {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-zinc-800" />}
+              {isDark ? <Sun className="w-3 h-3 text-amber-400" /> : <Moon className="w-3 h-3 text-zinc-800" />}
             </button>
 
             <Link
               to="/editor"
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-extrabold rounded-xl transition-all shadow-md transform hover:scale-105 no-underline ${
+              className={`flex items-center gap-1 px-3 py-1 text-[11px] font-extrabold rounded-lg transition-all shadow-md transform hover:scale-105 no-underline ${
                 isDark ? 'bg-white text-black hover:bg-zinc-200' : 'bg-black text-white hover:bg-zinc-800'
               }`}
             >
               <span>Open Editor</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
         </header>
       </div>
 
-      {/* 2. Hero Section */}
-      <motion.section
-        initial="hidden"
-        animate="visible"
-        variants={staggerContainer}
-        className="flex flex-col items-center justify-center text-center px-6 lg:px-12 pt-24 pb-12 max-w-5xl mx-auto"
-      >
-        <motion.h1
-          variants={fadeInUp}
-          className="text-4xl sm:text-6xl font-bold tracking-tight leading-tight max-w-4xl mb-6 font-sans"
+      {/* 2. Hero Section - Clean First Viewport Fold */}
+      <section className="min-h-screen flex flex-col justify-between items-center text-center px-6 lg:px-12 pt-28 sm:pt-32 pb-8 max-w-5xl mx-auto w-full relative">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+          className="flex flex-col items-center justify-center my-auto w-full max-w-4xl"
         >
-          Turn code snippets into high-resolution graphics and animated motion.
-        </motion.h1>
-
-        <motion.p
-          variants={fadeInUp}
-          className={`text-base sm:text-lg max-w-2xl font-normal leading-relaxed mb-8 ${
-            isDark ? 'text-zinc-400' : 'text-zinc-600'
-          }`}
-        >
-          Create code snippet images and typing animations for social posts, documentation, and presentations.
-        </motion.p>
-
-        <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center gap-4 mb-12">
-          <Link
-            to="/editor"
-            className="flex items-center gap-2.5 px-8 py-4 rounded-2xl text-sm font-bold bg-white text-black hover:bg-zinc-200 transition-all shadow-xl transform hover:scale-105 no-underline"
+          <motion.h1
+            variants={fadeInUp}
+            className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.15] mb-6 font-sans text-center mx-auto"
           >
-            <Logo className="w-5 h-5 text-black" />
-            <span>Open Editor</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+            Turn code snippets into{' '}
+            <span className="inline-block text-zinc-100 border-b-2 border-zinc-500/80 pb-0.5 min-h-[1.2em]">
+              {heroDisplayedText}
+              <span className="animate-pulse text-zinc-200 font-normal ml-0.5 inline-block">|</span>
+            </span>
+          </motion.h1>
+
+          <motion.p
+            variants={fadeInUp}
+            className={`text-base sm:text-lg max-w-2xl font-normal leading-relaxed mb-10 ${
+              isDark ? 'text-zinc-400' : 'text-zinc-600'
+            }`}
+          >
+            Create code snippet images and typing animations for social posts, documentation, and presentations.
+          </motion.p>
+
+          <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center gap-4">
+            <Link
+              to="/editor"
+              className="flex items-center gap-2.5 px-8 py-4 rounded-2xl text-sm font-bold bg-white text-black hover:bg-zinc-200 transition-all shadow-xl transform hover:scale-105 no-underline"
+            >
+              <Logo className="w-5 h-5 text-black" />
+              <span>Open Editor</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </motion.div>
         </motion.div>
 
-        {/* Hero Code Window Preview Card (Screenshot Card Styling) */}
-        <motion.div variants={fadeInUp} className="w-full max-w-3xl mx-auto">
-          <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white">
-            <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4 mb-6">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <div className="w-3 h-3 rounded-full bg-green-500/80" />
-              </div>
-              <span className="text-xs font-mono text-zinc-400 font-semibold">App.tsx</span>
-              <div className="w-12" />
-            </div>
+        {/* Scroll Down Indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="flex flex-col items-center gap-1 opacity-60 hover:opacity-100 transition-opacity cursor-pointer pt-4"
+          onClick={(e) => scrollToSection(e as any, 'hero-preview')}
+        >
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">Scroll to explore</span>
+          <ChevronDown className="w-4 h-4 text-zinc-400 animate-bounce" />
+        </motion.div>
+      </section>
 
-            <div className="font-mono text-xs sm:text-sm leading-relaxed text-zinc-200 overflow-x-auto p-2">
-              <div>
-                <span className="text-purple-400 font-semibold">import</span> &#123; playMotion &#125; <span className="text-purple-400 font-semibold">from</span> <span className="text-emerald-400">'@codemotion/core'</span>;
-              </div>
-              <br />
-              <div>
-                <span className="text-purple-400 font-semibold">const</span> snippet = <span className="text-purple-400 font-semibold">await</span> <span className="text-yellow-400 font-semibold">playMotion</span>(&#123;
-              </div>
-              <div>&nbsp;&nbsp;language: <span className="text-emerald-400">'typescript'</span>,</div>
-              <div>&nbsp;&nbsp;motionSpeed: <span className="text-amber-400 font-mono">2.0</span>,</div>
-              <div>&nbsp;&nbsp;pixelRatio: <span className="text-amber-400 font-mono">3</span>,</div>
-              <div>&#125;);</div>
+      {/* 3. Hero Code Window Preview Section */}
+      <section id="hero-preview" className="py-12 px-6 lg:px-12 max-w-4xl mx-auto w-full">
+        <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white">
+          <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4 mb-6">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-red-500/80" />
+              <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+              <div className="w-3 h-3 rounded-full bg-green-500/80" />
             </div>
+            <span className="text-xs font-mono text-zinc-400 font-semibold">App.tsx</span>
+            <div className="w-12" />
+          </div>
 
-            <div className="flex justify-end mt-4">
-              <div className="px-3 py-1 rounded-full bg-zinc-950/80 border border-zinc-800 text-[10px] font-mono text-zinc-400">
-                codemotion.biz.id
-              </div>
+          <div className="font-mono text-xs sm:text-sm leading-relaxed text-zinc-200 overflow-x-auto p-2">
+            <div>
+              <span className="text-purple-400 font-semibold">import</span> &#123; playMotion &#125; <span className="text-purple-400 font-semibold">from</span> <span className="text-emerald-400">'@codemotion/core'</span>;
+            </div>
+            <br />
+            <div>
+              <span className="text-purple-400 font-semibold">const</span> snippet = <span className="text-purple-400 font-semibold">await</span> <span className="text-yellow-400 font-semibold">playMotion</span>(&#123;
+            </div>
+            <div>&nbsp;&nbsp;language: <span className="text-emerald-400">'typescript'</span>,</div>
+            <div>&nbsp;&nbsp;motionSpeed: <span className="text-amber-400 font-mono">2.0</span>,</div>
+            <div>&nbsp;&nbsp;pixelRatio: <span className="text-amber-400 font-mono">3</span>,</div>
+            <div>&#125;);</div>
+          </div>
+
+          <div className="flex justify-end mt-4">
+            <div className="px-3 py-1 rounded-full bg-zinc-950/80 border border-zinc-800 text-[10px] font-mono text-zinc-400">
+              codemotion.biz.id
             </div>
           </div>
-        </motion.div>
-      </motion.section>
+        </div>
+      </section>
 
       {/* 3. Dedicated Motion Code Interactive Preview Section */}
       <section id="motion-preview" className={`py-16 px-6 lg:px-12 border-t ${isDark ? 'border-zinc-800/80 bg-zinc-950/40' : 'border-zinc-200 bg-zinc-50'}`}>
@@ -534,6 +592,145 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             <p className="text-xs leading-relaxed text-zinc-400 m-0">
               Highlight line additions (+) and deletions (-) for code reviews and refactoring.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Production Code Snippet Templates Gallery */}
+      <section id="templates" className={`py-16 px-6 lg:px-12 border-t ${isDark ? 'border-zinc-800/80 bg-zinc-950/30' : 'border-zinc-200 bg-zinc-50/50'}`}>
+        <div className="max-w-6xl mx-auto w-full">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+              Production Code Templates
+            </h2>
+            <p className={`text-sm max-w-xl mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              Jumpstart your graphics creation with curated, production-ready code snippets.
+            </p>
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+            <button
+              onClick={() => setLandingTemplateCategory('all')}
+              className={`px-4 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                landingTemplateCategory === 'all'
+                  ? 'bg-white text-black border-white shadow-md'
+                  : isDark
+                  ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                  : 'bg-white border-zinc-300 text-zinc-600 hover:text-black shadow-xs'
+              }`}
+            >
+              All Templates
+            </button>
+            {TEMPLATE_CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setLandingTemplateCategory(cat)}
+                className={`px-4 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                  landingTemplateCategory === cat
+                    ? 'bg-white text-black border-white shadow-md'
+                    : isDark
+                    ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                    : 'bg-white border-zinc-300 text-zinc-600 hover:text-black shadow-xs'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Template Cards Grid (10 Cards - Balanced Grid Layout) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+            {SNIPPET_TEMPLATES
+              .filter((t) => landingTemplateCategory === 'all' || t.category === landingTemplateCategory)
+              .map((template) => (
+                <div
+                  key={template.id}
+                  className={`rounded-3xl border transition-all overflow-hidden flex flex-col justify-between text-left group hover:scale-[1.01] hover:shadow-2xl ${
+                    isDark
+                      ? 'bg-zinc-950/80 border-zinc-800 hover:border-zinc-700'
+                      : 'bg-white border-zinc-200 shadow-md hover:shadow-xl'
+                  }`}
+                >
+                  {/* Card Header Info */}
+                  <div className="p-5 pb-3">
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`p-2 rounded-xl border flex-shrink-0 ${isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-200' : 'bg-zinc-100 border-zinc-200 text-zinc-800'}`}>
+                          <FileCode className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-bold m-0 truncate">{template.name}</h3>
+                          <span className={`text-[11px] font-mono truncate block ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                            {template.fileName}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider border ${
+                          isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-300' : 'bg-zinc-100 border-zinc-200 text-zinc-700'
+                        }`}>
+                          {template.language}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Theme & Background Showcase Banner */}
+                    <div className="flex items-center justify-between gap-2 text-[10px] font-mono font-semibold mb-3 px-1">
+                      <span className={`flex items-center gap-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                        <Palette className="w-3 h-3 text-zinc-400" />
+                        <span>{template.themeName}</span>
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-md border text-[9px] ${
+                        isDark ? 'bg-zinc-900/90 border-zinc-800 text-zinc-400' : 'bg-zinc-100 border-zinc-200 text-zinc-600'
+                      }`}>
+                        {template.bgLabel}
+                      </span>
+                    </div>
+
+                    {/* Visual Code Canvas Preview Box showcasing custom background gradient */}
+                    <div
+                      className="rounded-2xl p-4 sm:p-5 shadow-inner transition-all relative overflow-hidden"
+                      style={{ background: template.background }}
+                    >
+                      {/* Window Dots Frame Mockup */}
+                      <div className="rounded-xl border border-white/10 bg-black/50 backdrop-blur-md p-3.5 shadow-lg">
+                        <div className="flex items-center gap-1.5 mb-3 opacity-70">
+                          <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+                          <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+                          <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+                          <span className="text-[10px] font-mono text-zinc-400 ml-2">{template.fileName}</span>
+                        </div>
+
+                        <div className="font-mono text-[11px] leading-relaxed text-zinc-200 overflow-hidden max-h-28 relative">
+                          <pre className="m-0 font-mono whitespace-pre-wrap">{template.code.split('\n').slice(0, 5).join('\n')}</pre>
+                          <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Footer Action */}
+                  <div className={`p-3.5 px-5 border-t flex items-center justify-between ${isDark ? 'border-zinc-800/80 bg-zinc-950/60' : 'border-zinc-100 bg-zinc-50/60'}`}>
+                    <span className="text-[11px] font-mono text-zinc-500">
+                      {template.code.split('\n').length} lines
+                    </span>
+
+                    <button
+                      onClick={() => onSelectTemplate?.(template)}
+                      className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        isDark
+                          ? 'bg-white text-black border-white hover:bg-zinc-200 shadow-sm'
+                          : 'bg-black text-white border-black hover:bg-zinc-800 shadow-sm'
+                      }`}
+                    >
+                      <span>Use Template</span>
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
           </div>
         </div>
       </section>

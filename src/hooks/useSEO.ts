@@ -15,8 +15,8 @@ export function useSEO({ title, description, canonicalUrl }: SEOProps = {}) {
 
     // Dynamic Title according to route
     const defaultTitle = isEditor
-      ? 'CodeMotion Editor : Visual Code Snippet & Motion Generator'
-      : 'CodeMotion : Turn Code into High-Res Images & Animated Videos';
+      ? 'CodeMotion Editor | Visual Code Snippet & Motion Generator'
+      : 'CodeMotion | Turn Code into High-Res Images & Animated Videos';
     
     document.title = title || defaultTitle;
 

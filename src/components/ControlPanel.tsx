@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { toast } from 'sonner';
 import type {
   SnippetSettings,
@@ -12,6 +12,7 @@ import { THEMES } from '../utils/themes';
 import { BACKGROUND_PRESETS } from '../utils/gradients';
 import { FONTS } from '../utils/fonts';
 import { SOCIAL_PRESETS } from '../utils/socialPresets';
+import { SNIPPET_TEMPLATES } from '../utils/snippetTemplates';
 import {
   Code,
   Palette,
@@ -30,6 +31,7 @@ import {
   Share,
   Trash2,
   Search,
+  FileCode,
 } from 'lucide-react';
 
 interface ControlPanelProps {
@@ -52,6 +54,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
   // Language search query state
   const [languageSearchQuery, setLanguageSearchQuery] = useState<string>('');
+
+  // Ref for hidden file input upload
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Custom Color Picker Builder State
   const [customBgMode, setCustomBgMode] = useState<'gradient' | 'solid'>('gradient');
@@ -144,6 +149,53 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         t.id === prev.activeTabId ? { ...t, language: lang } : t
       ),
     }));
+  };
+
+  const applySnippetTemplate = (template: typeof SNIPPET_TEMPLATES[0]) => {
+    setSettings((prev) => ({
+      ...prev,
+      theme: template.theme || prev.theme,
+      background: template.background || prev.background,
+      tabs: prev.tabs.map((t) =>
+        t.id === prev.activeTabId
+          ? { ...t, code: template.code, title: template.fileName, language: template.language }
+          : t
+      ),
+    }));
+    toast.success(`Template "${template.name}" loaded`);
+  };
+
+  const handleFileUploadSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 200_000) {
+      toast.error('File terlalu besar. Maksimum 200 KB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result;
+      if (typeof text !== 'string') return;
+
+      // Detect language strictly from actual code content
+      const detected = detectLanguageFromCode(text);
+
+      setSettings((prev) => ({
+        ...prev,
+        tabs: prev.tabs.map((t) =>
+          t.id === prev.activeTabId
+            ? { ...t, code: text, title: file.name, language: detected || t.language }
+            : t
+        ),
+      }));
+
+      const langObj = LANGUAGES.find((l) => l.id === detected);
+      toast.success(`File "${file.name}" dimuat (Detected: ${langObj?.name || detected || 'Text'})`);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   const applySocialPreset = (preset: SocialPreset) => {
@@ -258,6 +310,64 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       {/* SECTION 1: Theme, Code Diff & Fonts */}
       {activeTabSection === 'style' && (
         <div className="flex flex-col gap-5">
+          {/* Import File & Quick Template Bar */}
+          <div
+            className={`p-3.5 rounded-2xl border flex flex-col gap-2.5 transition-all ${
+              isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200 shadow-xs'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                <FileCode className="w-3.5 h-3.5 text-zinc-300" />
+                <span>Import & Templates</span>
+              </label>
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUploadSelect}
+                className="hidden"
+                accept=".ts,.js,.py,.rs,.go,.html,.css,.json,.sql,.sh,.cpp,.c,.cs,.java,.kt,.swift,.rb,.php,.scala,.r,.dart,.ex,.vue,.svelte,.astro,.gql,.md,.yaml,.txt"
+              />
+
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                  isDark
+                    ? 'bg-zinc-950 text-zinc-300 border-zinc-800 hover:bg-zinc-800 hover:text-white'
+                    : 'bg-zinc-100 text-zinc-700 border-zinc-300 hover:bg-zinc-200 hover:text-black'
+                }`}
+                title="Upload code file from device"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload File</span>
+              </button>
+            </div>
+
+            {/* Quick Template Select Menu */}
+            <div className="relative">
+              <select
+                value=""
+                onChange={(e) => {
+                  const found = SNIPPET_TEMPLATES.find((t) => t.id === e.target.value);
+                  if (found) applySnippetTemplate(found);
+                }}
+                className={`w-full text-xs font-semibold px-3 py-2 rounded-xl border appearance-none cursor-pointer outline-none transition-colors ${
+                  isDark
+                    ? 'bg-zinc-950 text-zinc-200 border-zinc-800 hover:border-zinc-700 focus:border-zinc-600'
+                    : 'bg-zinc-50 text-zinc-800 border-zinc-300 hover:border-zinc-400'
+                }`}
+              >
+                <option value="" disabled>Load Snippet Template...</option>
+                {SNIPPET_TEMPLATES.map((tmpl) => (
+                  <option key={tmpl.id} value={tmpl.id} className={isDark ? 'bg-zinc-900 text-zinc-200' : 'bg-white text-zinc-800'}>
+                    {tmpl.name} ({tmpl.category})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           {/* Diff Mode Toggle Card */}
           <div
             className={`p-3.5 rounded-2xl border flex items-center justify-between transition-all ${

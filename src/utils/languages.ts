@@ -36,20 +36,6 @@ export const LANGUAGES: LanguageOption[] = [
  * High-accuracy multi-rule language detection algorithm based on file extension, syntax patterns, and keywords.
  */
 export function detectLanguageFromCode(code: string, fileName?: string): SupportedLanguage | null {
-  // 1. Extension matching from file title
-  if (fileName) {
-    const ext = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
-    const matchedByExt = LANGUAGES.find((l) => l.extension.toLowerCase() === ext);
-    if (matchedByExt) return matchedByExt.id;
-    if (ext === '.yml') return 'yaml';
-    if (ext === '.jsx' || ext === '.mjs' || ext === '.cjs') return 'javascript';
-    if (ext === '.tsx') return 'typescript';
-    if (ext === '.h' || ext === '.hpp') return 'cpp';
-    if (ext === '.rb') return 'ruby';
-    if (ext === '.exs') return 'elixir';
-    if (fileName.toLowerCase() === 'dockerfile') return 'dockerfile';
-  }
-
   const trimmed = code.trim();
   if (!trimmed) return null;
 
@@ -160,5 +146,18 @@ export function detectLanguageFromCode(code: string, fileName?: string): Support
     }
   }
 
-  return maxScore >= 2 ? bestLang : null;
+  if (maxScore >= 2) return bestLang;
+
+  // Fallback: If code pattern score is inconclusive, check file extension
+  if (fileName) {
+    const ext = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
+    const matchedByExt = LANGUAGES.find((l) => l.extension.toLowerCase() === ext);
+    if (matchedByExt) return matchedByExt.id;
+    if (ext === '.yml') return 'yaml';
+    if (ext === '.jsx' || ext === '.mjs' || ext === '.cjs') return 'javascript';
+    if (ext === '.tsx') return 'typescript';
+    if (ext === '.h' || ext === '.hpp') return 'cpp';
+  }
+
+  return bestLang;
 }

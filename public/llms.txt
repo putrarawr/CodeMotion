@@ -1,4 +1,4 @@
-# CodeMotion — Visual Code Snippet & Motion Generator
+# CodeMotion | Visual Code Snippet & Motion Generator
 
 > Zero-friction client-side web application to transform source code into aesthetic, high-resolution snippet images (2x/3x DPI Retina PNG, SVG) and real-time typing motion videos (WebM).
 
