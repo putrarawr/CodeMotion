@@ -16,57 +16,60 @@ export const VideoLoadingOverlay: React.FC<VideoLoadingOverlayProps> = ({
 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 select-none"
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 20, scale: 0.95 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+      className="fixed bottom-6 right-6 z-[9999] pointer-events-auto select-none"
     >
       <div
-        className={`w-full max-w-xs rounded-2xl p-6 border shadow-2xl flex flex-col items-center text-center transition-all relative ${
+        className={`w-72 sm:w-80 rounded-2xl p-4 border shadow-2xl flex flex-col gap-3 backdrop-blur-md transition-all ${
           isDark
-            ? 'bg-zinc-950 border-zinc-800 text-zinc-100'
-            : 'bg-white border-zinc-200 text-zinc-900'
+            ? 'bg-zinc-950/90 border-zinc-800 text-zinc-100'
+            : 'bg-white/95 border-zinc-200 text-zinc-900'
         }`}
       >
-        {/* Top Right Close / Cancel Icon Button */}
-        {onCancel && (
-          <button
-            onClick={onCancel}
-            className={`absolute top-3 right-3 p-1 rounded-lg border transition-all cursor-pointer ${
-              isDark
-                ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
-                : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black hover:bg-zinc-200'
-            }`}
-            title="Cancel Recording"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        )}
-
-        {/* Animated Brand Logo & Spinner */}
-        <div className="relative mb-3 mt-1">
-          <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-700 shadow-inner flex items-center justify-center">
-            <Logo className="w-7 h-7 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-inner">
+              <Logo className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <Loader2 className="w-3.5 h-3.5 text-sky-400 animate-spin" />
+                <h3 className="text-xs font-bold tracking-tight font-sans m-0">
+                  Background Render
+                </h3>
+              </div>
+              <span className={`text-[10px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                Generating MP4 / GIF video...
+              </span>
+            </div>
           </div>
-          <Loader2 className="w-5 h-5 text-sky-400 animate-spin absolute -top-1 -right-1" />
+
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className={`p-1.5 rounded-xl border transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                  : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black hover:bg-zinc-200'
+              }`}
+              title="Cancel Render"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        <h3 className="text-xs font-bold tracking-tight mb-0.5 font-sans">
-          Rendering Motion Video
-        </h3>
-        <p className={`text-[11px] mb-3 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          Exporting 60 FPS WebM animation...
-        </p>
-
-        {/* Progress Bar Container with Solid Color */}
-        <div className="w-full flex flex-col gap-1.5 mb-4">
-          <div className="flex items-center justify-between text-xs font-mono font-bold">
-            <span className="text-[10px] opacity-70">Progress</span>
+        {/* Progress Bar Container */}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center justify-between text-[10px] font-mono font-bold">
+            <span className="opacity-70">Processing frames</span>
             <span className="text-sky-400">{progress}%</span>
           </div>
 
-          <div className={`w-full h-2 rounded-full overflow-hidden border ${isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-100 border-zinc-300'}`}>
+          <div className={`w-full h-1.5 rounded-full overflow-hidden border ${isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-100 border-zinc-300'}`}>
             <motion.div
               className="h-full bg-sky-500 rounded-full"
               initial={{ width: '0%' }}
@@ -75,20 +78,6 @@ export const VideoLoadingOverlay: React.FC<VideoLoadingOverlayProps> = ({
             />
           </div>
         </div>
-
-        {/* Cancel Button */}
-        {onCancel && (
-          <button
-            onClick={onCancel}
-            className={`w-full py-1.5 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-              isDark
-                ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white'
-                : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:bg-zinc-200 hover:text-black'
-            }`}
-          >
-            Cancel Render
-          </button>
-        )}
       </div>
     </motion.div>
   );

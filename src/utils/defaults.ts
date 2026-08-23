@@ -90,6 +90,8 @@ export const DEFAULT_SETTINGS: SnippetSettings = {
   motionMode: false,
   motionSpeed: 1,
   motionFps: 60,
+  motionStyle: 'typewriter',
+  motionExportFormat: 'mp4',
   isPlayingMotion: false,
   focusedLines: [],
   annotations: [],

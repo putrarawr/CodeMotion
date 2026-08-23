@@ -13,6 +13,7 @@ import { PresetBar } from './components/PresetBar';
 import { LandingPage } from './components/LandingPage';
 import { VideoLoadingOverlay } from './components/VideoLoadingOverlay';
 import { UserJourneyTour } from './components/UserJourneyTour';
+import { ThankYouModal } from './components/ThankYouModal';
 import { Toaster, toast } from 'sonner';
 import { recordMotionVideo, downloadBlob } from './utils/recorder';
 import { decodeStateFromHash } from './utils/urlEncoder';
@@ -29,6 +30,7 @@ function EditorWorkspace({
 
   // Modals state
   const [isUserTourOpen, setIsUserTourOpen] = useState(false);
+  const [isThankYouOpen, setIsThankYouOpen] = useState(false);
 
   const isDark = settings.appTheme === 'dark';
 
@@ -53,38 +55,39 @@ function EditorWorkspace({
 
       const totalChars = activeTab?.code?.length || 100;
 
-      const videoBlob = await recordMotionVideo({
+      const { blob, filename } = await recordMotionVideo({
         element: exportEl,
         totalChars,
         motionSpeed: settings.motionSpeed || 1,
         fps: settings.motionFps || 60,
+        motionStyle: settings.motionStyle || 'typewriter',
+        exportFormat: settings.motionExportFormat || 'mp4',
         isCancelled: () => isCancelledRef.current,
         onSetTypedLength: (len) => {
           setSettings((prev) => ({
             ...prev,
             controlledTypedLength: len,
-            isPlayingMotion: true,
           }));
         },
         onProgress: (pct) => setRecordingProgress(pct),
       });
 
-      const filename = `${activeTab?.title ? activeTab.title.replace(/\.[^/.]+$/, '') : 'codemotion'}-motion.webm`;
-      downloadBlob(videoBlob, filename);
-      toast.success('Motion Code Video exported successfully!');
+      downloadBlob(blob, filename);
+      const formatLabel = settings.motionExportFormat === 'gif' ? 'Animated GIF' : 'MP4 Video';
+      toast.success(`Motion Code ${formatLabel} exported successfully!`);
+      setIsThankYouOpen(true);
     } catch (err: any) {
       if (err?.message === 'CANCELLED') {
-        toast.info('Video rendering cancelled.');
+        toast.info('Export cancelled.');
       } else {
-        console.error('Failed to record video:', err);
-        toast.error('Failed to record Motion Video.');
+        console.error('Failed to record motion file:', err);
+        toast.error('Failed to export Motion file.');
       }
     } finally {
       setRecordingProgress(null);
       setSettings((prev) => ({
         ...prev,
         controlledTypedLength: null,
-        isPlayingMotion: false,
       }));
     }
   };
@@ -94,11 +97,11 @@ function EditorWorkspace({
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
       if (isCmdOrCtrl && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        downloadPng(3, activeTab?.title || 'codesnap.png', 'export-container');
+        downloadPng(3, activeTab?.title || 'codesnap.png', 'export-container').then(() => setIsThankYouOpen(true));
       }
       if (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === 'c') {
         e.preventDefault();
-        copyToClipboard(3, 'export-container');
+        copyToClipboard(3, 'export-container').then(() => setIsThankYouOpen(true));
       }
     };
 
@@ -147,13 +150,29 @@ function EditorWorkspace({
         isDark={isDark}
       />
 
+      {/* Export Appreciation Thank You Modal */}
+      <ThankYouModal
+        isOpen={isThankYouOpen}
+        onClose={() => setIsThankYouOpen(false)}
+        isDark={isDark}
+      />
+
       {/* Editor Header Bar */}
       <Header
         settings={settings}
         setSettings={setSettings}
-        onCopyImage={() => copyToClipboard(3, 'export-container')}
-        onDownloadPng={(ratio) => downloadPng(ratio, activeTab?.title || 'codesnap.png', 'export-container')}
-        onDownloadSvg={() => downloadSvg(activeTab?.title || 'codesnap.svg', 'export-container')}
+        onCopyImage={async () => {
+          await copyToClipboard(3, 'export-container');
+          setIsThankYouOpen(true);
+        }}
+        onDownloadPng={async (ratio) => {
+          await downloadPng(ratio, activeTab?.title || 'codesnap.png', 'export-container');
+          setIsThankYouOpen(true);
+        }}
+        onDownloadSvg={async () => {
+          await downloadSvg(activeTab?.title || 'codesnap.svg', 'export-container');
+          setIsThankYouOpen(true);
+        }}
         onRecordVideo={handleRecordVideo}
         onReset={handleReset}
         onOpenUserTour={() => setIsUserTourOpen(true)}

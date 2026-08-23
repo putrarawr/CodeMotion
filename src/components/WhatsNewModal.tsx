@@ -2,11 +2,9 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
-  Wand2,
   Share,
   FileCode,
-  Upload,
-  Code,
+  Video,
   Palette,
   Layers,
   X,
@@ -24,44 +22,34 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose, i
 
   const updates = [
     {
-      icon: <Wand2 className="w-3.5 h-3.5 text-zinc-200" />,
-      title: 'Auto Code Formatter',
-      description: 'Format code indentation, JSON, SQL, CSS, JS/TS, & Python brackets instantly.',
-    },
-    {
-      icon: <Share className="w-3.5 h-3.5 text-zinc-200" />,
-      title: 'Short LZ Share Links',
-      description: 'Compress code & settings into ultra-short URL links with 1-click copy.',
+      icon: <Video className="w-3.5 h-3.5 text-zinc-200" />,
+      title: '60FPS Motion Recording (MP4 & GIF)',
+      description: 'Record typewriter & line-by-line code animation videos with zero CPU freeze.',
     },
     {
       icon: <FileCode className="w-3.5 h-3.5 text-zinc-200" />,
-      title: 'Snippet Template Showcase',
-      description: 'Curated code templates with custom backgrounds & syntax themes.',
-    },
-    {
-      icon: <Upload className="w-3.5 h-3.5 text-zinc-200" />,
-      title: 'File Upload & Drag-Drop',
-      description: 'Upload local code files or drag & drop files directly onto the editor.',
-    },
-    {
-      icon: <Code className="w-3.5 h-3.5 text-zinc-200" />,
-      title: '29 Languages & Search UI',
-      description: 'Expanded language support with instant search bar & quick pills.',
-    },
-    {
-      icon: <Palette className="w-3.5 h-3.5 text-zinc-200" />,
-      title: 'Custom Background Builder',
-      description: 'Dual-color gradient picker with 0° - 360° angle slider controls.',
+      title: 'ISO Standard MP4 Container',
+      description: 'Outputs pure ISO MP4 video files with instant browser downloads across all platforms.',
     },
     {
       icon: <Sparkles className="w-3.5 h-3.5 text-zinc-200" />,
-      title: 'Syntax-Based Auto Detect',
-      description: 'Smart language detection analyzing code syntax patterns.',
+      title: 'Export Appreciation Modal',
+      description: 'Instant export thank-you dialog with Saweria support & 1-click GitHub star actions.',
+    },
+    {
+      icon: <Share className="w-3.5 h-3.5 text-zinc-200" />,
+      title: 'LZ Hash URL Compression',
+      description: 'Share complete code, settings, and themes using ultra-short URL hash links.',
     },
     {
       icon: <Layers className="w-3.5 h-3.5 text-zinc-200" />,
-      title: 'Line Callout Annotations',
-      description: 'Focus specific lines & attach floating callout note badges.',
+      title: 'Monochrome Obsidian Layout',
+      description: 'Vercel-inspired monochrome dark theme with responsive non-overlapping header controls.',
+    },
+    {
+      icon: <Palette className="w-3.5 h-3.5 text-zinc-200" />,
+      title: 'Guided Tour & Shortcuts',
+      description: 'Step-by-step interactive onboarding tour and Cmd/Ctrl + S instant export shortcuts.',
     },
   ];
 

@@ -51,6 +51,7 @@ export const PresetBar: React.FC<PresetBarProps> = ({ settings, setSettings }) =
 
   return (
     <div
+      id="preset-action-bar"
       className={`w-full max-w-xl flex items-center justify-between gap-3 py-2 px-4 rounded-2xl border backdrop-blur-md shadow-lg select-none transition-all duration-200 z-10 ${
         isDark
           ? 'bg-zinc-900/90 border-zinc-800/90 text-zinc-300'

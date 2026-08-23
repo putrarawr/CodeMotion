@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, Download, RefreshCw, FileCode2, Image, ChevronDown, Sun, Moon, Check, Home, Video, HelpCircle, Share2 } from 'lucide-react';
+import { Copy, Download, RefreshCw, FileCode2, Image, ChevronDown, Sun, Moon, Check, Home, Video, HelpCircle, Share2, Coffee } from 'lucide-react';
 import { encodeStateToHash } from '../utils/urlEncoder';
 import { toast } from 'sonner';
 import type { SnippetSettings } from '../types';
@@ -81,23 +81,25 @@ export const Header: React.FC<HeaderProps> = ({
         }`}
       >
         {/* Left Obsidian Section: Logo & Brand Capsule */}
-        <Link
-          to="/"
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all no-underline ${
-            isDark
-              ? 'bg-zinc-950/80 border-zinc-800 hover:border-zinc-700 text-zinc-100'
-              : 'bg-zinc-100 border-zinc-300 hover:border-zinc-400 text-zinc-900'
-          }`}
-          title="Return to Landing Page"
-        >
-          <div className="flex items-center gap-1.5">
-            <Logo className="w-4 h-4" />
-          </div>
-          <span className="text-xs font-bold tracking-tight font-sans">CodeMotion</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/"
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all no-underline ${
+              isDark
+                ? 'bg-zinc-950/80 border-zinc-800 hover:border-zinc-700 text-zinc-100'
+                : 'bg-zinc-100 border-zinc-300 hover:border-zinc-400 text-zinc-900'
+            }`}
+            title="Return to Landing Page"
+          >
+            <div className="flex items-center gap-1.5">
+              <Logo className="w-4 h-4" />
+            </div>
+            <span className="text-xs font-bold tracking-tight font-sans">CodeMotion</span>
+          </Link>
+        </div>
 
-        {/* Center Obsidian Section: Navigation & Tools (Dead-Centered) */}
-        <div id="header-actions" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 sm:gap-2">
+        {/* Right Obsidian Section: All Actions & Controls (Clean Flex Row, 0 Overlap) */}
+        <div id="header-export-actions" className="flex items-center gap-1.5 sm:gap-2">
           {/* User Guide Tour Pill */}
           <button
             onClick={onOpenUserTour}
@@ -151,10 +153,23 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
-        </div>
 
-        {/* Right Obsidian Section: Copy & Export Capsules */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Saweria Donation Button */}
+          <a
+            href="https://saweria.co/codemotion"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all no-underline cursor-pointer ${
+              isDark
+                ? 'bg-zinc-950 border-zinc-800 text-amber-300 hover:bg-zinc-800 hover:text-amber-200'
+                : 'bg-zinc-100 border-zinc-300 text-amber-700 hover:bg-zinc-200'
+            }`}
+            title="Dukung pengembangan CodeMotion via Saweria"
+          >
+            <Coffee className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden md:inline">Buy me a coffee</span>
+          </a>
+
           {/* Share Link Button */}
           <button
             onClick={handleShareLink}
@@ -185,7 +200,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* Export Pill Dropdown */}
-          <div className="relative" ref={pngDropdownRef}>
+          <div id="header-export-btn" className="relative" ref={pngDropdownRef}>
             <div
               className={`flex items-center rounded-xl border shadow-xs transition-all overflow-hidden ${
                 isDark
@@ -194,7 +209,7 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <button
-                onClick={() => onDownloadPng(selectedRatio)}
+                onClick={() => setShowPngDropdown((prev) => !prev)}
                 disabled={isExporting}
                 className="flex items-center gap-1.5 px-3.5 py-1 text-xs font-extrabold transition-colors disabled:opacity-50 cursor-pointer"
               >
@@ -228,7 +243,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <Image className="w-3.5 h-3.5 opacity-60" />
                     <span>PNG Standard (2x DPI)</span>
                   </div>
-                  {selectedRatio === 2 && <Check className="w-3.5 h-3.5 text-sky-400" />}
+                  {selectedRatio === 2 && <Check className="w-3.5 h-3.5 text-zinc-400" />}
                 </button>
 
                 <button
@@ -238,10 +253,10 @@ export const Header: React.FC<HeaderProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <Image className="w-3.5 h-3.5 text-sky-400" />
+                    <Image className="w-3.5 h-3.5 opacity-80" />
                     <span>PNG Retina High (3x DPI)</span>
                   </div>
-                  {selectedRatio === 3 && <Check className="w-3.5 h-3.5 text-sky-400" />}
+                  {selectedRatio === 3 && <Check className="w-3.5 h-3.5 text-zinc-400" />}
                 </button>
 
                 {/* Record Video Option */}
@@ -251,12 +266,14 @@ export const Header: React.FC<HeaderProps> = ({
                     setShowPngDropdown(false);
                   }}
                   className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between border-t mt-1 pt-2 transition-colors cursor-pointer ${
-                    isDark ? 'hover:bg-zinc-900 border-zinc-800/80 text-sky-400 font-bold' : 'hover:bg-zinc-100 border-zinc-200 text-sky-600 font-bold'
+                    isDark
+                      ? 'hover:bg-zinc-900 border-zinc-800/80 text-zinc-100 font-semibold'
+                      : 'hover:bg-zinc-100 border-zinc-200 text-zinc-900 font-semibold'
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <Video className="w-3.5 h-3.5" />
-                    <span>Record Motion Video (WebM)</span>
+                    <Video className="w-3.5 h-3.5 opacity-80" />
+                    <span>Record Motion (MP4 / GIF)</span>
                   </div>
                 </button>
 

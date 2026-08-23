@@ -45,41 +45,79 @@
     <meta name="twitter:creator" content="@codemotion" />
     <meta name="twitter:site" content="@codemotion" />
 
+    <!-- Generative Engine Optimization (GEO) & AI Search Meta Tags -->
+    <meta name="ai-content-declaration" content="CodeMotion is a client-side web application for generating high-resolution code snippet images and character-by-character animated typing motion videos." />
+    <meta name="chatgpt-description" content="CodeMotion is a zero-friction online code to image and video generator. Create 3x Retina PNGs, SVG vector code graphics, and WebM typing animations." />
+    <meta name="perplexity-description" content="CodeMotion allows developers to turn source code into aesthetic images and typing motion videos using VS Code Shiki syntax highlighting." />
+
     <!-- Performance Optimization: Preconnect & Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
 
-    <!-- JSON-LD Structured Data Schema (Google Search Rich Snippet) -->
+    <!-- JSON-LD Structured Data Schema (Google Search & AI Overview Rich Snippet) -->
     <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "CodeMotion",
-        "url": "https://codemotion.biz.id/",
-        "description": "Zero-friction client-side developer tool to turn source code into high-resolution images (2x/3x DPI) and animated typing motion videos.",
-        "applicationCategory": "DeveloperApplication",
-        "operatingSystem": "All",
-        "browserRequirements": "Requires JavaScript. Requires HTML5 Canvas.",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
+      [
+        {
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          "name": "CodeMotion",
+          "url": "https://codemotion.biz.id/",
+          "description": "Zero-friction client-side developer tool to turn source code into high-resolution images (2x/3x DPI) and animated typing motion videos.",
+          "applicationCategory": "DeveloperApplication",
+          "operatingSystem": "All",
+          "browserRequirements": "Requires JavaScript. Requires HTML5 Canvas.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "creator": {
+            "@type": "Organization",
+            "name": "CodeMotion Team"
+          },
+          "featureList": [
+            "VS Code Shiki Syntax Highlighting",
+            "Real-time Motion Code Typing Simulator",
+            "Export 2x/3x Retina PNG and SVG",
+            "Export WebM Motion Videos",
+            "Multi-File Tabbed Snippets",
+            "Code Diff Addition & Deletion Highlights",
+            "Compressed Short URL Share Links",
+            "100% Client-Side Privacy"
+          ]
         },
-        "creator": {
-          "@type": "Organization",
-          "name": "CodeMotion Team"
-        },
-        "featureList": [
-          "VS Code Shiki Syntax Highlighting",
-          "Real-time Motion Code Typing Simulator",
-          "Export 2x/3x Retina PNG and SVG",
-          "Export WebM Motion Videos",
-          "Multi-File Tabbed Snippets",
-          "Code Diff Addition & Deletion Highlights",
-          "100% Client-Side Privacy"
-        ]
-      }
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is CodeMotion?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "CodeMotion is a free, zero-login developer tool that transforms source code into high-resolution 2x/3x Retina images, vector SVGs, and animated typing motion videos."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How to convert code snippets into animated video?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "In CodeMotion, paste your source code, open the Motion tab, adjust typing speed, and click Record Motion Video to download a high-60FPS WebM video."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is my code sent to a remote server?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No. CodeMotion processes and highlights all code 100% locally in your web browser using Shiki TextMate grammars and Client-side Canvas."
+              }
+            }
+          ]
+        }
+      ]
     </script>
   </head>
   <body class="bg-[#09090b] text-zinc-100 antialiased selection:bg-sky-500 selection:text-white">

@@ -32,6 +32,7 @@ import {
   Trash2,
   Search,
   FileCode,
+  Film,
 } from 'lucide-react';
 
 interface ControlPanelProps {
@@ -230,7 +231,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   return (
     <div id="editor-sidebar" className="w-full h-full flex flex-col p-4 sm:p-5 gap-4 overflow-y-auto">
       {/* Category Tab Selector Navigation Bar */}
-      <div className="grid grid-cols-5 gap-1 p-1 rounded-2xl bg-zinc-900/60 border border-zinc-800/80">
+      <div id="sidebar-category-tabs" className="grid grid-cols-5 gap-1 p-1 rounded-2xl bg-zinc-900/60 border border-zinc-800/80">
         <button
           onClick={() => setActiveTabSection('style')}
           className={`py-2 px-1 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
@@ -594,8 +595,76 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           </div>
 
           <div className="flex flex-col gap-3 pt-2 border-t border-zinc-800/40">
+            {/* Export Format Selector (MP4 vs GIF) */}
+            <div className="flex flex-col gap-1.5">
+              <span className={`text-[11px] font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Export Format</span>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  onClick={() => updateSetting('motionExportFormat', 'mp4')}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                    (settings.motionExportFormat || 'mp4') === 'mp4'
+                      ? 'bg-white text-black border-white shadow-md'
+                      : isDark
+                      ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                      : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black'
+                  }`}
+                >
+                  <Video className="w-3.5 h-3.5" />
+                  <span>MP4 Video (.mp4)</span>
+                </button>
+
+                <button
+                  onClick={() => updateSetting('motionExportFormat', 'gif')}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                    settings.motionExportFormat === 'gif'
+                      ? 'bg-white text-black border-white shadow-md'
+                      : isDark
+                      ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                      : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black'
+                  }`}
+                >
+                  <Film className="w-3.5 h-3.5" />
+                  <span>Animated GIF (.gif)</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Animation Style Selector */}
+            <div className="flex flex-col gap-1.5">
+              <span className={`text-[11px] font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Animation Style</span>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  onClick={() => updateSetting('motionStyle', 'typewriter')}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
+                    (settings.motionStyle || 'typewriter') === 'typewriter'
+                      ? 'bg-sky-500/20 text-sky-400 border-sky-500/40'
+                      : isDark
+                      ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                      : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black'
+                  }`}
+                >
+                  <Type className="w-3.5 h-3.5" />
+                  <span>Typewriter</span>
+                </button>
+
+                <button
+                  onClick={() => updateSetting('motionStyle', 'lineByLine')}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
+                    settings.motionStyle === 'lineByLine'
+                      ? 'bg-sky-500/20 text-sky-400 border-sky-500/40'
+                      : isDark
+                      ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                      : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black'
+                  }`}
+                >
+                  <FileCode className="w-3.5 h-3.5" />
+                  <span>Line-by-Line</span>
+                </button>
+              </div>
+            </div>
+
             <div className="flex items-center justify-between">
-              <span className={`text-[11px] font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Typing Speed</span>
+              <span className={`text-[11px] font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Speed</span>
               <div className="flex items-center gap-1">
                 {[0.5, 1, 2].map((s) => (
                   <button
@@ -617,7 +686,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
             {/* Video Frame Rate (FPS) Selector */}
             <div className="flex items-center justify-between">
-              <span className={`text-[11px] font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Video Frame Rate</span>
+              <span className={`text-[11px] font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Frame Rate</span>
               <div className="flex items-center gap-1">
                 {([30, 60] as const).map((f) => (
                   <button
@@ -641,13 +710,15 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               <button
                 onClick={onRecordVideo}
                 disabled={recordingProgress !== null && recordingProgress !== undefined}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-sky-500/20 text-sky-400 border border-sky-500/40 hover:bg-sky-500/30 transition-all disabled:opacity-50 cursor-pointer shadow-xs"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all disabled:opacity-50 cursor-pointer shadow-md"
               >
-                <Video className="w-4 h-4" />
+                {settings.motionExportFormat === 'gif' ? <Film className="w-4 h-4 text-black" /> : <Video className="w-4 h-4 text-black" />}
                 <span>
                   {recordingProgress !== null && recordingProgress !== undefined
-                    ? `Recording... ${recordingProgress}%`
-                    : 'Record Video (WebM / GIF Motion)'}
+                    ? `Rendering... ${recordingProgress}%`
+                    : settings.motionExportFormat === 'gif'
+                    ? 'Export Animated GIF (.gif)'
+                    : 'Export MP4 Video (.mp4)'}
                 </span>
               </button>
             )}

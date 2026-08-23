@@ -1,132 +1,67 @@
-# ⚡ CodeMotion
+# CodeMotion
 
-> **Zero-Friction Client-Side Code Snippet & Motion Generator**  
-> Transform plain source code into aesthetic, high-resolution snippet images and butter-smooth typing motion videos for Twitter/X, LinkedIn, documentation, and presentations.
+> Client-Side Animated Code Snippet & Video Generator
 
-<<<<<<< HEAD
-[![Live Demo](https://img.shields.io/badge/Live_Demo-codemotion.biz.id-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://codemotion.biz.id/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-=======
-
->>>>>>> 8d6addcfe0ea708760fc6121f02d7589659c0bd4
+CodeMotion is a lightweight, high-performance web tool that transforms source code into high-resolution graphics and 60FPS typing motion videos. Designed for tech content creators, educators, software engineers, and documentation writers.
 
 ---
 
-## 🌐 Live Demo
+## Live Demo
 
-Try **CodeMotion** online directly in your browser without installation:
+Try CodeMotion online directly in your browser:
 
-👉 **[https://codemotion.biz.id/](https://codemotion.biz.id/)**
+[https://codemotion.biz.id/](https://codemotion.biz.id/)
 
----
-
-## ✨ Features
-
-- **⚡ Motion Code Typing Simulator**: Simulate real-time character-by-character typing animation with speed controls (`0.5x`, `1x`, `2x`).
-- **🎥 WebM Motion Video Export**: Record smooth WebM motion animation videos in seconds with a background rendering engine.
-- **🎨 Shiki Syntax Highlighting Engine**: Exact VS Code syntax rendering with TextMate grammars supporting 16+ languages and 10+ popular color palettes.
-- **🗂️ Multi-File Tabbed Snippets**: Create window frames with multiple file tabs, tab switching, and inline double-click renaming.
-- **🔀 Code Diff Mode**: Highlight line additions (`+` emerald) and deletions (`-` rose) to showcase PRs and refactoring.
-- **📸 High-DPI Retina Export**: Export PNGs at 2x or 3x DPI (Retina), vector SVG graphics, or copy PNG blobs directly to system clipboard.
-- **🎨 Modern Obsidian & Light/Dark Theme**: Vercel-inspired monochrome aesthetic system with full Light & Dark UI mode switcher.
-- **🔒 100% Client-Side Privacy**: Zero server uploads. Everything processes locally in your browser.
-- **📱 100% Mobile & Cross-Device Responsive**: Optimized layout for smartphones, tablets, and desktop displays.
+Repository: [https://github.com/putrarawr/CodeMotion](https://github.com/putrarawr/CodeMotion)
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## Core Features
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) v18.0.0 or higher
-- `npm` or `pnpm` / `yarn`
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/codemotion.git
-
-# Navigate into project directory
-cd codemotion
-
-# Install dependencies
-npm install
-```
-
-### Run Development Server
-
-```bash
-npm run dev
-```
-
-Open `http://localhost:5173/` in your browser to view the Landing Page, or `http://localhost:5173/editor` to open the Workspace Editor.
-
-### Build for Production
-
-```bash
-npm run build
-```
-
-The output production bundle will be generated inside the `dist/` directory.
+- Real-Time Motion Recording: Export butter-smooth 60FPS MP4 videos or animated GIFs with typewriter and line-by-line typing motion.
+- Pure ISO MP4 Container: Generates standard ISO container MP4 files with instant browser downloads across Linux, Windows, macOS, and mobile devices.
+- VS Code Shiki Syntax Engine: Accurate syntax highlighting powered by official TextMate grammars supporting dozens of programming languages.
+- Multi-File Tabbed Snippets: Create window frames with multiple file tabs, tab switching, and inline title editing.
+- Code Diff Mode: Highlight line additions (+ emerald) and deletions (- rose) to showcase pull requests and code refactoring.
+- High-DPI Retina Export: Export PNGs at 2x or 3x DPI (Retina), vector SVG graphics, or copy PNG images directly to the system clipboard.
+- Modern Obsidian Aesthetic: Vercel-inspired monochrome dark and light UI design system with zero element overlapping.
+- 100% Client-Side Privacy: Zero server processing. Everything renders locally within your browser.
+- LZ State Compression: Share full code snippets, tab titles, languages, and theme settings via ultra-short URL hash links.
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
-- **Deployment**: Custom Domain ([codemotion.biz.id](https://codemotion.biz.id/))
-- **Framework**: [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- **Build Tool**: [Vite](https://vitejs.dev/)
-- **Routing**: [React Router v7](https://reactrouter.com/)
-- **Syntax Highlighter**: [Shiki](https://shiki.style/)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/)
-- **Icons**: [Lucide React](https://lucide.dev/) + [React Icons (Simple Icons)](https://react-icons.github.io/react-icons/)
-- **Image & Video Exporters**: `html-to-image` + HTML5 `MediaRecorder` API
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) + Custom Design Tokens
+- Deployment: Custom Domain ([codemotion.biz.id](https://codemotion.biz.id/))
+- Framework: React 19 + TypeScript
+- Build Tool: Vite
+- Routing: React Router v7
+- Syntax Highlighter: Shiki (TextMate Grammars)
+- Video Encoder: mp4-muxer + HTML5 Canvas Rendering Engine
+- Animations: Framer Motion
+- Styling: Tailwind CSS v4 + Obsidian Design Tokens
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## Keyboard Shortcuts
 
 | Shortcut | Action |
 | :--- | :--- |
 | `Cmd` / `Ctrl` + `S` | Instant Retina 3x PNG Image Download |
-| `Cmd` / `Ctrl` + `Shift` + `C` | Copy PNG Blob directly to System Clipboard |
-| `Double-Click` Tab Title | Rename active tab filename inline |
+| `Cmd` / `Ctrl` + `Shift` + `C` | Copy PNG Image directly to Clipboard |
+| `Double-Click` Tab Title | Rename active file tab title inline |
 
 ---
 
-## 📁 Project Structure
+## Support & Donation
 
-```
-codemotion/
-├── public/                  # Static assets, icons, robots.txt & sitemap
-├── src/
-│   ├── components/          # React Components
-│   │   ├── Canvas.tsx       # Main preview canvas container
-│   │   ├── CodeEditor.tsx   # Dual-layer Shiki syntax editor
-│   │   ├── ControlPanel.tsx # Customization sidebar controls
-│   │   ├── Header.tsx       # Top navigation & export toolbar
-│   │   ├── LandingPage.tsx  # Multi-section animated landing page
-│   │   ├── Logo.tsx         # Custom CodeMotion SVG logo
-│   │   ├── PresetBar.tsx    # Aesthetic preset selector
-│   │   ├── VideoLoadingOverlay.tsx # Video generation loading modal
-│   │   └── WindowFrame.tsx  # Window frame & multi-tab header
-│   ├── hooks/               # Custom React Hooks
-│   │   ├── useExport.ts     # PNG, SVG & clipboard exporter
-│   │   ├── useLocalStorage.ts # Persistent settings state
-│   │   ├── useSEO.ts        # Dynamic SEO meta tag switcher
-│   │   └── useShiki.ts      # Shiki syntax highlighter loader
-│   ├── types/               # TypeScript interfaces & types
-│   ├── utils/               # Color palettes, languages, recorder & defaults
-│   ├── App.tsx              # Application router & workspace layout
-│   ├── index.css            # Design tokens & marquee keyframes
-│   └── main.tsx             # React DOM entry point
-├── index.html               # Main HTML entry & SEO meta tags
-└── vite.config.ts           # Vite configuration
-```
+If CodeMotion helps your workflow, consider supporting the project to keep it free and ad-free:
+
+- Saweria: [https://saweria.co/codemotion](https://saweria.co/codemotion)
+- GitHub Repository: [https://github.com/putrarawr/CodeMotion](https://github.com/putrarawr/CodeMotion)
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is open source under the [MIT License](LICENSE).

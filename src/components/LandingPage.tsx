@@ -17,6 +17,9 @@ import {
   SiJson,
   SiMarkdown,
   SiGit,
+  SiGithub,
+  SiInstagram,
+  SiTelegram,
 } from 'react-icons/si';
 import { VscCode } from 'react-icons/vsc';
 import {
@@ -34,6 +37,8 @@ import {
   Sparkles,
   FileCode,
   ArrowUpRight,
+  ArrowUp,
+  Coffee,
 } from 'lucide-react';
 import type { SnippetSettings } from '../types';
 import { SNIPPET_TEMPLATES, TEMPLATE_CATEGORIES, type SnippetTemplate } from '../utils/snippetTemplates';
@@ -72,7 +77,7 @@ const MOTION_PREVIEW_TOKENS: CodeToken[] = [
   { text: ' });\n', type: 'plain' },
   { text: '  return ', type: 'keyword' },
   { text: 'recorder.', type: 'plain' },
-  { text: 'exportWebM', type: 'function' },
+  { text: 'exportMP4', type: 'function' },
   { text: '();\n', type: 'plain' },
   { text: '}', type: 'plain' },
 ];
@@ -84,6 +89,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
   const [landingTemplateCategory, setLandingTemplateCategory] = useState<string>('all');
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowBackToTop(true);
+      } else {
+        setShowBackToTop(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const [motionTypedIndex, setMotionTypedIndex] = useState(0);
   const [isMotionPlaying, setIsMotionPlaying] = useState(true);
@@ -156,7 +178,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
     },
     {
       q: 'What formats can I export?',
-      a: 'You can export high-resolution PNG images at 2x or 3x DPI, vector SVG files, or smooth 60 FPS WebM typing animations.',
+      a: 'You can export high-resolution PNG images at 2x or 3x DPI, vector SVG files, HD MP4 videos, or smooth Animated GIFs.',
     },
   ];
 
@@ -209,10 +231,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
 
   // Hero Section Dynamic Typing Effect
   const HERO_TYPING_PHRASES = [
-    'high-resolution graphics.',
-    'animated motion videos.',
+    'coding tutorial videos.',
+    'animated Shorts & Reels.',
+    'high-res code graphics.',
     'beautiful social posts.',
-    'clean documentation.',
   ];
 
   const [heroPhraseIndex, setHeroPhraseIndex] = useState(0);
@@ -383,12 +405,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
         >
           <motion.h1
             variants={fadeInUp}
-            className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.15] mb-6 font-sans text-center mx-auto"
+            className={`text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.15] mb-6 font-sans text-center mx-auto ${
+              isDark ? 'text-zinc-100' : 'text-zinc-900'
+            }`}
           >
             Turn code snippets into{' '}
-            <span className="inline-block text-zinc-100 border-b-2 border-zinc-500/80 pb-0.5 min-h-[1.2em]">
+            <span className={`inline-block border-b-2 pb-0.5 min-h-[1.2em] ${
+              isDark ? 'text-zinc-100 border-zinc-500/80' : 'text-zinc-900 border-zinc-400/80'
+            }`}>
               {heroDisplayedText}
-              <span className="animate-pulse text-zinc-200 font-normal ml-0.5 inline-block">|</span>
+              <span className={`animate-pulse font-normal ml-0.5 inline-block ${
+                isDark ? 'text-zinc-200' : 'text-zinc-900'
+              }`}>|</span>
             </span>
           </motion.h1>
 
@@ -398,7 +426,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               isDark ? 'text-zinc-400' : 'text-zinc-600'
             }`}
           >
-            Create code snippet images and typing animations for social posts, documentation, and presentations.
+            Paste code, select an animation style, and export studio-quality typing videos (MP4/GIF) for coding tutorials, YouTube Shorts, Reels, and social posts — zero video editing required.
           </motion.p>
 
           <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center gap-4">
@@ -564,34 +592,115 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white transition-all hover:border-zinc-700">
-            <div className="h-11 w-11 rounded-2xl bg-zinc-950 border border-zinc-800 text-zinc-100 flex items-center justify-center mb-4 shadow-sm">
+          <div className={`rounded-3xl border p-6 sm:p-8 relative overflow-hidden text-left transition-all ${
+            isDark
+              ? 'border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 text-white shadow-2xl hover:border-zinc-700'
+              : 'border-zinc-200 bg-white text-zinc-900 shadow-xl hover:shadow-2xl'
+          }`}>
+            <div className={`h-11 w-11 rounded-2xl flex items-center justify-center mb-4 border shadow-xs ${
+              isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-800'
+            }`}>
               <VscCode className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold mb-2 text-white">VS Code Shiki Engine</h3>
-            <p className="text-xs leading-relaxed text-zinc-400 m-0">
+            <h3 className={`text-base font-bold mb-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>VS Code Shiki Engine</h3>
+            <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
               Powered by Shiki and official TextMate grammars for accurate syntax highlighting.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white transition-all hover:border-zinc-700">
-            <div className="h-11 w-11 rounded-2xl bg-zinc-950 border border-zinc-800 text-zinc-100 flex items-center justify-center mb-4 shadow-sm">
+          <div className={`rounded-3xl border p-6 sm:p-8 relative overflow-hidden text-left transition-all ${
+            isDark
+              ? 'border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 text-white shadow-2xl hover:border-zinc-700'
+              : 'border-zinc-200 bg-white text-zinc-900 shadow-xl hover:shadow-2xl'
+          }`}>
+            <div className={`h-11 w-11 rounded-2xl flex items-center justify-center mb-4 border shadow-xs ${
+              isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-800'
+            }`}>
               <Layers className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold mb-2 text-white">Multi-Tab File Navigation</h3>
-            <p className="text-xs leading-relaxed text-zinc-400 m-0">
+            <h3 className={`text-base font-bold mb-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>Multi-Tab File Navigation</h3>
+            <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
               Organize multiple file tabs inside a single window frame with custom titles.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white transition-all hover:border-zinc-700">
-            <div className="h-11 w-11 rounded-2xl bg-zinc-950 border border-zinc-800 text-zinc-100 flex items-center justify-center mb-4 shadow-sm">
+          <div className={`rounded-3xl border p-6 sm:p-8 relative overflow-hidden text-left transition-all ${
+            isDark
+              ? 'border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 text-white shadow-2xl hover:border-zinc-700'
+              : 'border-zinc-200 bg-white text-zinc-900 shadow-xl hover:shadow-2xl'
+          }`}>
+            <div className={`h-11 w-11 rounded-2xl flex items-center justify-center mb-4 border shadow-xs ${
+              isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-800'
+            }`}>
               <SiGit className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold mb-2 text-white">Code Diff Mode</h3>
-            <p className="text-xs leading-relaxed text-zinc-400 m-0">
+            <h3 className={`text-base font-bold mb-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>Code Diff Mode</h3>
+            <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
               Highlight line additions (+) and deletions (-) for code reviews and refactoring.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 4.5. Dedicated Tutorial Video Slogan & Showcase Section */}
+      <section className={`py-16 px-6 lg:px-12 border-t ${isDark ? 'border-zinc-800/80 bg-zinc-950/40' : 'border-zinc-200 bg-white'}`}>
+        <div className="max-w-5xl mx-auto w-full text-center">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4 font-sans">
+            Creating Coding Tutorial Videos Made Effortless
+          </h2>
+          <p className={`text-base max-w-2xl mx-auto leading-relaxed mb-12 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+            No complex video editor needed. Just paste your code, pick an animation style, and get studio-quality 60FPS MP4 videos in seconds for YouTube Shorts, Instagram Reels, TikTok, and video courses.
+          </p>
+
+          {/* 3 Simple Steps Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+            <div className={`rounded-3xl border p-6 sm:p-8 relative overflow-hidden text-left transition-all ${
+              isDark
+                ? 'border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 text-white shadow-2xl hover:border-zinc-700'
+                : 'border-zinc-200 bg-white text-zinc-900 shadow-xl hover:shadow-2xl'
+            }`}>
+              <div className={`h-11 w-11 rounded-2xl flex items-center justify-center mb-4 border shadow-xs font-mono font-extrabold text-sm ${
+                isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-800'
+              }`}>
+                01
+              </div>
+              <h3 className={`text-base font-bold mb-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>Paste & Highlight</h3>
+              <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                Paste code in any language. Shiki auto-detects syntax and highlights keywords with VS Code accuracy.
+              </p>
+            </div>
+
+            <div className={`rounded-3xl border p-6 sm:p-8 relative overflow-hidden text-left transition-all ${
+              isDark
+                ? 'border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 text-white shadow-2xl hover:border-zinc-700'
+                : 'border-zinc-200 bg-white text-zinc-900 shadow-xl hover:shadow-2xl'
+            }`}>
+              <div className={`h-11 w-11 rounded-2xl flex items-center justify-center mb-4 border shadow-xs font-mono font-extrabold text-sm ${
+                isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-800'
+              }`}>
+                02
+              </div>
+              <h3 className={`text-base font-bold mb-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>Select Motion Style</h3>
+              <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                Choose Typewriter or Line-by-Line motion to simulate realistic typing for your tutorial audience.
+              </p>
+            </div>
+
+            <div className={`rounded-3xl border p-6 sm:p-8 relative overflow-hidden text-left transition-all ${
+              isDark
+                ? 'border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 text-white shadow-2xl hover:border-zinc-700'
+                : 'border-zinc-200 bg-white text-zinc-900 shadow-xl hover:shadow-2xl'
+            }`}>
+              <div className={`h-11 w-11 rounded-2xl flex items-center justify-center mb-4 border shadow-xs font-mono font-extrabold text-sm ${
+                isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-800'
+              }`}>
+                03
+              </div>
+              <h3 className={`text-base font-bold mb-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>Export Pure MP4</h3>
+              <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                Export 100% pure 60FPS MP4 video files in 2 seconds. Ready to upload directly to social media or courses.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -853,10 +962,90 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className={`mt-auto border-t py-8 px-6 text-center text-xs ${isDark ? 'border-zinc-800 bg-zinc-950 text-zinc-500' : 'border-zinc-200 bg-zinc-100 text-zinc-600'}`}>
-        <p className="m-0">© 2026 CodeMotion. Code snippet image & animation generator.</p>
+      {/* Footer with Social Links & Buy Me a Coffee */}
+      <footer className={`mt-auto border-t py-10 px-6 text-xs ${isDark ? 'border-zinc-800 bg-zinc-950 text-zinc-400' : 'border-zinc-200 bg-zinc-100 text-zinc-600'}`}>
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2">
+            <Logo className="w-4 h-4" />
+            <span className={`font-bold text-sm tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>CodeMotion</span>
+            <span className="opacity-50">© 2026 CodeMotion. All rights reserved.</span>
+          </div>
+
+          {/* Social Media & Support Links */}
+          <div className="flex items-center gap-2.5 text-xs font-semibold">
+            <a
+              href="https://saweria.co/codemotion"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border transition-all no-underline ${
+                isDark
+                  ? 'bg-zinc-900 border-zinc-800 text-amber-300 hover:bg-zinc-800 hover:text-amber-200'
+                  : 'bg-white border-zinc-300 text-amber-700 hover:bg-zinc-100 shadow-xs'
+              }`}
+              title="Support CodeMotion development via Saweria"
+            >
+              <Coffee className="w-3.5 h-3.5 text-amber-400" />
+              <span>Buy me a coffee</span>
+            </a>
+
+            <a
+              href="https://github.com/putrarawr/CodeMotion"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`p-2 rounded-xl border transition-all ${
+                isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800' : 'bg-white border-zinc-300 text-zinc-700 hover:text-black shadow-xs'
+              }`}
+              title="GitHub Repository (putrarawr/CodeMotion)"
+            >
+              <SiGithub className="w-4 h-4" />
+            </a>
+
+            <a
+              href="https://instagram.com/rexxkielll"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`p-2 rounded-xl border transition-all ${
+                isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-pink-400 hover:bg-zinc-800' : 'bg-white border-zinc-300 text-zinc-700 hover:text-pink-600 shadow-xs'
+              }`}
+              title="Instagram (@rexxkielll)"
+            >
+              <SiInstagram className="w-4 h-4" />
+            </a>
+
+            <a
+              href="https://t.me/putrarawr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`p-2 rounded-xl border transition-all ${
+                isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-sky-400 hover:bg-zinc-800' : 'bg-white border-zinc-300 text-zinc-700 hover:text-sky-600 shadow-xs'
+              }`}
+              title="Telegram (@putrarawr)"
+            >
+              <SiTelegram className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
       </footer>
+
+      {/* Floating Back to Top Button - Minimal Circular Design */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={{ opacity: showBackToTop ? 1 : 0, scale: showBackToTop ? 1 : 0.85 }}
+        transition={{ duration: 0.2 }}
+        className={`fixed bottom-6 right-6 z-40 ${showBackToTop ? 'pointer-events-auto' : 'pointer-events-none'}`}
+      >
+        <button
+          onClick={scrollToTop}
+          className={`w-11 h-11 rounded-full border shadow-2xl backdrop-blur-md flex items-center justify-center transition-all transform hover:scale-110 cursor-pointer ${
+            isDark
+              ? 'bg-zinc-950/90 border-zinc-800 text-white hover:bg-zinc-900 shadow-black/80'
+              : 'bg-white/95 border-zinc-200 text-black hover:bg-zinc-100 shadow-zinc-300/60'
+          }`}
+          title="Back to top"
+        >
+          <ArrowUp className={`w-4 h-4 ${isDark ? 'text-white' : 'text-black'}`} />
+        </button>
+      </motion.div>
     </motion.div>
   );
 };

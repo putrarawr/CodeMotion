@@ -71,6 +71,8 @@ export interface SnippetSettings {
   motionMode: boolean;
   motionSpeed: number; // 1 = 1x, 2 = 2x, 0.5 = 0.5x
   motionFps: 30 | 60; // 30 FPS or 60 FPS ultra smooth
+  motionStyle: 'typewriter' | 'lineByLine' | 'glitch' | 'wave'; // Animation Style
+  motionExportFormat: 'mp4' | 'gif'; // Direct MP4 Video vs Animated GIF
   isPlayingMotion: boolean;
   controlledTypedLength?: number | null;
 
