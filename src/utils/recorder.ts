@@ -59,10 +59,10 @@ function releaseCanvases(canvases: HTMLCanvasElement[]) {
 }
 
 /**
- * Ultra-Fluid Character-by-Character Motion Exporter
- * - 1 to 2 characters per step for smooth 60FPS fluid typing.
- * - Exact canvas aspect ratio crop (zero black sidebars).
- * - Low-RAM streaming pipeline with periodic GC ticks.
+ * Low-RAM, Multi-Speed Motion Exporter
+ * - Accurate 0.5x / 1x / 2x speed scaling.
+ * - Smooth monotonic progress bar (zero stuck 97% delay).
+ * - Silent clean console logging.
  */
 export async function recordMotionVideo(options: MotionRecordOptions): Promise<{ blob: Blob; filename: string }> {
   setImperativeSyncing(true);
@@ -110,12 +110,13 @@ async function doRecordMotionVideo({
     pixelRatio: 1.5,
     cacheBust: true,
     skipFonts: true,
+    fontEmbedCSS: '',
     filter: filterCmWidgetBuffer,
   });
   const width = Math.max(32, Math.floor(fullCanvas.width / 2) * 2);
   const height = Math.max(32, Math.floor(fullCanvas.height / 2) * 2);
 
-  const effectiveSpeed = motionSpeed || 1;
+  const effectiveSpeed = Math.max(0.25, motionSpeed || 1);
   const keyframeCanvases: HTMLCanvasElement[] = [];
 
   try {
@@ -153,14 +154,13 @@ async function doRecordMotionVideo({
             pixelRatio: 1.5,
             cacheBust: true,
             skipFonts: true,
+            fontEmbedCSS: '',
             width,
             height,
             filter: filterCmWidgetBuffer,
           });
           keyframeCanvases.push(snapCanvas);
-        } catch (err) {
-          console.warn('Keyframe snapshot failed:', err);
-        }
+        } catch {}
 
         if (l % 5 === 0) await sleep(8);
         safeProgress(5 + Math.floor(((l + 1) / lineEndIndices.length) * 40));
@@ -169,7 +169,7 @@ async function doRecordMotionVideo({
       // Typewriter mode — 1 to 2 characters per step for 100% FLUID typing motion
       const charStep = isGif
         ? Math.max(1, Math.ceil(totalChars / 35))
-        : Math.max(1, Math.ceil(totalChars / 120)); // Up to 120 keyframes for 1-2 char steps
+        : Math.max(1, Math.ceil(totalChars / 120));
       let currentLen = 0;
       let snapIndex = 0;
 
@@ -187,16 +187,15 @@ async function doRecordMotionVideo({
             pixelRatio: 1.5,
             cacheBust: true,
             skipFonts: true,
+            fontEmbedCSS: '',
             width,
             height,
             filter: filterCmWidgetBuffer,
           });
           keyframeCanvases.push(snapCanvas);
-        } catch (err) {
-          console.warn('Keyframe snapshot failed:', err);
-        }
+        } catch {}
 
-        if (snapIndex % 5 === 0) await sleep(8); // GC yield tick to keep RAM spikes low!
+        if (snapIndex % 5 === 0) await sleep(8);
 
         safeProgress(5 + Math.floor((currentLen / totalChars) * 40));
       }
@@ -213,17 +212,27 @@ async function doRecordMotionVideo({
         pixelRatio: 1.5,
         cacheBust: true,
         skipFonts: true,
+        fontEmbedCSS: '',
         width,
         height,
         filter: filterCmWidgetBuffer,
       });
       keyframeCanvases.push(finalSnap);
-    } catch (err) {}
+    } catch {}
 
     safeProgress(48);
 
-    // Calculate frame timings: 100% fluid distribution across 60FPS video
-    const totalTypingDurationSec = Math.min(8, Math.max(3, totalChars / (18 * effectiveSpeed)));
+    // Calculate frame timings with ACCURATE 0.5x / 1x / 2x speed scaling:
+    // 0.5x speed -> 8-18 seconds (slow, relaxing typing)
+    // 1.0x speed -> 4-8 seconds (standard normal typing)
+    // 2.0x speed -> 2-4 seconds (fast preview typing)
+    const maxTypingSec = effectiveSpeed <= 0.6 ? 18 : effectiveSpeed >= 1.8 ? 4.5 : 9;
+    const minTypingSec = effectiveSpeed <= 0.6 ? 7 : effectiveSpeed >= 1.8 ? 1.8 : 3.5;
+    const totalTypingDurationSec = Math.min(
+      maxTypingSec,
+      Math.max(minTypingSec, totalChars / (15 * effectiveSpeed))
+    );
+
     const snapshotCount = Math.max(1, keyframeCanvases.length);
     const framesPerSnapshot = Math.max(
       1,
@@ -301,7 +310,6 @@ async function doRecordMotionVideo({
         result = { blob, extension: 'mp4' };
       } catch (err) {
         if (err instanceof Error && err.message === 'CANCELLED') throw err;
-        console.warn('WebCodecs MP4 failed, trying WASM x264 encoder:', err);
         result = await encodeMp4WithWasmStream(
           getFrameCanvas,
           totalVideoFrames,
@@ -348,7 +356,7 @@ async function encodeMp4WithMuxerStream(
   const targetWidth = width;
   const targetHeight = height;
 
-  let videoCodec = 'avc1.4D4028'; // H.264 Main Profile Level 4.0 (Optimal performance & memory)
+  let videoCodec = 'avc1.4D4028';
   let muxerCodec: 'avc' | 'vp9' = 'avc';
 
   const codecsToTest = [
@@ -360,19 +368,21 @@ async function encodeMp4WithMuxerStream(
 
   if (typeof VideoEncoder !== 'undefined') {
     for (const test of codecsToTest) {
-      const check = await VideoEncoder.isConfigSupported({
-        codec: test.codec,
-        width: targetWidth,
-        height: targetHeight,
-        bitrate: 8_000_000,
-        framerate: fps,
-      }).catch(() => ({ supported: false }));
+      try {
+        const check = await VideoEncoder.isConfigSupported({
+          codec: test.codec,
+          width: targetWidth,
+          height: targetHeight,
+          bitrate: 8_000_000,
+          framerate: fps,
+        });
 
-      if (check.supported) {
-        videoCodec = test.codec;
-        muxerCodec = test.muxer;
-        break;
-      }
+        if (check.supported) {
+          videoCodec = test.codec;
+          muxerCodec = test.muxer;
+          break;
+        }
+      } catch {}
     }
   }
 
@@ -394,7 +404,6 @@ async function encodeMp4WithMuxerStream(
       muxer.addVideoChunk(chunk, meta);
     },
     error: (e) => {
-      console.error('VideoEncoder error:', e);
       encoderError = e;
     },
   });
@@ -419,7 +428,7 @@ async function encodeMp4WithMuxerStream(
       if (isCancelled?.()) {
         try {
           videoEncoder.close();
-        } catch (e) {}
+        } catch {}
         throw new Error('CANCELLED');
       }
       if (encoderError) throw encoderError;
@@ -437,15 +446,18 @@ async function encodeMp4WithMuxerStream(
       videoEncoder.encode(videoFrame, { keyFrame: isKeyframe });
       videoFrame.close();
 
-      // Yield CPU & memory GC every 8 frames
       if (i % 8 === 0) await sleep(4);
 
-      const pct = 50 + Math.floor((i / totalFrames) * 48);
+      // Smooth progress scaling up to 92% during frame encoding
+      const pct = 50 + Math.floor((i / totalFrames) * 42);
       onProgress(pct);
     }
 
+    onProgress(94);
     await videoEncoder.flush();
+    onProgress(97);
     muxer.finalize();
+    onProgress(99);
 
     const buffer = muxer.target.buffer;
     return new Blob([buffer], { type: 'video/mp4' });
@@ -505,11 +517,13 @@ async function encodeMp4WithWasmStream(
 
       if (i % 4 === 0) await sleep(2);
 
-      const pct = 50 + Math.floor(((i + 1) / effectiveFrames) * 48);
+      const pct = 50 + Math.floor(((i + 1) / effectiveFrames) * 44);
       onProgress(pct);
     }
 
+    onProgress(96);
     encoder.finalize();
+    onProgress(98);
 
     const fileFs = typeof encoder.getFS === 'function' ? encoder.getFS() : (encoder as any).FS;
     const bytes = fileFs.readFile(encoder.outputFilename);
