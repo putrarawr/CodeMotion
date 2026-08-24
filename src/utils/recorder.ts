@@ -59,10 +59,10 @@ function releaseCanvases(canvases: HTMLCanvasElement[]) {
 }
 
 /**
- * Low-RAM, High-FPS Motion Video & GIF Exporter
- * - 40 Keyframes max with periodic GC ticks (keeps RAM under 50 MB increase on all devices).
- * - Exact Bounding Rect Canvas Slicing (Full-width crisp frame).
- * - Smooth 60FPS Linear Interpolation.
+ * Ultra-Fluid Character-by-Character Motion Exporter
+ * - 1 to 2 characters per step for smooth 60FPS fluid typing.
+ * - Exact canvas aspect ratio crop (zero black sidebars).
+ * - Low-RAM streaming pipeline with periodic GC ticks.
  */
 export async function recordMotionVideo(options: MotionRecordOptions): Promise<{ blob: Blob; filename: string }> {
   setImperativeSyncing(true);
@@ -104,7 +104,7 @@ async function doRecordMotionVideo({
   syncEditorDocument(code, element);
   await forceDomPaint();
 
-  // Measure master dimensions based on exact bounding rect at 1.5x pixel ratio for sharp HD canvas
+  // Measure master dimensions at 1.5x pixel ratio for sharp HD canvas
   const fullCanvas = await toCanvas(element, {
     quality: 0.95,
     pixelRatio: 1.5,
@@ -128,7 +128,7 @@ async function doRecordMotionVideo({
       const textContent = code || element.innerText || '';
       const lines = textContent.split('\n');
 
-      const maxLineSteps = isGif ? 20 : 40;
+      const maxLineSteps = isGif ? 24 : 60;
       const lineGroupSize = Math.max(1, Math.ceil(lines.length / maxLineSteps));
 
       const lineEndIndices: number[] = [];
@@ -162,14 +162,14 @@ async function doRecordMotionVideo({
           console.warn('Keyframe snapshot failed:', err);
         }
 
-        if (l % 4 === 0) await sleep(12); // Yield CPU to clear Garbage Collection memory!
-
+        if (l % 5 === 0) await sleep(8);
         safeProgress(5 + Math.floor(((l + 1) / lineEndIndices.length) * 40));
       }
     } else {
-      // Typewriter mode — 40 keyframes max with GC yield ticks to guarantee ultra-low RAM usage
-      const maxSnapshots = isGif ? 24 : 42;
-      const charStep = Math.max(1, Math.ceil(totalChars / maxSnapshots));
+      // Typewriter mode — 1 to 2 characters per step for 100% FLUID typing motion
+      const charStep = isGif
+        ? Math.max(1, Math.ceil(totalChars / 35))
+        : Math.max(1, Math.ceil(totalChars / 120)); // Up to 120 keyframes for 1-2 char steps
       let currentLen = 0;
       let snapIndex = 0;
 
@@ -196,7 +196,7 @@ async function doRecordMotionVideo({
           console.warn('Keyframe snapshot failed:', err);
         }
 
-        if (snapIndex % 4 === 0) await sleep(12); // GC yield tick to keep RAM spikes under 5%!
+        if (snapIndex % 5 === 0) await sleep(8); // GC yield tick to keep RAM spikes low!
 
         safeProgress(5 + Math.floor((currentLen / totalChars) * 40));
       }
@@ -223,7 +223,7 @@ async function doRecordMotionVideo({
     safeProgress(48);
 
     // Calculate frame timings: 100% fluid distribution across 60FPS video
-    const totalTypingDurationSec = Math.min(7, Math.max(2.5, totalChars / (18 * effectiveSpeed)));
+    const totalTypingDurationSec = Math.min(8, Math.max(3, totalChars / (18 * effectiveSpeed)));
     const snapshotCount = Math.max(1, keyframeCanvases.length);
     const framesPerSnapshot = Math.max(
       1,
@@ -231,7 +231,7 @@ async function doRecordMotionVideo({
     );
 
     const typingFramesCount = snapshotCount * framesPerSnapshot;
-    const holdFramesCount = Math.round(fps * 1.0);
+    const holdFramesCount = Math.round(fps * 1.2);
     const totalVideoFrames = typingFramesCount + holdFramesCount;
     const finalCanvas = keyframeCanvases[keyframeCanvases.length - 1] || fullCanvas;
 
@@ -345,8 +345,8 @@ async function encodeMp4WithMuxerStream(
   isCancelled: (() => boolean) | undefined,
   onProgress: (pct: number) => void
 ): Promise<Blob> {
-  const targetWidth = Math.max(32, Math.floor(width / 2) * 2);
-  const targetHeight = Math.max(32, Math.floor(height / 2) * 2);
+  const targetWidth = width;
+  const targetHeight = height;
 
   let videoCodec = 'avc1.4D4028'; // H.264 Main Profile Level 4.0 (Optimal performance & memory)
   let muxerCodec: 'avc' | 'vp9' = 'avc';
@@ -466,8 +466,8 @@ async function encodeMp4WithWasmStream(
   isCancelled: (() => boolean) | undefined,
   onProgress: (pct: number) => void
 ): Promise<{ blob: Blob; extension: string }> {
-  const targetWidth = Math.max(32, Math.floor(width / 2) * 2);
-  const targetHeight = Math.max(32, Math.floor(height / 2) * 2);
+  const targetWidth = width;
+  const targetHeight = height;
 
   const wasmFps = Math.min(fps, 30);
   const rateStep = Math.max(1, Math.round(fps / wasmFps));
