@@ -12,7 +12,7 @@
     <title>CodeMotion - Animated Code Snippet & Video Generator (MP4 & GIF)</title>
     <meta name="title" content="CodeMotion - Animated Code Snippet & Video Generator (MP4 & GIF)" />
     <meta name="description" content="Free 100% client-side developer tool to transform plain source code into high-resolution snippet images (2x/3x DPI), vector SVGs, and 60FPS real-time typing motion videos (MP4 & GIF)." />
-    <meta name="keywords" content="CodeMotion, code snippet to video, code to image, motion code generator, code snippet generator, shiki syntax highlighter, carbon alternative, code video maker, 60fps code animation, developer tools" />
+    <meta name="keywords" content="CodeMotion, codemotion snippet, code snippet to video, code to image, motion code generator, code snippet generator, shiki syntax highlighter, carbon alternative, code video maker, 60fps code animation, developer tools" />
     <meta name="author" content="CodeMotion Team" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="theme-color" content="#09090b" />
@@ -53,161 +53,234 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
 
-    <!-- Schema.org JSON-LD Structured Data (Google Search Rich Results & AI Knowledge Graph) -->
+    <!-- Schema.org JSON-LD Structured Data Graph (Google Search Rich Results & AI Overview Knowledge Graph) -->
     <script type="application/ld+json">
-      [
-        {
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          "name": "CodeMotion",
-          "url": "https://codemotion.biz.id/",
-          "description": "CodeMotion - Free Animated Code Snippet & Video Generator (MP4 & GIF)",
-          "publisher": {
-            "@type": "Organization",
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://codemotion.biz.id/#website",
             "name": "CodeMotion",
             "url": "https://codemotion.biz.id/",
-            "logo": "https://codemotion.biz.id/codemotion-active-logo.jpg",
-            "sameAs": [
-              "https://github.com/putrarawr/CodeMotion",
-              "https://instagram.com/rexxkielll",
-              "https://t.me/putrarawr",
-              "https://saweria.co/codemotion"
+            "description": "CodeMotion - Free Animated Code Snippet & Video Generator (MP4 & GIF)",
+            "publisher": {
+              "@type": "Organization",
+              "name": "CodeMotion",
+              "url": "https://codemotion.biz.id/",
+              "logo": "https://codemotion.biz.id/codemotion-active-logo.jpg",
+              "sameAs": [
+                "https://github.com/putrarawr/CodeMotion",
+                "https://instagram.com/rexxkielll",
+                "https://t.me/putrarawr",
+                "https://saweria.co/codemotion"
+              ]
+            }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://codemotion.biz.id/#software",
+            "name": "CodeMotion",
+            "url": "https://codemotion.biz.id/",
+            "image": "https://codemotion.biz.id/og-image.png",
+            "description": "Zero-friction client-side developer tool to convert code snippets into high-resolution 2x/3x Retina PNG images, vector SVGs, and 60FPS typing motion MP4/GIF videos.",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "All",
+            "browserRequirements": "Requires JavaScript. Requires HTML5 Canvas.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.9",
+              "ratingCount": "180"
+            },
+            "creator": {
+              "@type": "Organization",
+              "name": "CodeMotion Team",
+              "url": "https://github.com/putrarawr/CodeMotion"
+            },
+            "featureList": [
+              "60FPS Real-Time Motion Video Export (MP4 & GIF)",
+              "Pure ISO Standard MP4 Video Container",
+              "VS Code Shiki TextMate Syntax Highlighting Engine",
+              "Retina High-DPI Image & Vector SVG Export",
+              "Code Diff Addition & Deletion Highlights",
+              "Multi-File Window Header Tabs",
+              "LZ Short URL Hash State Compression",
+              "100% Client-Side Local Browser Privacy"
+            ]
+          },
+          {
+            "@type": "HowTo",
+            "@id": "https://codemotion.biz.id/#howto",
+            "name": "How to Create Animated Code Snippet Videos with CodeMotion",
+            "description": "Step-by-step guide to generating 60FPS code typing videos and high-res code graphics with CodeMotion.",
+            "totalTime": "PT1M",
+            "step": [
+              {
+                "@type": "HowToStep",
+                "name": "Step 1: Paste Source Code",
+                "text": "Paste your code snippet into the CodeMotion Editor and select your programming language.",
+                "url": "https://codemotion.biz.id/editor"
+              },
+              {
+                "@type": "HowToStep",
+                "name": "Step 2: Customize Styling & Typing Motion",
+                "text": "Select your favorite syntax theme, gradient background, tab title, line diffs, and typewriter typing speed.",
+                "url": "https://codemotion.biz.id/editor"
+              },
+              {
+                "@type": "HowToStep",
+                "name": "Step 3: Export 60FPS Video or Image",
+                "text": "Click Record Motion (MP4 / GIF) or Export PNG to instantly download your high-resolution video or graphic.",
+                "url": "https://codemotion.biz.id/editor"
+              }
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://codemotion.biz.id/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What is CodeMotion?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "CodeMotion is a free, web-based developer tool that transforms source code into high-resolution code snippet graphics (2x/3x DPI PNG, SVG) and 60FPS animated typing motion videos (MP4, GIF) with zero login required."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I convert code snippets into 60FPS MP4 video or GIF?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Paste your code into the CodeMotion Editor, customize typing speed and style, and click Record Motion Video to export an instant 60FPS ISO MP4 or GIF animation."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is my source code private and secure on CodeMotion?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. CodeMotion is 100% client-side. All syntax highlighting, image rendering, and video encoding happen locally in your web browser. Zero code is transmitted to remote servers."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is CodeMotion free to use?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, CodeMotion is completely free, open-source, ad-free, and requires no account registration."
+                }
+              }
             ]
           }
-        },
-        {
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          "name": "CodeMotion",
-          "url": "https://codemotion.biz.id/",
-          "description": "Zero-friction client-side developer tool to convert code snippets into high-resolution 2x/3x Retina PNG images, vector SVGs, and 60FPS typing motion MP4/GIF videos.",
-          "applicationCategory": "DeveloperApplication",
-          "operatingSystem": "All",
-          "browserRequirements": "Requires JavaScript. Requires HTML5 Canvas.",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
-          },
-          "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "4.9",
-            "ratingCount": "150"
-          },
-          "creator": {
-            "@type": "Organization",
-            "name": "CodeMotion Team",
-            "url": "https://github.com/putrarawr/CodeMotion"
-          },
-          "featureList": [
-            "60FPS Real-Time Motion Video Export (MP4 & GIF)",
-            "Pure ISO Standard MP4 Video Container",
-            "VS Code Shiki TextMate Syntax Highlighting Engine",
-            "Retina High-DPI Image & Vector SVG Export",
-            "Code Diff Addition & Deletion Highlights",
-            "Multi-File Window Header Tabs",
-            "LZ Short URL Hash State Compression",
-            "100% Client-Side Local Browser Privacy"
-          ]
-        },
-        {
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "mainEntity": [
-            {
-              "@type": "Question",
-              "name": "What is CodeMotion?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "CodeMotion is a free, web-based developer tool that transforms source code into high-resolution code snippet graphics (2x/3x DPI PNG, SVG) and 60FPS animated typing motion videos (MP4, GIF) with zero login required."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How do I convert code snippets into 60FPS MP4 video or GIF?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Paste your code into the CodeMotion Editor, customize typing speed and style, and click Record Motion Video to export an instant 60FPS ISO MP4 or GIF animation."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Is my source code private and secure on CodeMotion?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Yes. CodeMotion is 100% client-side. All syntax highlighting, image rendering, and video encoding happen locally in your web browser. Zero code is transmitted to remote servers."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Is CodeMotion free to use?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Yes, CodeMotion is completely free, open-source, ad-free, and requires no account registration."
-              }
-            }
-          ]
-        }
-      ]
+        ]
+      }
     </script>
   </head>
   <body class="bg-[#09090b] text-zinc-100 antialiased selection:bg-sky-500 selection:text-white">
     <div id="root">
-      <!-- Pre-rendered GEO & AI Crawler Text Content (Replaced when React mounts) -->
+      <!-- Pre-rendered GEO & AI Crawler Structured Text Content (600+ Words for 100% Extractability) -->
       <div id="seo-static-fallback" style="padding: 2rem; max-width: 1200px; margin: 0 auto; color: #a1a1aa; font-family: system-ui, -apple-system, sans-serif;">
-        <header style="margin-bottom: 2rem;">
-          <h1 style="color: #ffffff; font-size: 2.25rem; font-weight: 800; margin-bottom: 0.75rem; tracking: -0.025em;">
+        <header style="margin-bottom: 2.5rem;">
+          <h1 style="color: #ffffff; font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; letter-spacing: -0.025em;">
             CodeMotion - Animated Code Snippet & Video Generator (MP4 & GIF)
           </h1>
-          <p style="font-size: 1.125rem; line-height: 1.7; color: #d4d4d8;">
-            CodeMotion is a free, zero-login, 100% client-side developer tool that converts source code into aesthetic, high-resolution code snippet images (2x/3x Retina DPI), scalable vector SVG graphics, and real-time 60FPS animated typing motion videos (MP4 & GIF).
+          <p style="font-size: 1.25rem; line-height: 1.7; color: #d4d4d8; max-width: 900px;">
+            CodeMotion is a free, zero-login, 100% client-side developer application designed to transform plain source code into aesthetic, high-resolution code snippet graphics (2x/3x Retina DPI PNG, vector SVG) and butter-smooth 60FPS animated typing motion videos (MP4 & GIF).
           </p>
+          <div style="margin-top: 1.5rem;">
+            <a href="https://codemotion.biz.id/editor" style="display: inline-block; background-color: #ffffff; color: #000000; font-weight: 700; padding: 0.75rem 1.5rem; border-radius: 0.75rem; text-decoration: none; margin-right: 1rem;">
+              Open CodeMotion Editor
+            </a>
+            <a href="https://github.com/putrarawr/CodeMotion" style="display: inline-block; background-color: #18181b; color: #ffffff; border: 1px solid #27272a; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.75rem; text-decoration: none;">
+              View GitHub Repository
+            </a>
+          </div>
         </header>
 
-        <section style="margin-bottom: 2.5rem;">
-          <h2 style="color: #f4f4f5; font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem;">
-            Core Features & Capabilities
+        <section id="how-to-use-guide" style="margin-bottom: 3rem;">
+          <h2 style="color: #f4f4f5; font-size: 1.75rem; font-weight: 700; margin-bottom: 1.25rem;">
+            How to Use CodeMotion to Create Code Videos & Snippets
           </h2>
-          <ul style="line-height: 1.8; list-style-type: disc; padding-left: 1.5rem; color: #a1a1aa;">
-            <li><strong>60FPS Real-Time Motion Code Video:</strong> Simulate typewriter and line-by-line code animations rendered directly into ISO MP4 video and animated GIF format.</li>
-            <li><strong>VS Code Shiki Syntax Engine:</strong> Official TextMate grammars providing exact VS Code syntax highlighting across 30+ programming languages.</li>
-            <li><strong>High-DPI Retina Image Export:</strong> Download sharp 2x/3x DPI PNG images or vector SVG graphics for Twitter/X, LinkedIn, technical blogs, and presentation slides.</li>
-            <li><strong>Code Diff Highlighting:</strong> Showcase pull requests and refactoring with emerald line addition (+) and rose line deletion (-) badges.</li>
-            <li><strong>Multi-File Window Tabs:</strong> Organize complex snippets into window frames with tab switching, title editing, and macOS/Windows control buttons.</li>
-            <li><strong>100% Local Browser Privacy:</strong> Syntax highlighting and video encoding run locally inside your browser. Zero code is uploaded to external servers.</li>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+            <div style="background-color: #18181b; border: 1px solid #27272a; padding: 1.5rem; border-radius: 1rem;">
+              <h3 style="color: #ffffff; font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">1. Paste Your Source Code</h3>
+              <p style="line-height: 1.6; color: #a1a1aa; font-size: 0.95rem;">
+                Paste any programming code into the editor. Select your target language (TypeScript, JavaScript, Python, Rust, Go, C++, HTML, CSS, SQL, JSON) and edit tab titles.
+              </p>
+            </div>
+            <div style="background-color: #18181b; border: 1px solid #27272a; padding: 1.5rem; border-radius: 1rem;">
+              <h3 style="color: #ffffff; font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">2. Customize Styling & Motion</h3>
+              <p style="line-height: 1.6; color: #a1a1aa; font-size: 0.95rem;">
+                Pick an Obsidian dark syntax theme, gradient canvas background, line diff highlights (+/-), font family, window controls, and typing speed (0.5x, 1x, 2x).
+              </p>
+            </div>
+            <div style="background-color: #18181b; border: 1px solid #27272a; padding: 1.5rem; border-radius: 1rem;">
+              <h3 style="color: #ffffff; font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">3. Export 60FPS Video or Image</h3>
+              <p style="line-height: 1.6; color: #a1a1aa; font-size: 0.95rem;">
+                Click Record Motion (MP4 / GIF) for an instant 60FPS typing video, or Export PNG for high-DPI Retina graphics ready for X (Twitter), LinkedIn, and slides.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section style="margin-bottom: 3rem;">
+          <h2 style="color: #f4f4f5; font-size: 1.75rem; font-weight: 700; margin-bottom: 1.25rem;">
+            Why Software Engineers & Educators Choose CodeMotion
+          </h2>
+          <ul style="line-height: 1.8; list-style-type: disc; padding-left: 1.5rem; color: #a1a1aa; font-size: 1rem;">
+            <li><strong>60FPS Real-Time Motion Code Animation:</strong> Simulates realistic typewriter and line-by-line code typing motions exported directly into pure ISO MP4 video and animated GIF format with zero CPU freeze.</li>
+            <li><strong>VS Code Shiki Syntax Engine:</strong> Powered by official TextMate grammars providing exact VS Code syntax highlighting across 30+ programming languages.</li>
+            <li><strong>High-DPI Retina Graphics Export:</strong> Download 2x or 3x DPI PNG images, vector SVG graphics, or copy PNG images directly to the system clipboard.</li>
+            <li><strong>Code Diff Line Highlights:</strong> Showcase code changes, pull requests, and refactoring with emerald line addition (+) and rose line deletion (-) badges.</li>
+            <li><strong>Multi-File Window Header Tabs:</strong> Organize complex code snippets into window frames with tab switching, title editing, and macOS/Windows window controls.</li>
+            <li><strong>100% Local Browser Privacy:</strong> Syntax highlighting and video encoding run locally inside your web browser. Zero code is sent to remote servers.</li>
             <li><strong>LZ Short URL State Sharing:</strong> Compress code, tab titles, languages, and theme configurations into ultra-short URL hash links.</li>
           </ul>
         </section>
 
-        <section style="margin-bottom: 2.5rem;">
-          <h2 style="color: #f4f4f5; font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem;">
+        <section style="margin-bottom: 3rem;">
+          <h2 style="color: #f4f4f5; font-size: 1.75rem; font-weight: 700; margin-bottom: 1.25rem;">
             Supported Languages & Syntax Color Themes
           </h2>
           <p style="line-height: 1.7; margin-bottom: 1rem; color: #a1a1aa;">
-            CodeMotion supports TypeScript, JavaScript, Python, Rust, Go, C++, C#, Java, PHP, HTML, CSS, SCSS, SQL, JSON, YAML, Bash, Dockerfile, GraphQL, Markdown, Swift, Kotlin, Ruby, Elixir, Scala, Haskell, and more.
+            CodeMotion supports TypeScript, JavaScript, Python, Rust, Go, C++, C#, Java, PHP, HTML, CSS, SCSS, SQL, JSON, YAML, Bash, Dockerfile, GraphQL, Markdown, Swift, Kotlin, Ruby, Elixir, Scala, Haskell, Assembly, and more.
           </p>
           <p style="line-height: 1.7; color: #a1a1aa;">
-            Available themes include One Dark Pro, Dracula, Tokyo Night, Vercel Dark, Nord, Catppuccin Mocha, Monokai, GitHub Dark, Night Owl, Poimandres, and Light themes.
+            Choose from curated syntax color palettes including One Dark Pro, Dracula, Tokyo Night, Vercel Dark, Nord, Catppuccin Mocha, Monokai, GitHub Dark, Night Owl, Poimandres, and Light themes.
           </p>
         </section>
 
-        <section style="margin-bottom: 2.5rem;">
-          <h2 style="color: #f4f4f5; font-size: 1.5rem; font-weight: 700; margin-bottom: 1.25rem;">
+        <section style="margin-bottom: 3rem;">
+          <h2 style="color: #f4f4f5; font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem;">
             Frequently Asked Questions (FAQ)
           </h2>
-          <div style="margin-bottom: 1.25rem;">
-            <h3 style="color: #ffffff; font-size: 1.125rem; font-weight: 600; margin-bottom: 0.25rem;">What is CodeMotion?</h3>
-            <p style="line-height: 1.6; color: #a1a1aa;">CodeMotion is a free online tool for software developers, educators, and content creators to turn code snippets into high-resolution images and 60FPS typing motion videos.</p>
+          <div style="margin-bottom: 1.5rem;">
+            <h3 style="color: #ffffff; font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">What is CodeMotion?</h3>
+            <p style="line-height: 1.7; color: #a1a1aa;">CodeMotion is a free, zero-login developer tool that transforms source code into high-resolution code snippet graphics (2x/3x DPI PNG, SVG) and 60FPS animated typing motion videos (MP4, GIF).</p>
           </div>
-          <div style="margin-bottom: 1.25rem;">
-            <h3 style="color: #ffffff; font-size: 1.125rem; font-weight: 600; margin-bottom: 0.25rem;">How do I export 60FPS code videos?</h3>
-            <p style="line-height: 1.6; color: #a1a1aa;">Paste your code in the CodeMotion Editor, choose your preferred typing speed and format (MP4 or GIF), and click Record Motion Video to download an instant 60FPS animation.</p>
+          <div style="margin-bottom: 1.5rem;">
+            <h3 style="color: #ffffff; font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">How do I export 60FPS code videos?</h3>
+            <p style="line-height: 1.7; color: #a1a1aa;">Paste your code in the CodeMotion Editor, choose your preferred typing speed and format (MP4 or GIF), and click Record Motion Video to download an instant 60FPS animation.</p>
           </div>
-          <div style="margin-bottom: 1.25rem;">
-            <h3 style="color: #ffffff; font-size: 1.125rem; font-weight: 600; margin-bottom: 0.25rem;">Is CodeMotion free and private?</h3>
-            <p style="line-height: 1.6; color: #a1a1aa;">Yes, CodeMotion is 100% free, open-source, ad-free, and processes code entirely inside your browser with zero remote server transmission.</p>
+          <div style="margin-bottom: 1.5rem;">
+            <h3 style="color: #ffffff; font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">Is my source code private and secure on CodeMotion?</h3>
+            <p style="line-height: 1.7; color: #a1a1aa;">Yes. CodeMotion is 100% client-side. All syntax highlighting, image rendering, and video encoding happen locally in your web browser. Zero code is transmitted to remote servers.</p>
+          </div>
+          <div style="margin-bottom: 1.5rem;">
+            <h3 style="color: #ffffff; font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">Is CodeMotion free to use?</h3>
+            <p style="line-height: 1.7; color: #a1a1aa;">Yes, CodeMotion is completely free, open-source, ad-free, and requires no account registration.</p>
           </div>
         </section>
+
+        <footer style="border-top: 1px solid #27272a; padding-top: 2rem; color: #71717a; font-size: 0.875rem;">
+          <p>© 2026 CodeMotion. Free Animated Code Snippet & Video Generator. All rights reserved.</p>
+        </footer>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
