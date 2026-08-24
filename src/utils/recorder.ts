@@ -59,8 +59,9 @@ function releaseCanvases(canvases: HTMLCanvasElement[]) {
 }
 
 /**
- * Crash-Proof, Low-RAM Motion Exporter
- * - Queue-drained WebCodecs encoding (encodeQueueSize throttling guarantees zero browser crashes/force closes).
+ * Ultra-Fluid Character-by-Character Motion Exporter
+ * - 1 to 2 characters per step for smooth 60FPS fluid typewriter motion.
+ * - Queue-drained WebCodecs encoding (encodeQueueSize throttling guarantees zero browser crashes).
  * - Multi-speed scaling & monotonic progress reporting.
  * - Explicit VRAM canvas garbage collection.
  */
@@ -129,7 +130,7 @@ async function doRecordMotionVideo({
       const textContent = code || element.innerText || '';
       const lines = textContent.split('\n');
 
-      const maxLineSteps = isGif ? 20 : 35;
+      const maxLineSteps = isGif ? 20 : 50;
       const lineGroupSize = Math.max(1, Math.ceil(lines.length / maxLineSteps));
 
       const lineEndIndices: number[] = [];
@@ -166,9 +167,10 @@ async function doRecordMotionVideo({
         safeProgress(5 + Math.floor(((l + 1) / lineEndIndices.length) * 40));
       }
     } else {
-      // Typewriter mode — 35 keyframes max with GC yield ticks to guarantee zero RAM crashes
-      const maxSnapshots = isGif ? 24 : 35;
-      const charStep = Math.max(1, Math.ceil(totalChars / maxSnapshots));
+      // Typewriter mode — 1 to 2 characters per step for TRUE character-by-character fluid typewriter motion
+      const charStep = isGif
+        ? Math.max(1, Math.ceil(totalChars / 35))
+        : Math.max(1, Math.ceil(totalChars / 140)); // Up to 140 keyframes for 1-2 char steps
       let currentLen = 0;
       let snapIndex = 0;
 
