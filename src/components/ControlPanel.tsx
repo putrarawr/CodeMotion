@@ -6,6 +6,7 @@ import type {
   SupportedTheme,
   WindowStyle,
   SocialPreset,
+  LibrarySnapshot,
 } from '../types';
 import { LANGUAGES, detectLanguageFromCode } from '../utils/languages';
 import { THEMES } from '../utils/themes';
@@ -13,6 +14,8 @@ import { BACKGROUND_PRESETS } from '../utils/gradients';
 import { FONTS } from '../utils/fonts';
 import { SOCIAL_PRESETS } from '../utils/socialPresets';
 import { SNIPPET_TEMPLATES } from '../utils/snippetTemplates';
+import { fetchCodeFromUrl } from '../utils/urlImport';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 import {
   Code,
   Palette,
@@ -33,7 +36,24 @@ import {
   Search,
   FileCode,
   Film,
+  Library,
+  Pencil,
+  Link2,
+  Loader2,
 } from 'lucide-react';
+
+const LIBRARY_MAX_ITEMS = 50;
+
+const formatRelativeTime = (timestamp: number): string => {
+  const minutes = Math.floor((Date.now() - timestamp) / 60_000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
 
 interface ControlPanelProps {
   settings: SnippetSettings;
@@ -51,13 +71,24 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const isDark = settings.appTheme === 'dark';
 
   // Section Expansion Collapsible State for neat organization
-  const [activeTabSection, setActiveTabSection] = useState<'style' | 'motion' | 'annotations' | 'layout' | 'watermark'>('style');
+  const [activeTabSection, setActiveTabSection] = useState<'style' | 'motion' | 'annotations' | 'layout' | 'watermark' | 'library'>('style');
 
   // Language search query state
   const [languageSearchQuery, setLanguageSearchQuery] = useState<string>('');
 
   // Ref for hidden file input upload
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Snapshot Library state
+  const [library, setLibrary] = useLocalStorage<LibrarySnapshot[]>('codemotion_library', []);
+  const [snapshotNameInput, setSnapshotNameInput] = useState<string>('');
+  const [renamingSnapshotId, setRenamingSnapshotId] = useState<string | null>(null);
+  const [renameDraft, setRenameDraft] = useState<string>('');
+
+  // URL Import popover state
+  const [showUrlPopover, setShowUrlPopover] = useState<boolean>(false);
+  const [importUrl, setImportUrl] = useState<string>('');
+  const [isUrlImporting, setIsUrlImporting] = useState<boolean>(false);
 
   // Custom Color Picker Builder State
   const [customBgMode, setCustomBgMode] = useState<'gradient' | 'solid'>('gradient');
@@ -82,17 +113,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     const targetLine = parseInt(newAnnotationLineInput.trim(), 10);
 
     if (isNaN(targetLine) || targetLine <= 0) {
-      toast.error('Baris tidak valid! Nomor baris harus minimal 1.');
+      toast.error('Invalid line number! Must be at least 1.');
       return;
     }
 
     if (targetLine > totalEditorLines) {
-      toast.error(`Baris tidak valid! Editor hanya memiliki ${totalEditorLines} baris (Anda mengetik ${targetLine}).`);
+      toast.error(`Invalid line number! The editor only has ${totalEditorLines} lines.`);
       return;
     }
 
     if (!newAnnotationText.trim()) {
-      toast.info('Silakan masukkan teks callout note');
+      toast.info('Please enter callout note text');
       return;
     }
 
@@ -110,7 +141,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     });
 
     setNewAnnotationText('');
-    toast.success(`Callout note berhasil ditambahkan ke Line ${targetLine}`);
+    toast.success(`Callout note added to line ${targetLine}`);
   };
 
   const handleRemoveAnnotation = (id: string) => {
@@ -171,7 +202,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     if (!file) return;
 
     if (file.size > 200_000) {
-      toast.error('File terlalu besar. Maksimum 200 KB.');
+      toast.error('File is too large. Maximum is 200 KB.');
       return;
     }
 
@@ -193,10 +224,93 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       }));
 
       const langObj = LANGUAGES.find((l) => l.id === detected);
-      toast.success(`File "${file.name}" dimuat (Detected: ${langObj?.name || detected || 'Text'})`);
+      toast.success(`File "${file.name}" loaded (Detected: ${langObj?.name || detected || 'Text'})`);
     };
     reader.readAsText(file);
     e.target.value = '';
+  };
+
+  const handleSaveSnapshot = () => {
+    const name = (snapshotNameInput.trim() || activeTab?.title || 'Untitled snippet').slice(0, 80);
+    // Avatar / logo (base64) is intentionally stripped to keep localStorage quota healthy
+    const cleanSettings: SnippetSettings = { ...settings, watermarkAvatar: '' };
+    const now = Date.now();
+
+    setLibrary((prev) => {
+      let next = [
+        { id: `snap-${now}`, name, createdAt: now, updatedAt: now, settings: cleanSettings },
+        ...prev,
+      ];
+      if (next.length > LIBRARY_MAX_ITEMS) {
+        next = next.slice(0, LIBRARY_MAX_ITEMS);
+        toast.info(`Library full — oldest snapshot removed (max ${LIBRARY_MAX_ITEMS})`);
+      }
+      return next;
+    });
+
+    setSnapshotNameInput('');
+    toast.success(`Snapshot "${name}" saved`);
+  };
+
+  const handleLoadSnapshot = (snapshot: LibrarySnapshot) => {
+    setSettings((prev) => ({
+      ...snapshot.settings,
+      appTheme: prev.appTheme,
+      isPlayingMotion: false,
+      controlledTypedLength: null,
+    }));
+    toast.success(`Loaded snapshot "${snapshot.name}"`);
+  };
+
+  const handleStartRenameSnapshot = (snapshot: LibrarySnapshot) => {
+    setRenamingSnapshotId(snapshot.id);
+    setRenameDraft(snapshot.name);
+  };
+
+  const handleCommitRenameSnapshot = () => {
+    if (!renamingSnapshotId) return;
+    const trimmed = renameDraft.trim();
+    if (!trimmed) {
+      setRenamingSnapshotId(null);
+      return;
+    }
+    setLibrary((prev) =>
+      prev.map((s) =>
+        s.id === renamingSnapshotId ? { ...s, name: trimmed.slice(0, 80), updatedAt: Date.now() } : s
+      )
+    );
+    setRenamingSnapshotId(null);
+    toast.success('Snapshot renamed');
+  };
+
+  const handleDeleteSnapshot = (id: string) => {
+    setLibrary((prev) => prev.filter((s) => s.id !== id));
+    toast.info('Snapshot deleted');
+  };
+
+  const handleImportFromUrl = async () => {
+    if (!importUrl.trim() || isUrlImporting) return;
+    setIsUrlImporting(true);
+    try {
+      const { code, title } = await fetchCodeFromUrl(importUrl);
+      const detected = detectLanguageFromCode(code, title);
+      setSettings((prev) => ({
+        ...prev,
+        tabs: prev.tabs.map((t) =>
+          t.id === prev.activeTabId
+            ? { ...t, code, title, language: detected || t.language }
+            : t
+        ),
+      }));
+      const langObj = LANGUAGES.find((l) => l.id === detected);
+      toast.success(`"${title}" imported from URL${langObj ? ` (${langObj.name})` : ''}`);
+      setShowUrlPopover(false);
+      setImportUrl('');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not fetch from URL.');
+    } finally {
+      setIsUrlImporting(false);
+    }
   };
 
   const applySocialPreset = (preset: SocialPreset) => {
@@ -231,7 +345,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   return (
     <div id="editor-sidebar" className="w-full h-full flex flex-col p-4 sm:p-5 gap-4 overflow-y-auto">
       {/* Category Tab Selector Navigation Bar */}
-      <div id="sidebar-category-tabs" className="grid grid-cols-5 gap-1 p-1 rounded-2xl bg-zinc-900/60 border border-zinc-800/80">
+      <div id="sidebar-category-tabs" className="grid grid-cols-6 gap-1 p-1 rounded-2xl bg-zinc-900/60 border border-zinc-800/80">
         <button
           onClick={() => setActiveTabSection('style')}
           className={`py-2 px-1 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
@@ -243,8 +357,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           }`}
           title="Themes, Fonts & Code Diff"
         >
-          <Palette className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Theme</span>
+          <Palette className="w-3.5 h-3.5 sm:hidden" />
+          <span>Theme</span>
         </button>
 
         <button
@@ -258,8 +372,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           }`}
           title="Motion Code Typing & Video"
         >
-          <Zap className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Motion</span>
+          <Zap className="w-3.5 h-3.5 sm:hidden" />
+          <span>Motion</span>
         </button>
 
         <button
@@ -273,8 +387,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           }`}
           title="Line Spotlight & Callout Notes"
         >
-          <Code className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Notes</span>
+          <Code className="w-3.5 h-3.5 sm:hidden" />
+          <span>Notes</span>
         </button>
 
         <button
@@ -288,8 +402,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           }`}
           title="Social Templates & Canvas Background"
         >
-          <Maximize2 className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Layout</span>
+          <Maximize2 className="w-3.5 h-3.5 sm:hidden" />
+          <span>Layout</span>
         </button>
 
         <button
@@ -303,8 +417,23 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           }`}
           title="Author Username, Watermark & Logo"
         >
-          <User className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Author</span>
+          <User className="w-3.5 h-3.5 sm:hidden" />
+          <span>Author</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTabSection('library')}
+          className={`py-2 px-1 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+            activeTabSection === 'library'
+              ? 'bg-white text-black shadow-md'
+              : isDark
+              ? 'text-zinc-400 hover:text-white'
+              : 'text-zinc-600 hover:text-black'
+          }`}
+          title="Saved Snapshots Library"
+        >
+          <Library className="w-3.5 h-3.5 sm:hidden" />
+          <span>Library</span>
         </button>
       </div>
 
@@ -331,19 +460,74 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 accept=".ts,.js,.py,.rs,.go,.html,.css,.json,.sql,.sh,.cpp,.c,.cs,.java,.kt,.swift,.rb,.php,.scala,.r,.dart,.ex,.vue,.svelte,.astro,.gql,.md,.yaml,.txt"
               />
 
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${
-                  isDark
-                    ? 'bg-zinc-950 text-zinc-300 border-zinc-800 hover:bg-zinc-800 hover:text-white'
-                    : 'bg-zinc-100 text-zinc-700 border-zinc-300 hover:bg-zinc-200 hover:text-black'
-                }`}
-                title="Upload code file from device"
-              >
-                <Upload className="w-3.5 h-3.5" />
-                <span>Upload File</span>
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    isDark
+                      ? 'bg-zinc-950 text-zinc-300 border-zinc-800 hover:bg-zinc-800 hover:text-white'
+                      : 'bg-zinc-100 text-zinc-700 border-zinc-300 hover:bg-zinc-200 hover:text-black'
+                  }`}
+                  title="Upload code file from device"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Upload File</span>
+                </button>
+
+                <button
+                  onClick={() => setShowUrlPopover((prev) => !prev)}
+                  className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    showUrlPopover
+                      ? 'bg-white text-black border-white shadow-xs'
+                      : isDark
+                      ? 'bg-zinc-950 text-zinc-300 border-zinc-800 hover:bg-zinc-800 hover:text-white'
+                      : 'bg-zinc-100 text-zinc-700 border-zinc-300 hover:bg-zinc-200 hover:text-black'
+                  }`}
+                  title="Import code from a URL (GitHub, gist, or raw file)"
+                >
+                  <Link2 className="w-3.5 h-3.5" />
+                  <span>From URL</span>
+                </button>
+              </div>
             </div>
+
+            {/* URL Import Popover */}
+            {showUrlPopover && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleImportFromUrl();
+                }}
+                className={`p-3 rounded-xl border flex flex-col gap-2 ${
+                  isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-zinc-50 border-zinc-300'
+                }`}
+              >
+                <span className={`text-[10px] font-bold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                  Paste a GitHub file, gist, or raw code URL
+                </span>
+                <input
+                  type="url"
+                  value={importUrl}
+                  onChange={(e) => setImportUrl(e.target.value)}
+                  placeholder="https://github.com/user/repo/blob/main/index.ts"
+                  className={`w-full text-xs font-mono rounded-lg border p-2 outline-none transition-colors ${
+                    isDark
+                      ? 'bg-zinc-900 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus:border-zinc-600'
+                      : 'bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400'
+                  }`}
+                />
+                <button
+                  type="submit"
+                  disabled={isUrlImporting || !importUrl.trim()}
+                  className={`w-full py-2 rounded-lg text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer ${
+                    isDark ? 'bg-white text-black hover:bg-zinc-200' : 'bg-black text-white hover:bg-zinc-800'
+                  }`}
+                >
+                  {isUrlImporting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{isUrlImporting ? 'Fetching...' : 'Import from URL'}</span>
+                </button>
+              </form>
+            )}
 
             {/* Quick Template Select Menu */}
             <div className="relative">
@@ -436,7 +620,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
               <input
                 type="text"
-                placeholder="Cari bahasa... (misal: swift, vue, python)"
+                placeholder="Search languages... (e.g. swift, vue, python)"
                 value={languageSearchQuery}
                 onChange={(e) => setLanguageSearchQuery(e.target.value)}
                 className={`w-full text-xs font-sans rounded-xl border pl-8 pr-3 py-2 outline-none ${
@@ -776,10 +960,10 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     const totalEditorLines = activeTab?.code ? activeTab.code.split('\n').length : 1;
                     const val = parseInt(newAnnotationLineInput.trim(), 10);
                     if (isNaN(val) || val <= 0) {
-                      toast.error('Baris tidak valid! Nomor baris harus minimal 1.');
+                      toast.error('Invalid line number! Must be at least 1.');
                       setNewAnnotationLineInput('1');
                     } else if (val > totalEditorLines) {
-                      toast.error(`Baris tidak valid! Editor hanya memiliki ${totalEditorLines} baris.`);
+                      toast.error(`Invalid line number! The editor only has ${totalEditorLines} lines.`);
                       setNewAnnotationLineInput(totalEditorLines.toString());
                     }
                   }}
@@ -1175,6 +1359,147 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 </div>
               </div>
             </div>
+          )}
+        </div>
+      )}
+
+      {/* SECTION 6: Saved Snapshots Library */}
+      {activeTabSection === 'library' && (
+        <div id="library-section" className="flex flex-col gap-4">
+          {/* Save Snapshot Card */}
+          <div
+            className={`p-4 rounded-2xl border flex flex-col gap-3 ${
+              isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200 shadow-xs'
+            }`}
+          >
+            <span className="text-xs font-bold">Save Current Snapshot</span>
+            <input
+              type="text"
+              value={snapshotNameInput}
+              onChange={(e) => setSnapshotNameInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSaveSnapshot();
+                }
+              }}
+              placeholder={activeTab?.title || 'Untitled snippet'}
+              className={`w-full text-xs font-mono rounded-xl border p-2.5 outline-none transition-colors ${
+                isDark
+                  ? 'bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus:border-zinc-600'
+                  : 'bg-zinc-100 border-zinc-300 text-zinc-900 placeholder:text-zinc-400'
+              }`}
+            />
+            <button
+              onClick={handleSaveSnapshot}
+              className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm ${
+                isDark ? 'bg-white text-black hover:bg-zinc-200' : 'bg-black text-white hover:bg-zinc-800'
+              }`}
+            >
+              Save Snapshot
+            </button>
+            <p className={`text-[11px] m-0 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+              Saves all code, tabs, and styling settings locally in your browser (max{' '}
+              {LIBRARY_MAX_ITEMS}). Avatar / logo images are not included.
+            </p>
+          </div>
+
+          {/* Snapshot List */}
+          {library.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <span
+                className={`text-[11px] font-bold uppercase tracking-wider ${
+                  isDark ? 'text-zinc-400' : 'text-zinc-500'
+                }`}
+              >
+                Saved Snapshots ({library.length})
+              </span>
+              <div className="flex flex-col gap-2">
+                {library.map((snapshot) => (
+                  <div
+                    key={snapshot.id}
+                    className={`p-3 rounded-xl border transition-all cursor-pointer group ${
+                      isDark
+                        ? 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900'
+                        : 'bg-white border-zinc-200 hover:border-zinc-300'
+                    }`}
+                    onClick={() => handleLoadSnapshot(snapshot)}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1 min-w-0" title={`Load snapshot "${snapshot.name}"`}>
+                        {renamingSnapshotId === snapshot.id ? (
+                          <input
+                            autoFocus
+                            type="text"
+                            value={renameDraft}
+                            onChange={(e) => setRenameDraft(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            onBlur={handleCommitRenameSnapshot}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleCommitRenameSnapshot();
+                              }
+                              if (e.key === 'Escape') {
+                                setRenamingSnapshotId(null);
+                              }
+                            }}
+                            className={`w-full text-xs font-mono font-bold rounded-lg border p-1.5 outline-none ${
+                              isDark
+                                ? 'bg-zinc-950 border-sky-500/50 text-zinc-100'
+                                : 'bg-zinc-100 border-sky-500/60 text-zinc-900'
+                            }`}
+                          />
+                        ) : (
+                          <>
+                            <span className={`block truncate text-xs font-bold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                              {snapshot.name}
+                            </span>
+                            <span className={`block text-[10px] mt-0.5 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                              {LANGUAGES.find((l) => l.id === snapshot.settings.tabs.find((t) => t.id === snapshot.settings.activeTabId)?.language)
+                                ?.name || 'Code'}{' '}
+                              • {THEMES.find((th) => th.id === snapshot.settings.theme)?.name || snapshot.settings.theme} •{' '}
+                              {formatRelativeTime(snapshot.updatedAt)}
+                            </span>
+                          </>
+                        )}
+                      </div>
+
+                      {renamingSnapshotId !== snapshot.id && (
+                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStartRenameSnapshot(snapshot);
+                            }}
+                            className="p-1.5 rounded-lg text-zinc-400 hover:text-sky-400 transition-colors cursor-pointer"
+                            title="Rename Snapshot"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteSnapshot(snapshot.id);
+                            }}
+                            className="p-1.5 rounded-lg text-zinc-400 hover:text-red-400 transition-colors cursor-pointer"
+                            title="Delete Snapshot"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {library.length === 0 && (
+            <p className={`text-[11px] m-0 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+              No saved snapshots yet. Save your first one above.
+            </p>
           )}
         </div>
       )}

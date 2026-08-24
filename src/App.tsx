@@ -17,6 +17,8 @@ import { ThankYouModal } from './components/ThankYouModal';
 import { Toaster, toast } from 'sonner';
 import { recordMotionVideo, downloadBlob } from './utils/recorder';
 import { decodeStateFromHash } from './utils/urlEncoder';
+import { useCodeImport } from './hooks/useCodeImport';
+import { FileUp } from 'lucide-react';
 
 function EditorWorkspace({
   settings,
@@ -27,6 +29,7 @@ function EditorWorkspace({
 }) {
   const { isExporting, downloadPng, downloadSvg, copyToClipboard } = useExport();
   const [recordingProgress, setRecordingProgress] = useState<number | null>(null);
+  const { isDragging } = useCodeImport({ setSettings });
 
   // Modals state
   const [isUserTourOpen, setIsUserTourOpen] = useState(false);
@@ -142,6 +145,20 @@ function EditorWorkspace({
           />
         )}
       </AnimatePresence>
+
+      {/* Workspace-wide Drag & Drop Import Overlay */}
+      {isDragging && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
+          <div className="absolute inset-4 rounded-3xl border-2 border-dashed border-zinc-400" />
+          <div className="relative flex flex-col items-center gap-2 text-zinc-200 select-none">
+            <FileUp className="w-10 h-10" />
+            <span className="text-sm font-bold tracking-tight">Drop file to import</span>
+            <span className="text-xs text-zinc-400">
+              Code files load into the editor — images become your avatar / logo
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Interactive User Journey Tour Modal */}
       <UserJourneyTour

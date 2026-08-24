@@ -1,11 +1,9 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { toast } from 'sonner';
+import React, { useState, useRef } from 'react';
 import type { SnippetSettings, SnippetTab } from '../types';
 import { WindowFrame } from './WindowFrame';
 import { CodeEditor } from './CodeEditor';
 import { INITIAL_CODE_SAMPLES } from '../utils/defaults';
-import { detectLanguageFromCode } from '../utils/languages';
-import { GripVertical, FileUp, User } from 'lucide-react';
+import { GripVertical, User } from 'lucide-react';
 
 interface CanvasProps {
   settings: SnippetSettings;
@@ -141,75 +139,8 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
     });
   };
 
-  // --- Drag & Drop File Import ---
-  const [isDragOver, setIsDragOver] = useState(false);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
-
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length === 0) return;
-
-    const file = files[0];
-    if (file.size > 100_000) {
-      toast.error('File terlalu besar. Maksimum 100 KB.');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const content = event.target?.result;
-      if (typeof content !== 'string') return;
-
-      // Detect language strictly from actual code content
-      const detected = detectLanguageFromCode(content);
-
-      setSettings((prev) => ({
-        ...prev,
-        tabs: prev.tabs.map((t) =>
-          t.id === prev.activeTabId
-            ? { ...t, code: content, title: file.name, language: detected || t.language }
-            : t
-        ),
-      }));
-
-      toast.success(`File "${file.name}" berhasil di-import ke editor`);
-    };
-    reader.readAsText(file);
-  }, [setSettings]);
-
   return (
-    <div
-      className="w-full flex items-center justify-center p-2 sm:p-4 my-auto relative"
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      {/* Drop Zone Overlay */}
-      {isDragOver && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-2xl border-2 border-dashed border-zinc-400 pointer-events-none">
-          <div className="flex flex-col items-center gap-2 text-zinc-200">
-            <FileUp className="w-8 h-8" />
-            <span className="text-sm font-bold tracking-tight">Drop file to import code</span>
-            <span className="text-xs text-zinc-400">Supports .ts, .py, .rs, .go, .js, .html, .css, and more</span>
-          </div>
-        </div>
-      )}
-
+    <div className="w-full flex items-center justify-center p-2 sm:p-4 my-auto relative">
       <div className="w-full flex flex-col items-center relative">
         {/* Outer Export Container Target Element */}
         <div

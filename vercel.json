@@ -1,6 +1,28 @@
 {
   "rewrites": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(googlebot|bingbot|yandexbot|baiduspider|duckduckbot|slurp|twitterbot|facebookexternalhit|linkedinbot|whatsapp|telegrambot|discordbot|gptbot|chatgpt-user|oai-searchbot|claudebot|claude-web|anthropic-ai|perplexitybot|google-extended|applebot|bytespider|ccbot|amazonbot|meta-externalagent|youbot|cohere-ai).*"
+        }
+      ],
+      "destination": "/seo.html"
+    },
+    {
+      "source": "/editor",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(googlebot|bingbot|yandexbot|baiduspider|duckduckbot|slurp|twitterbot|facebookexternalhit|linkedinbot|whatsapp|telegrambot|discordbot|gptbot|chatgpt-user|oai-searchbot|claudebot|claude-web|anthropic-ai|perplexitybot|google-extended|applebot|bytespider|ccbot|amazonbot|meta-externalagent|youbot|cohere-ai).*"
+        }
+      ],
+      "destination": "/seo.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

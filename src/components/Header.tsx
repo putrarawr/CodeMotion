@@ -63,12 +63,12 @@ export const Header: React.FC<HeaderProps> = ({
   const handleShareLink = () => {
     const hash = encodeStateToHash(settings);
     if (!hash) {
-      toast.error('Gagal membuat share link.');
+      toast.error('Failed to create share link.');
       return;
     }
     const shareUrl = `${window.location.origin}/editor#code=${hash}`;
     navigator.clipboard.writeText(shareUrl);
-    toast.success('Share link disalin ke clipboard!');
+    toast.success('Share link copied to clipboard!');
   };
 
   return (
@@ -164,7 +164,7 @@ export const Header: React.FC<HeaderProps> = ({
                 ? 'bg-zinc-950 border-zinc-800 text-amber-300 hover:bg-zinc-800 hover:text-amber-200'
                 : 'bg-zinc-100 border-zinc-300 text-amber-700 hover:bg-zinc-200'
             }`}
-            title="Dukung pengembangan CodeMotion via Saweria"
+            title="Support CodeMotion development via Saweria"
           >
             <Coffee className="w-3.5 h-3.5 text-amber-400" />
             <span className="hidden md:inline">Buy me a coffee</span>

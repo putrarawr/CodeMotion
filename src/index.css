@@ -49,21 +49,51 @@
   animation-play-state: paused;
 }
 
-/* Reset Shiki pre & code defaults for exact line alignment */
-.shiki-container pre {
-  background-color: transparent !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  font-family: inherit !important;
-  font-size: inherit !important;
-  line-height: inherit !important;
-  white-space: pre !important;
-  overflow: visible !important;
+/* CodeMirror 6 editor surface — monochrome overrides */
+.cm-editor {
+  background: transparent;
 }
 
-.shiki-container code {
-  font-family: inherit !important;
-  font-size: inherit !important;
-  line-height: inherit !important;
-  white-space: pre !important;
+.cm-editor .cm-content {
+  white-space: pre;
+}
+
+/* Search & replace panel styled to match the zinc design system */
+.cm-panels {
+  background-color: #18181b !important;
+  color: #e4e4e7 !important;
+  border-bottom: 1px solid #3f3f46 !important;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.cm-panel.cm-search {
+  padding: 8px 12px;
+}
+
+.cm-panel.cm-search input,
+.cm-panel.cm-search button {
+  background-color: #09090b !important;
+  color: #e4e4e7 !important;
+  border: 1px solid #3f3f46 !important;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 11px;
+  outline: none;
+}
+
+.cm-panel.cm-search input::placeholder {
+  color: #71717a;
+}
+
+.cm-panel.cm-search label {
+  color: #a1a1aa !important;
+  font-size: 11px;
+}
+
+.cm-panel.cm-search button:hover {
+  border-color: #71717a !important;
+}
+
+.cm-panel.cm-search .cm-textfield {
+  width: 180px;
 }

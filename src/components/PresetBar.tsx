@@ -27,7 +27,7 @@ export const PresetBar: React.FC<PresetBarProps> = ({ settings, setSettings }) =
         t.id === prev.activeTabId ? { ...t, code: formatted } : t
       ),
     }));
-    toast.success('Kode berhasil dirapikan & di-format!');
+    toast.success('Code formatted successfully!');
   };
 
   const handleAutoDetect = () => {

@@ -150,3 +150,11 @@ export interface SocialPreset {
   fontSize: number;
   iconName: string;
 }
+
+export interface LibrarySnapshot {
+  id: string;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+  settings: SnippetSettings;
+}

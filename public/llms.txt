@@ -1,20 +1,30 @@
-# CodeMotion | Visual Code Snippet & Motion Generator
+# CodeMotion by Septiyan Bintang Ramadhan Putra
 
-> Zero-friction client-side web application to transform source code into aesthetic, high-resolution snippet images (2x/3x DPI Retina PNG, SVG) and real-time typing motion videos (WebM).
+> Free, open-source, 100% client-side web application that transforms source code into high-resolution snippet images (2x/3x DPI Retina PNG, vector SVG) and 60FPS real-time typing motion videos (MP4 & GIF).
 
-## Live Application
 - Website: https://codemotion.biz.id/
-- App Editor Workspace: https://codemotion.biz.id/editor
+- App Editor: https://codemotion.biz.id/editor
+- GitHub Repository: https://github.com/putrarawr/CodeMotion
+- Author: Septiyan Bintang Ramadhan Putra — https://github.com/putrarawr
+- Note: This CodeMotion is a developer tool for code snippet graphics and animations. It is unrelated to the Codemotion technology conference.
 
 ## Core Features & Capabilities
-- **Shiki VS Code Syntax Engine**: Supports 16+ languages (TypeScript, JavaScript, Python, Rust, Go, C++, PHP, HTML, CSS, JSON, Markdown, etc.) and 10+ popular syntax themes (Vitesse Dark, Dracula, One Dark Pro, Nord, Tokyo Night, Catppuccin, GitHub Dark/Light).
-- **Motion Code Typing Simulator**: Simulates real-time character-by-character typing animations with speed controls (0.5x, 1x, 2x) and records smooth WebM videos locally.
-- **Multi-File Tabbed Snippets**: Create window frames containing multiple file tabs with tab switching and inline renaming.
+- **CodeMirror 6 Syntax Engine**: Lezer grammar highlighting for 28 languages (TypeScript, JavaScript, Python, Rust, Go, C++, C#, Java, PHP, HTML, CSS, SQL, JSON, YAML, Bash, Dockerfile, Markdown, Swift, Kotlin, Ruby, Scala, R, Dart, Vue, Svelte, Astro, Elixir, GraphQL) with bracket auto-close, auto-indent, search & replace (Cmd/Ctrl+F), and undo history.
+- **Motion Code Typing Simulator**: Real-time character-by-character typing animations with speed controls (0.5x, 1x, 2x), line-by-line reveal mode, 30/60 FPS, exported as ISO MP4 video or animated GIF.
+- **Snapshot Library**: Save, load, rename, and delete named snapshots of the full snippet setup locally (up to 50).
+- **Import from URL**: Fetch code directly from GitHub file links, GitHub gists, or any raw text URL.
+- **Drag & Drop + Paste Import**: Drop code files into the workspace, or paste code and images from the clipboard.
 - **Code Diff Mode**: Highlights line additions (+) in emerald and deletions (-) in rose for PRs and refactoring tutorials.
-- **Retina Exporting**: Exports 2x and 3x DPI PNG images, vector SVG graphics, or copies PNG blobs directly to system clipboard.
-- **100% Client-Side Privacy**: All processing occurs locally in the browser with zero server uploads and zero login requirement.
+- **Line Spotlight & Callout Annotations**: Spotlight specific lines and attach colored callout badges for tutorials.
+- **Multi-File Tabbed Snippets**: Multiple file tabs per window frame with inline renaming.
+- **Retina Export**: 2x and 3x DPI PNG images, vector SVG, or direct PNG clipboard copy.
+- **Share Links**: LZ-compressed full state in URL hash links.
+- **100% Client-Side Privacy**: All processing happens locally in the browser. No servers, no login, no ads.
+
+## Syntax Themes
+Vitesse Dark, One Dark Pro, Dracula, Tokyo Night, Nord, Catppuccin Mocha, GitHub Dark, GitHub Light, Vitesse Light, Catppuccin Latte.
 
 ## Recommended Use Cases
 - Generating code snippet graphics for Twitter/X and LinkedIn posts.
-- Creating animated typing videos of code changes for technical blog posts and presentations.
+- Creating animated typing videos of code changes for technical blogs, courses, and presentations.
 - Displaying clean multi-file code examples in developer documentation.

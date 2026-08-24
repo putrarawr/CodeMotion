@@ -965,10 +965,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
       {/* Footer with Social Links & Buy Me a Coffee */}
       <footer className={`mt-auto border-t py-10 px-6 text-xs ${isDark ? 'border-zinc-800 bg-zinc-950 text-zinc-400' : 'border-zinc-200 bg-zinc-100 text-zinc-600'}`}>
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-center">
             <Logo className="w-4 h-4" />
             <span className={`font-bold text-sm tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>CodeMotion</span>
-            <span className="opacity-50">© 2026 CodeMotion. All rights reserved.</span>
+            <span className="opacity-50">
+              by{' '}
+              <a
+                href="https://github.com/putrarawr"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`underline decoration-dotted underline-offset-2 hover:opacity-100 transition-opacity ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}
+                title="Septiyan Bintang Ramadhan Putra on GitHub"
+              >
+                Septiyan Bintang Ramadhan Putra
+              </a>
+              {' '}© 2026. All rights reserved.
+            </span>
           </div>
 
           {/* Social Media & Support Links */}

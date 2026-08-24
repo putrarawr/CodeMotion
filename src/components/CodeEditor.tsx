@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { EditorState, Compartment } from '@codemirror/state';
+import { EditorView, ViewPlugin, Decoration, WidgetType, keymap } from '@codemirror/view';
+import type { DecorationSet, ViewUpdate } from '@codemirror/view';
+import { indentOnInput, bracketMatching } from '@codemirror/language';
+import { history, historyKeymap, defaultKeymap, indentWithTab } from '@codemirror/commands';
+import { closeBrackets } from '@codemirror/autocomplete';
+import { search, searchKeymap } from '@codemirror/search';
 import type { SupportedLanguage, SupportedTheme, LineAnnotation } from '../types';
-import { useShiki } from '../hooks/useShiki';
 import { MessageSquare } from 'lucide-react';
+import { getLanguageExtension } from '../utils/cmLanguages';
+import { getCmThemeExtensions, cmBaseTheme } from '../utils/cmThemes';
 
 interface CodeEditorProps {
   code: string;
@@ -22,6 +30,21 @@ interface CodeEditorProps {
   onMotionFinish?: () => void;
 }
 
+class MotionCursorWidget extends WidgetType {
+  eq() {
+    return true;
+  }
+  toDOM() {
+    const span = document.createElement('span');
+    span.className =
+      'inline-block w-2 h-4 bg-sky-400 ml-0.5 animate-pulse rounded-xs opacity-90 align-middle';
+    return span;
+  }
+  ignoreEvent() {
+    return true;
+  }
+}
+
 export const CodeEditor: React.FC<CodeEditorProps> = ({
   code,
   onChange,
@@ -40,11 +63,24 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   controlledTypedLength = null,
   onMotionFinish,
 }) => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const hostRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<EditorView | null>(null);
+  const timerRef = useRef<number | null>(null);
   const [internalTypedLength, setInternalTypedLength] = useState<number>(
     isPlayingMotion ? 0 : code.length
   );
-  const timerRef = useRef<number | null>(null);
+
+  // Always-fresh callbacks without re-creating the view
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  // Compartments for dynamic reconfiguration
+  const langCompartment = useRef(new Compartment());
+  const themeCompartment = useRef(new Compartment());
+  const editableCompartment = useRef(new Compartment());
+
+  // Latest motion/display config readable imperatively by the cursor plugin
+  const displayCfgRef = useRef({ inMotion: false, activeLength: 0, totalLength: 0 });
 
   // If motion play state changes to true, reset internal typed length to 0
   useEffect(() => {
@@ -91,7 +127,116 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
   const displayCode = isCurrentlyInMotion ? code.slice(0, activeLength) : code;
 
-  const { highlightedHtml, isLoading } = useShiki(displayCode, language, theme);
+  // Keep imperative config fresh for the cursor plugin
+  displayCfgRef.current = {
+    inMotion: isCurrentlyInMotion,
+    activeLength,
+    totalLength: code.length,
+  };
+
+  // Mount CodeMirror instance once
+  useEffect(() => {
+    if (!hostRef.current) return;
+
+    const cursorPlugin = ViewPlugin.fromClass(
+      class {
+        decorations: DecorationSet;
+        constructor(view: EditorView) {
+          this.decorations = buildCursorDecoration(view);
+        }
+        update(update: ViewUpdate) {
+          this.decorations = buildCursorDecoration(update.view);
+        }
+      },
+      { decorations: (v) => v.decorations }
+    );
+
+    function buildCursorDecoration(view: EditorView): DecorationSet {
+      const cfg = displayCfgRef.current;
+      if (!cfg.inMotion || cfg.activeLength >= cfg.totalLength) {
+        return Decoration.none;
+      }
+      const widget = Decoration.widget({ widget: new MotionCursorWidget(), side: 1 });
+      return Decoration.set([widget.range(view.state.doc.length)]);
+    }
+
+    const view = new EditorView({
+      state: EditorState.create({
+        doc: displayCode,
+        extensions: [
+          cmBaseTheme,
+          themeCompartment.current.of(getCmThemeExtensions(theme)),
+          langCompartment.current.of([]),
+          editableCompartment.current.of([
+            EditorState.readOnly.of(isCurrentlyInMotion),
+            EditorView.editable.of(!isCurrentlyInMotion),
+          ]),
+          cursorPlugin,
+          history(),
+          keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, indentWithTab]),
+          indentOnInput(),
+          bracketMatching(),
+          closeBrackets(),
+          search({ top: true }),
+          EditorView.updateListener.of((update) => {
+            if (update.docChanged) {
+              onChangeRef.current(update.state.doc.toString());
+            }
+          }),
+        ],
+      }),
+      parent: hostRef.current,
+    });
+
+    viewRef.current = view;
+    return () => {
+      view.destroy();
+      viewRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // External value sync (settings load, snapshot load, template, motion slicing)
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    if (displayCode === view.state.doc.toString()) return;
+    view.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: displayCode },
+    });
+  }, [displayCode]);
+
+  // Language extension lazy loading
+  useEffect(() => {
+    let alive = true;
+    getLanguageExtension(language).then((ext) => {
+      if (alive && viewRef.current) {
+        viewRef.current.dispatch({
+          effects: langCompartment.current.reconfigure(ext),
+        });
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, [language]);
+
+  // Syntax theme switching
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: themeCompartment.current.reconfigure(getCmThemeExtensions(theme)),
+    });
+  }, [theme]);
+
+  // Editable/read-only toggling during motion playback & recording
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: editableCompartment.current.reconfigure([
+        EditorState.readOnly.of(isCurrentlyInMotion),
+        EditorView.editable.of(!isCurrentlyInMotion),
+      ]),
+    });
+  }, [isCurrentlyInMotion]);
 
   // Compute line metadata for line numbers, diff highlighting, and annotations
   const linesInfo = useMemo(() => {
@@ -118,12 +263,18 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   }, [displayCode, diffMode, focusedLines, annotations]);
 
   const handleContainerClick = () => {
-    if (textareaRef.current && !isCurrentlyInMotion) {
-      textareaRef.current.focus();
+    if (viewRef.current && !isCurrentlyInMotion) {
+      viewRef.current.focus();
     }
   };
 
   const hasSpotlight = focusedLines.length > 0;
+
+  const fontVars = {
+    '--cm-font-family': fontFamily,
+    '--cm-font-size': `${fontSize}px`,
+    '--cm-line-height': String(lineHeight),
+  } as React.CSSProperties;
 
   return (
     <div
@@ -168,7 +319,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         </div>
       )}
 
-      {/* Dual Layer Textarea and Highlighting container */}
+      {/* CodeMirror Editing Surface with Overlay Layers */}
       <div className="relative flex-1 min-w-0">
         {/* Diff line background highlights overlay & Spotlight dimmed overlay */}
         <div
@@ -201,22 +352,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           })}
         </div>
 
-        {/* Editable Overlay Textarea */}
-        <textarea
-          ref={textareaRef}
-          value={code}
-          onChange={(e) => onChange(e.target.value)}
-          spellCheck={false}
-          autoCapitalize="off"
-          autoComplete="off"
-          autoCorrect="off"
-          readOnly={isCurrentlyInMotion}
-          className="code-textarea absolute inset-0 w-full h-full font-mono bg-transparent text-transparent caret-indigo-400 resize-none outline-none border-none p-0 m-0 overflow-hidden whitespace-pre z-20 pointer-events-auto cursor-text"
-          style={{
-            fontFamily,
-            fontSize: `${fontSize}px`,
-            lineHeight: `${lineHeight}`,
-          }}
+        {/* CodeMirror Host */}
+        <div
+          ref={hostRef}
+          className="relative z-[1] w-full"
+          style={fontVars}
         />
 
         {/* Floating Callout Annotations Overlay */}
@@ -259,35 +399,6 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 </div>
               );
             })}
-          </div>
-        )}
-
-        {/* Shiki Highlighted Pre HTML with fail-safe fallback */}
-        {isLoading || !highlightedHtml ? (
-          <pre
-            className="m-0 p-0 font-mono whitespace-pre opacity-90 text-zinc-100 relative z-1 pointer-events-none"
-            style={{
-              fontFamily,
-              fontSize: `${fontSize}px`,
-              lineHeight: `${lineHeight}`,
-            }}
-          >
-            {displayCode}
-          </pre>
-        ) : (
-          <div className="relative inline-block w-full pointer-events-none">
-            <div
-              className="shiki-container code-highlighted w-full font-mono whitespace-pre m-0 p-0 relative z-1 pointer-events-none"
-              style={{
-                fontFamily,
-                fontSize: `${fontSize}px`,
-                lineHeight: `${lineHeight}`,
-              }}
-              dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-            />
-            {isCurrentlyInMotion && activeLength < code.length && (
-              <span className="inline-block w-2 h-4 bg-sky-400 ml-0.5 animate-pulse rounded-xs opacity-90 align-middle" />
-            )}
           </div>
         )}
       </div>
