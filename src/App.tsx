@@ -79,7 +79,13 @@ function EditorWorkspace({
         onProgress: (pct) => setRecordingProgress(pct),
       });
 
-      downloadBlob(blob, filename);
+      const rawTitle = activeTab?.title || 'snippet';
+      const titleWithoutExt = rawTitle.replace(/\.[^/.]+$/, '');
+      const cleanTitle = titleWithoutExt.replace(/[^a-zA-Z0-9_-]/g, '-');
+      const ext = filename.split('.').pop() || (settings.motionExportFormat === 'gif' ? 'gif' : 'mp4');
+      const customFilename = `codemotion-${cleanTitle}.${ext}`;
+
+      downloadBlob(blob, customFilename);
       const formatLabel = settings.motionExportFormat === 'gif' ? 'Animated GIF' : 'MP4 Video';
       toast.success(`Motion Code ${formatLabel} exported successfully!`);
       setIsThankYouOpen(true);
@@ -105,7 +111,10 @@ function EditorWorkspace({
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
       if (isCmdOrCtrl && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        downloadPng(3, activeTab?.title || 'codesnap.png', 'export-container').then(() => setIsThankYouOpen(true));
+        const rawTitle = activeTab?.title || 'snippet';
+        const titleWithoutExt = rawTitle.replace(/\.[^/.]+$/, '');
+        const cleanTitle = titleWithoutExt.replace(/[^a-zA-Z0-9_-]/g, '-');
+        downloadPng(3, `codemotion-${cleanTitle}.png`, 'export-container').then(() => setIsThankYouOpen(true));
       }
       if (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === 'c') {
         e.preventDefault();
@@ -188,11 +197,17 @@ function EditorWorkspace({
           setIsThankYouOpen(true);
         }}
         onDownloadPng={async (ratio) => {
-          await downloadPng(ratio, activeTab?.title || 'codesnap.png', 'export-container');
+          const rawTitle = activeTab?.title || 'snippet';
+          const titleWithoutExt = rawTitle.replace(/\.[^/.]+$/, '');
+          const cleanTitle = titleWithoutExt.replace(/[^a-zA-Z0-9_-]/g, '-');
+          await downloadPng(ratio, `codemotion-${cleanTitle}.png`, 'export-container');
           setIsThankYouOpen(true);
         }}
         onDownloadSvg={async () => {
-          await downloadSvg(activeTab?.title || 'codesnap.svg', 'export-container');
+          const rawTitle = activeTab?.title || 'snippet';
+          const titleWithoutExt = rawTitle.replace(/\.[^/.]+$/, '');
+          const cleanTitle = titleWithoutExt.replace(/[^a-zA-Z0-9_-]/g, '-');
+          await downloadSvg(`codemotion-${cleanTitle}.svg`, 'export-container');
           setIsThankYouOpen(true);
         }}
         onRecordVideo={handleRecordVideo}
