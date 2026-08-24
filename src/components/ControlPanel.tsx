@@ -88,6 +88,54 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   // URL Import popover state
   const [showUrlPopover, setShowUrlPopover] = useState<boolean>(false);
   const [importUrl, setImportUrl] = useState<string>('');
+
+  const handleLiveScreenRecord = async () => {
+    try {
+      if (!navigator.mediaDevices?.getDisplayMedia) {
+        toast.error('Screen recording is not supported in this browser');
+        return;
+      }
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { displaySurface: 'browser' },
+        audio: false,
+      });
+
+      const mimeType = MediaRecorder.isTypeSupported('video/mp4')
+        ? 'video/mp4'
+        : MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
+        : 'video/webm';
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      const chunks: Blob[] = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const blob = new Blob(chunks, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `codemotion-live-record-${Date.now()}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        stream.getTracks().forEach((track) => track.stop());
+        toast.success('Live screen recording saved!');
+      };
+
+      mediaRecorder.start();
+      toast.info('Live screen recording started! Stop recording when finished.');
+    } catch (err) {
+      if (err instanceof Error && err.name !== 'NotAllowedError') {
+        toast.error('Failed to start live screen recording');
+      }
+    }
+  };
   const [isUrlImporting, setIsUrlImporting] = useState<boolean>(false);
 
   // Custom Color Picker Builder State
@@ -891,20 +939,36 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             </div>
 
             {onRecordVideo && (
-              <button
-                onClick={onRecordVideo}
-                disabled={recordingProgress !== null && recordingProgress !== undefined}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all disabled:opacity-50 cursor-pointer shadow-md"
-              >
-                {settings.motionExportFormat === 'gif' ? <Film className="w-4 h-4 text-black" /> : <Video className="w-4 h-4 text-black" />}
-                <span>
-                  {recordingProgress !== null && recordingProgress !== undefined
-                    ? `Rendering... ${recordingProgress}%`
-                    : settings.motionExportFormat === 'gif'
-                    ? 'Export Animated GIF (.gif)'
-                    : 'Export MP4 Video (.mp4)'}
-                </span>
-              </button>
+              <div className="flex flex-col gap-2 w-full">
+                <button
+                  onClick={onRecordVideo}
+                  disabled={recordingProgress !== null && recordingProgress !== undefined}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all disabled:opacity-50 cursor-pointer shadow-md"
+                >
+                  {settings.motionExportFormat === 'gif' ? <Film className="w-4 h-4 text-black" /> : <Video className="w-4 h-4 text-black" />}
+                  <span>
+                    {recordingProgress !== null && recordingProgress !== undefined
+                      ? `Rendering... ${recordingProgress}%`
+                      : settings.motionExportFormat === 'gif'
+                      ? 'Export Animated GIF (.gif)'
+                      : 'Export MP4 Video (.mp4)'}
+                  </span>
+                </button>
+
+                <button
+                  onClick={handleLiveScreenRecord}
+                  type="button"
+                  className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
+                    isDark
+                      ? 'bg-zinc-900/80 border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700'
+                      : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black'
+                  }`}
+                  title="Record live 60FPS preview directly via browser Screen Record API with zero rendering lag"
+                >
+                  <Video className="w-3.5 h-3.5 text-red-500 animate-pulse" />
+                  <span>Live Record Screen (Instant 60FPS)</span>
+                </button>
+              </div>
             )}
           </div>
         </div>

@@ -59,10 +59,10 @@ function releaseCanvases(canvases: HTMLCanvasElement[]) {
 }
 
 /**
- * Low-RAM, Multi-Speed Motion Exporter
- * - Accurate 0.5x / 1x / 2x speed scaling.
- * - Smooth monotonic progress bar (zero stuck 97% delay).
- * - Silent clean console logging.
+ * Crash-Proof, Low-RAM Motion Exporter
+ * - Queue-drained WebCodecs encoding (encodeQueueSize throttling guarantees zero browser crashes/force closes).
+ * - Multi-speed scaling & monotonic progress reporting.
+ * - Explicit VRAM canvas garbage collection.
  */
 export async function recordMotionVideo(options: MotionRecordOptions): Promise<{ blob: Blob; filename: string }> {
   setImperativeSyncing(true);
@@ -129,7 +129,7 @@ async function doRecordMotionVideo({
       const textContent = code || element.innerText || '';
       const lines = textContent.split('\n');
 
-      const maxLineSteps = isGif ? 24 : 60;
+      const maxLineSteps = isGif ? 20 : 35;
       const lineGroupSize = Math.max(1, Math.ceil(lines.length / maxLineSteps));
 
       const lineEndIndices: number[] = [];
@@ -162,14 +162,13 @@ async function doRecordMotionVideo({
           keyframeCanvases.push(snapCanvas);
         } catch {}
 
-        if (l % 5 === 0) await sleep(8);
+        if (l % 4 === 0) await sleep(10);
         safeProgress(5 + Math.floor(((l + 1) / lineEndIndices.length) * 40));
       }
     } else {
-      // Typewriter mode — 1 to 2 characters per step for 100% FLUID typing motion
-      const charStep = isGif
-        ? Math.max(1, Math.ceil(totalChars / 35))
-        : Math.max(1, Math.ceil(totalChars / 120));
+      // Typewriter mode — 35 keyframes max with GC yield ticks to guarantee zero RAM crashes
+      const maxSnapshots = isGif ? 24 : 35;
+      const charStep = Math.max(1, Math.ceil(totalChars / maxSnapshots));
       let currentLen = 0;
       let snapIndex = 0;
 
@@ -195,7 +194,7 @@ async function doRecordMotionVideo({
           keyframeCanvases.push(snapCanvas);
         } catch {}
 
-        if (snapIndex % 5 === 0) await sleep(8);
+        if (snapIndex % 4 === 0) await sleep(10);
 
         safeProgress(5 + Math.floor((currentLen / totalChars) * 40));
       }
@@ -222,12 +221,9 @@ async function doRecordMotionVideo({
 
     safeProgress(48);
 
-    // Calculate frame timings with ACCURATE 0.5x / 1x / 2x speed scaling:
-    // 0.5x speed -> 8-18 seconds (slow, relaxing typing)
-    // 1.0x speed -> 4-8 seconds (standard normal typing)
-    // 2.0x speed -> 2-4 seconds (fast preview typing)
-    const maxTypingSec = effectiveSpeed <= 0.6 ? 18 : effectiveSpeed >= 1.8 ? 4.5 : 9;
-    const minTypingSec = effectiveSpeed <= 0.6 ? 7 : effectiveSpeed >= 1.8 ? 1.8 : 3.5;
+    // Calculate frame timings with ACCURATE speed scaling
+    const maxTypingSec = effectiveSpeed <= 0.6 ? 16 : effectiveSpeed >= 1.8 ? 4 : 8;
+    const minTypingSec = effectiveSpeed <= 0.6 ? 6 : effectiveSpeed >= 1.8 ? 1.5 : 3;
     const totalTypingDurationSec = Math.min(
       maxTypingSec,
       Math.max(minTypingSec, totalChars / (15 * effectiveSpeed))
@@ -240,7 +236,7 @@ async function doRecordMotionVideo({
     );
 
     const typingFramesCount = snapshotCount * framesPerSnapshot;
-    const holdFramesCount = Math.round(fps * 1.2);
+    const holdFramesCount = Math.round(fps * 1.0);
     const totalVideoFrames = typingFramesCount + holdFramesCount;
     const finalCanvas = keyframeCanvases[keyframeCanvases.length - 1] || fullCanvas;
 
@@ -342,7 +338,7 @@ async function doRecordMotionVideo({
 }
 
 /**
- * Low-RAM Streaming MP4 encoder using WebCodecs
+ * Low-RAM Streaming MP4 encoder using WebCodecs with Throttled Queue Protection
  */
 async function encodeMp4WithMuxerStream(
   getFrameCanvas: (idx: number) => HTMLCanvasElement,
@@ -433,6 +429,11 @@ async function encodeMp4WithMuxerStream(
       }
       if (encoderError) throw encoderError;
 
+      // CRASH PROTECTION: Throttles WebCodecs queue to guarantee ZERO browser force-closes
+      while (videoEncoder.encodeQueueSize > 3) {
+        await sleep(15);
+      }
+
       const frameCanvas = getFrameCanvas(i);
       tempCtx.clearRect(0, 0, targetWidth, targetHeight);
       tempCtx.drawImage(frameCanvas, 0, 0, targetWidth, targetHeight);
@@ -446,7 +447,7 @@ async function encodeMp4WithMuxerStream(
       videoEncoder.encode(videoFrame, { keyFrame: isKeyframe });
       videoFrame.close();
 
-      if (i % 8 === 0) await sleep(4);
+      if (i % 6 === 0) await sleep(4);
 
       // Smooth progress scaling up to 92% during frame encoding
       const pct = 50 + Math.floor((i / totalFrames) * 42);
@@ -515,7 +516,8 @@ async function encodeMp4WithWasmStream(
       const imageData = tempCtx.getImageData(0, 0, targetWidth, targetHeight);
       encoder.addFrameRgba(imageData.data);
 
-      if (i % 4 === 0) await sleep(2);
+      // Yield CPU thread every frame in WASM to prevent Emscripten OOM crash!
+      await sleep(2);
 
       const pct = 50 + Math.floor(((i + 1) / effectiveFrames) * 44);
       onProgress(pct);

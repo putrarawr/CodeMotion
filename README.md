@@ -60,6 +60,15 @@ Repository: [https://github.com/putrarawr/CodeMotion](https://github.com/putrara
 
 ---
 
+## Note on Motion Video Export & Performance
+
+> **Note & Apology / Catatan Performa:**
+> CodeMotion processes 100% of video generation locally inside your web browser (client-side) to protect your privacy and ensure zero server tracking. Because video rendering relies on your device's local GPU, CPU, and browser engine (Chrome vs Firefox vs Safari), the frame rate and rendering speed of exported MP4/GIF videos may slightly vary across different laptops or low-spec devices compared to the real-time 60FPS live preview in the editor.
+>
+> We apologize if the exported video motion is not 100% as fluid on lower-spec hardware as the live website preview. For lower-spec devices or instant 60FPS captures, you can also use the **Instant Live Screen Record** mode in the editor export panel!
+
+---
+
 ## Support & Donation
 
 If CodeMotion helps your workflow, consider supporting the project to keep it free and ad-free:
