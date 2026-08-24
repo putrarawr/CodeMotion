@@ -13,17 +13,17 @@ export function useSEO({ title, description, canonicalUrl }: SEOProps = {}) {
   useEffect(() => {
     const isEditor = location.pathname.startsWith('/editor');
 
-    // Dynamic Title according to route
+    // Dynamic Title optimized for search intent and AI discoverability (GEO)
     const defaultTitle = isEditor
-      ? 'CodeMotion Editor | Visual Code Snippet & Motion Generator'
-      : 'CodeMotion | Turn Code into High-Res Images & Animated Videos';
-    
+      ? 'CodeMotion Editor - Create Animated Code Videos & Snippets'
+      : 'CodeMotion - Animated Code Snippet & Video Generator (MP4 & GIF)';
+
     document.title = title || defaultTitle;
 
     // Dynamic Meta Description
     const defaultDesc = isEditor
-      ? 'Customize themes, background canvas, fonts, window frames, and trigger animated typing motion for your code snippet.'
-      : 'Zero-friction developer tool to turn plain source code into aesthetic, high-resolution snippet images and typing motion videos.';
+      ? 'Customize themes, background canvas, fonts, window frames, and trigger 60FPS animated typing motion for your code snippet.'
+      : 'Free developer tool to convert source code into high-resolution images (2x/3x DPI), vector SVGs, and 60FPS animated typing motion videos (MP4 & GIF).';
 
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
@@ -32,7 +32,7 @@ export function useSEO({ title, description, canonicalUrl }: SEOProps = {}) {
 
     // Dynamic Canonical Link
     const currentUrl = `https://codemotion.biz.id${location.pathname}`;
-    let canonical = document.querySelector('link[rel="canonical"]');
+    const canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) {
       canonical.setAttribute('href', canonicalUrl || currentUrl);
     }
