@@ -44,6 +44,7 @@ function EditorWorkspace({
   const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
 
   const isCancelledRef = useRef(false);
+  const isRecordingRef = useRef(false);
 
   const handleRecordVideo = async () => {
     const exportEl = document.getElementById('export-container');
@@ -51,6 +52,8 @@ function EditorWorkspace({
       toast.error('Export element not found');
       return;
     }
+    if (isRecordingRef.current) return;
+    isRecordingRef.current = true;
 
     try {
       isCancelledRef.current = false;
@@ -60,6 +63,7 @@ function EditorWorkspace({
 
       const { blob, filename } = await recordMotionVideo({
         element: exportEl,
+        code: activeTab?.code || '',
         totalChars,
         motionSpeed: settings.motionSpeed || 1,
         fps: settings.motionFps || 60,
@@ -87,6 +91,7 @@ function EditorWorkspace({
         toast.error('Failed to export Motion file.');
       }
     } finally {
+      isRecordingRef.current = false;
       setRecordingProgress(null);
       setSettings((prev) => ({
         ...prev,

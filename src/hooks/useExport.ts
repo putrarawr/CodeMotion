@@ -3,6 +3,20 @@ import { toPng, toSvg, toBlob } from 'html-to-image';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 
+function filterExportNodes(node: HTMLElement): boolean {
+  if (!node) return true;
+  if (
+    node.tagName === 'IMG' &&
+    (node.classList?.contains('cm-widgetBuffer') || (node as HTMLImageElement).src?.startsWith('blob:'))
+  ) {
+    return false;
+  }
+  if (node.classList?.contains('cm-tooltip')) {
+    return false;
+  }
+  return true;
+}
+
 export function useExport() {
   const [isExporting, setIsExporting] = useState(false);
 
@@ -36,6 +50,8 @@ export function useExport() {
         const dataUrl = await toPng(element, {
           pixelRatio,
           cacheBust: true,
+          skipFonts: true,
+          filter: filterExportNodes,
         });
 
         const link = document.createElement('a');
@@ -71,6 +87,8 @@ export function useExport() {
 
         const dataUrl = await toSvg(element, {
           cacheBust: true,
+          skipFonts: true,
+          filter: filterExportNodes,
         });
 
         const link = document.createElement('a');
@@ -99,7 +117,7 @@ export function useExport() {
       }
 
       setIsExporting(true);
-      const toastId = toast.loading('Generating image blob...');
+      const toastId = toast.loading('Copying image to clipboard...');
 
       try {
         await new Promise((res) => setTimeout(res, 100));
@@ -107,22 +125,24 @@ export function useExport() {
         const blob = await toBlob(element, {
           pixelRatio,
           cacheBust: true,
+          skipFonts: true,
+          filter: filterExportNodes,
         });
 
         if (!blob) {
           throw new Error('Failed to generate image blob');
         }
 
-        if (navigator.clipboard && window.ClipboardItem) {
-          const item = new ClipboardItem({ 'image/png': blob });
-          await navigator.clipboard.write([item]);
-          toast.success('Copied image to clipboard!', { id: toastId });
-          triggerConfetti();
-        } else {
-          toast.error('Clipboard API for images not supported by browser', { id: toastId });
-        }
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'image/png': blob,
+          }),
+        ]);
+
+        toast.success('Image copied to clipboard!', { id: toastId });
+        triggerConfetti();
       } catch (err) {
-        console.error('Failed to copy to clipboard:', err);
+        console.error('Failed to copy image:', err);
         toast.error('Failed to copy image to clipboard.', { id: toastId });
       } finally {
         setIsExporting(false);

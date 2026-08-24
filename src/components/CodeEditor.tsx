@@ -10,6 +10,7 @@ import type { SupportedLanguage, SupportedTheme, LineAnnotation } from '../types
 import { MessageSquare } from 'lucide-react';
 import { getLanguageExtension } from '../utils/cmLanguages';
 import { getCmThemeExtensions, cmBaseTheme } from '../utils/cmThemes';
+import { registerEditorView, isImperativeSyncing, isBridgeSuppressing } from '../utils/editorBridge';
 
 interface CodeEditorProps {
   code: string;
@@ -66,6 +67,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const timerRef = useRef<number | null>(null);
+  // True while we programmatically replace the doc (motion slicing, external sync).
+  // Prevents those changes from being pushed back via onChange (which would
+  // overwrite the real code with the motion slice).
+  const applyingProgrammaticRef = useRef(false);
   const [internalTypedLength, setInternalTypedLength] = useState<number>(
     isPlayingMotion ? 0 : code.length
   );
@@ -179,7 +184,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           closeBrackets(),
           search({ top: true }),
           EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
+            if (
+              update.docChanged &&
+              !applyingProgrammaticRef.current &&
+              !isBridgeSuppressing()
+            ) {
               onChangeRef.current(update.state.doc.toString());
             }
           }),
@@ -189,9 +198,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     });
 
     viewRef.current = view;
+    registerEditorView(view, applyingProgrammaticRef);
     return () => {
       view.destroy();
       viewRef.current = null;
+      registerEditorView(null, null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -200,10 +211,16 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
+    if (isImperativeSyncing()) return;
     if (displayCode === view.state.doc.toString()) return;
-    view.dispatch({
-      changes: { from: 0, to: view.state.doc.length, insert: displayCode },
-    });
+    applyingProgrammaticRef.current = true;
+    try {
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: displayCode },
+      });
+    } finally {
+      applyingProgrammaticRef.current = false;
+    }
   }, [displayCode]);
 
   // Language extension lazy loading
