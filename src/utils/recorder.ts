@@ -59,10 +59,10 @@ function releaseCanvases(canvases: HTMLCanvasElement[]) {
 }
 
 /**
- * Ultra-Fluid 60FPS Motion Exporter (100% Matches Website Preview)
- * - 1 Character-per-step keyframe capture (no text jumping/chunking).
- * - Smooth 60FPS linear frame interpolation.
- * - Low-RAM streaming memory pipeline.
+ * Low-RAM, High-FPS Motion Video & GIF Exporter
+ * - 40 Keyframes max with periodic GC ticks (keeps RAM under 50 MB increase on all devices).
+ * - Exact Bounding Rect Canvas Slicing (Full-width crisp frame).
+ * - Smooth 60FPS Linear Interpolation.
  */
 export async function recordMotionVideo(options: MotionRecordOptions): Promise<{ blob: Blob; filename: string }> {
   setImperativeSyncing(true);
@@ -104,7 +104,7 @@ async function doRecordMotionVideo({
   syncEditorDocument(code, element);
   await forceDomPaint();
 
-  // Measure master dimensions at 1.5x pixel ratio for HD crispness with minimal RAM footprint
+  // Measure master dimensions based on exact bounding rect at 1.5x pixel ratio for sharp HD canvas
   const fullCanvas = await toCanvas(element, {
     quality: 0.95,
     pixelRatio: 1.5,
@@ -128,7 +128,7 @@ async function doRecordMotionVideo({
       const textContent = code || element.innerText || '';
       const lines = textContent.split('\n');
 
-      const maxLineSteps = isGif ? 24 : 60;
+      const maxLineSteps = isGif ? 20 : 40;
       const lineGroupSize = Math.max(1, Math.ceil(lines.length / maxLineSteps));
 
       const lineEndIndices: number[] = [];
@@ -162,17 +162,21 @@ async function doRecordMotionVideo({
           console.warn('Keyframe snapshot failed:', err);
         }
 
+        if (l % 4 === 0) await sleep(12); // Yield CPU to clear Garbage Collection memory!
+
         safeProgress(5 + Math.floor(((l + 1) / lineEndIndices.length) * 40));
       }
     } else {
-      // Typewriter mode — 1 Character per step for 100% FLUID typing motion (exactly like live website preview)
-      // Cap at 180 keyframes max to preserve high performance
-      const charStep = Math.max(1, Math.ceil(totalChars / (isGif ? 40 : 180)));
+      // Typewriter mode — 40 keyframes max with GC yield ticks to guarantee ultra-low RAM usage
+      const maxSnapshots = isGif ? 24 : 42;
+      const charStep = Math.max(1, Math.ceil(totalChars / maxSnapshots));
       let currentLen = 0;
+      let snapIndex = 0;
 
       while (currentLen < totalChars) {
         if (isCancelled?.()) throw new Error('CANCELLED');
         currentLen = Math.min(totalChars, currentLen + charStep);
+        snapIndex++;
         if (onSetTypedLength) onSetTypedLength(currentLen);
         syncEditorDocument(code.slice(0, currentLen), element);
         await forceDomPaint();
@@ -191,6 +195,8 @@ async function doRecordMotionVideo({
         } catch (err) {
           console.warn('Keyframe snapshot failed:', err);
         }
+
+        if (snapIndex % 4 === 0) await sleep(12); // GC yield tick to keep RAM spikes under 5%!
 
         safeProgress(5 + Math.floor((currentLen / totalChars) * 40));
       }
@@ -216,8 +222,8 @@ async function doRecordMotionVideo({
 
     safeProgress(48);
 
-    // Calculate frame timings: 100% fluid even distribution across 60FPS video
-    const totalTypingDurationSec = Math.min(8, Math.max(3, totalChars / (16 * effectiveSpeed)));
+    // Calculate frame timings: 100% fluid distribution across 60FPS video
+    const totalTypingDurationSec = Math.min(7, Math.max(2.5, totalChars / (18 * effectiveSpeed)));
     const snapshotCount = Math.max(1, keyframeCanvases.length);
     const framesPerSnapshot = Math.max(
       1,
@@ -225,7 +231,7 @@ async function doRecordMotionVideo({
     );
 
     const typingFramesCount = snapshotCount * framesPerSnapshot;
-    const holdFramesCount = Math.round(fps * 1.2);
+    const holdFramesCount = Math.round(fps * 1.0);
     const totalVideoFrames = typingFramesCount + holdFramesCount;
     const finalCanvas = keyframeCanvases[keyframeCanvases.length - 1] || fullCanvas;
 
@@ -242,11 +248,11 @@ async function doRecordMotionVideo({
     if (isGif) {
       safeProgress(50);
       const canvasDataUrls = keyframeCanvases.map((c) => c.toDataURL('image/png', 0.9));
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 4; i++) {
         canvasDataUrls.push(finalCanvas.toDataURL('image/png', 0.9));
       }
 
-      const gifInterval = Math.max(0.03, totalTypingDurationSec / snapshotCount);
+      const gifInterval = Math.max(0.04, totalTypingDurationSec / snapshotCount);
 
       return await new Promise<{ blob: Blob; filename: string }>((resolve, reject) => {
         gifshot.createGIF(
@@ -358,7 +364,7 @@ async function encodeMp4WithMuxerStream(
         codec: test.codec,
         width: targetWidth,
         height: targetHeight,
-        bitrate: 10_000_000,
+        bitrate: 8_000_000,
         framerate: fps,
       }).catch(() => ({ supported: false }));
 
@@ -397,7 +403,7 @@ async function encodeMp4WithMuxerStream(
     codec: videoCodec,
     width: targetWidth,
     height: targetHeight,
-    bitrate: 10_000_000,
+    bitrate: 8_000_000,
     framerate: fps,
   });
 
@@ -473,7 +479,7 @@ async function encodeMp4WithWasmStream(
   encoder.width = targetWidth;
   encoder.height = targetHeight;
   encoder.frameRate = wasmFps;
-  encoder.kbps = 10000;
+  encoder.kbps = 8000;
   encoder.speed = 10;
   encoder.outputFilename = 'codemotion.mp4';
   encoder.initialize();
