@@ -87,6 +87,24 @@ const TOTAL_MOTION_CHARS = MOTION_PREVIEW_TOKENS.reduce((acc, t) => acc + t.text
 export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppTheme, onSelectTemplate }) => {
   const isDark = settings.appTheme === 'dark';
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  // Interactive 3D Background Parallax & Spotlight Cursor State
+  const [bgMousePos, setBgMousePos] = useState<{ x: number; y: number; px: number; py: number }>({ x: 0, y: 0, px: 0, py: 0 });
+
+  const handlePageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const rotateX = ((y / rect.height) - 0.5) * -10; // -5deg to +5deg 3D tilt
+    const rotateY = ((x / rect.width) - 0.5) * 10; // -5deg to +5deg 3D tilt
+
+    setBgMousePos({
+      x: rotateY,
+      y: rotateX,
+      px: x,
+      py: y,
+    });
+  };
   const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
   const [landingTemplateCategory, setLandingTemplateCategory] = useState<string>('all');
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -284,10 +302,56 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className={`min-h-screen flex flex-col font-sans transition-colors duration-200 overflow-x-hidden ${
+      onMouseMove={handlePageMouseMove}
+      className={`min-h-screen flex flex-col font-sans transition-colors duration-200 overflow-x-hidden relative ${
         isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
       }`}
     >
+      {/* Developer 3D Interactive Dot Grid Matrix & Cursor Spotlight */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        {/* Interactive 3D Tilting Dot Matrix Layer */}
+        <div
+          style={{
+            transform: `perspective(1000px) rotateX(${bgMousePos.y}deg) rotateY(${bgMousePos.x}deg) scale(1.05)`,
+            transition: 'transform 0.12s ease-out',
+          }}
+          className={`absolute inset-[-60px] opacity-[0.24] transform-gpu ${
+            isDark
+              ? '[background-image:radial-gradient(#ffffff_1.2px,transparent_1.2px)]'
+              : '[background-image:radial-gradient(#000000_1.2px,transparent_1.2px)]'
+          } [background-size:28px_28px]`}
+        />
+
+        {/* Dynamic Interactive Cursor Spotlight */}
+        {bgMousePos.px > 0 && (
+          <div
+            style={{
+              background: isDark
+                ? `radial-gradient(600px circle at ${bgMousePos.px}px ${bgMousePos.py}px, rgba(255, 255, 255, 0.08), transparent 75%)`
+                : `radial-gradient(600px circle at ${bgMousePos.px}px ${bgMousePos.py}px, rgba(0, 0, 0, 0.05), transparent 75%)`,
+            }}
+            className="absolute inset-0 transition-opacity duration-200"
+          />
+        )}
+
+        {/* Top-Center Soft Ambient Glow Light */}
+        <div
+          className={`absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[550px] rounded-full blur-[140px] opacity-25 ${
+            isDark
+              ? 'bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600'
+              : 'bg-gradient-to-tr from-sky-300 via-indigo-300 to-purple-400'
+          }`}
+        />
+        {/* Subtle Radial Fade Vignette */}
+        <div
+          className={`absolute inset-0 ${
+            isDark
+              ? 'bg-[radial-gradient(ellipse_at_center,transparent_20%,#09090b_85%)]'
+              : 'bg-[radial-gradient(ellipse_at_center,transparent_20%,#fafafa_85%)]'
+          }`}
+        />
+      </div>
+
       <WhatsNewModal
         isOpen={isWhatsNewOpen}
         onClose={() => setIsWhatsNewOpen(false)}
@@ -456,7 +520,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
 
       {/* 3. Hero Code Window Preview Section */}
       <section id="hero-preview" className="py-12 px-6 lg:px-12 max-w-4xl mx-auto w-full">
-        <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white">
+        <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white transform-gpu transition-all duration-300 hover:scale-[1.015] hover:-translate-y-1.5 hover:border-zinc-700 hover:shadow-black/80">
           <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4 mb-6">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-red-500/80" />
@@ -501,7 +565,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             </p>
           </div>
 
-          <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white">
+          <div className="rounded-3xl border border-zinc-800 bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left text-white transform-gpu transition-all duration-300 hover:scale-[1.015] hover:-translate-y-1.5 hover:border-zinc-700 hover:shadow-black/80">
             <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4 mb-6">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500/80" />
@@ -963,18 +1027,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
       </section>
 
       {/* Footer with Social Links & Buy Me a Coffee */}
-      <footer className={`mt-auto border-t py-10 px-6 text-xs ${isDark ? 'border-zinc-800 bg-zinc-950 text-zinc-400' : 'border-zinc-200 bg-zinc-100 text-zinc-600'}`}>
+      <footer className={`mt-auto border-t py-12 px-6 text-xs relative z-10 ${isDark ? 'border-zinc-800/80 bg-[#09090b]/90 text-zinc-200 backdrop-blur-md' : 'border-zinc-200 bg-white/90 text-zinc-800 backdrop-blur-md'}`}>
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2 flex-wrap justify-center">
             <Logo className="w-4 h-4" />
             <span className={`font-bold text-sm tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>CodeMotion</span>
-            <span className="opacity-50">
+            <span className="opacity-90 font-medium">
               by{' '}
               <a
                 href="https://github.com/putrarawr"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`underline decoration-dotted underline-offset-2 hover:opacity-100 transition-opacity ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}
+                className={`underline decoration-dotted underline-offset-2 hover:opacity-100 transition-opacity font-semibold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}
                 title="Septiyan Bintang Ramadhan Putra on GitHub"
               >
                 Septiyan Bintang Ramadhan Putra
@@ -989,14 +1053,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               href="https://saweria.co/codemotion"
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border transition-all no-underline ${
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border font-bold transition-all no-underline ${
                 isDark
-                  ? 'bg-zinc-900 border-zinc-800 text-amber-300 hover:bg-zinc-800 hover:text-amber-200'
-                  : 'bg-white border-zinc-300 text-amber-700 hover:bg-zinc-100 shadow-xs'
+                  ? 'bg-zinc-900 border-zinc-700 text-zinc-100 hover:bg-zinc-800 hover:border-zinc-500 hover:text-white shadow-md'
+                  : 'bg-white border-zinc-300 text-zinc-900 hover:bg-zinc-100 hover:border-zinc-400 shadow-xs'
               }`}
               title="Support CodeMotion development via Saweria"
             >
-              <Coffee className="w-3.5 h-3.5 text-amber-400" />
+              <Coffee className={`w-4 h-4 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`} />
               <span>Buy me a coffee</span>
             </a>
 
@@ -1004,8 +1068,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               href="https://github.com/putrarawr/CodeMotion"
               target="_blank"
               rel="noopener noreferrer"
-              className={`p-2 rounded-xl border transition-all ${
-                isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800' : 'bg-white border-zinc-300 text-zinc-700 hover:text-black shadow-xs'
+              className={`p-2.5 rounded-xl border transition-all ${
+                isDark ? 'bg-zinc-900 border-zinc-700 text-zinc-200 hover:text-white hover:border-zinc-500 hover:bg-zinc-800 shadow-md' : 'bg-white border-zinc-300 text-zinc-800 hover:text-black hover:border-zinc-400 shadow-xs'
               }`}
               title="GitHub Repository (putrarawr/CodeMotion)"
             >
@@ -1016,8 +1080,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               href="https://instagram.com/rexxkielll"
               target="_blank"
               rel="noopener noreferrer"
-              className={`p-2 rounded-xl border transition-all ${
-                isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-pink-400 hover:bg-zinc-800' : 'bg-white border-zinc-300 text-zinc-700 hover:text-pink-600 shadow-xs'
+              className={`p-2.5 rounded-xl border transition-all ${
+                isDark ? 'bg-zinc-900 border-zinc-700 text-zinc-200 hover:text-white hover:border-zinc-500 hover:bg-zinc-800 shadow-md' : 'bg-white border-zinc-300 text-zinc-800 hover:text-black hover:border-zinc-400 shadow-xs'
               }`}
               title="Instagram (@rexxkielll)"
             >
@@ -1028,8 +1092,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               href="https://t.me/putrarawr"
               target="_blank"
               rel="noopener noreferrer"
-              className={`p-2 rounded-xl border transition-all ${
-                isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-sky-400 hover:bg-zinc-800' : 'bg-white border-zinc-300 text-zinc-700 hover:text-sky-600 shadow-xs'
+              className={`p-2.5 rounded-xl border transition-all ${
+                isDark ? 'bg-zinc-900 border-zinc-700 text-zinc-200 hover:text-white hover:border-zinc-500 hover:bg-zinc-800 shadow-md' : 'bg-white border-zinc-300 text-zinc-800 hover:text-black hover:border-zinc-400 shadow-xs'
               }`}
               title="Telegram (@putrarawr)"
             >
