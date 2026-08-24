@@ -15,8 +15,8 @@ export function useSEO({ title, description, canonicalUrl }: SEOProps = {}) {
 
     // Dynamic Title optimized for search intent and AI discoverability (GEO)
     const defaultTitle = isEditor
-      ? 'CodeMotion Editor - Create Animated Code Videos & Snippets'
-      : 'CodeMotion - Animated Code Snippet & Video Generator (MP4 & GIF)';
+      ? 'CodeMotion Editor | Create Animated Code Videos & Snippets'
+      : 'CodeMotion | Animated Code Snippet & Video Generator (MP4 & GIF)';
 
     document.title = title || defaultTitle;
 

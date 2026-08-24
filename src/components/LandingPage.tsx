@@ -426,7 +426,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               isDark ? 'text-zinc-400' : 'text-zinc-600'
             }`}
           >
-            Paste code, select an animation style, and export studio-quality typing videos (MP4/GIF) for coding tutorials, YouTube Shorts, Reels, and social posts — zero video editing required.
+            Paste code, select an animation style, and export studio-quality typing videos (MP4/GIF) for coding tutorials, YouTube Shorts, Reels, and social posts | zero video editing required.
           </motion.p>
 
           <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center gap-4">
