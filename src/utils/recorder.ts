@@ -105,10 +105,10 @@ async function doRecordMotionVideo({
   syncEditorDocument(code, element);
   await forceDomPaint();
 
-  // Measure master dimensions at 1.5x pixel ratio for sharp HD canvas
+  // Measure master dimensions at 1x pixel ratio (HD-sharp but 2.25x less VRAM vs 1.5x)
   const fullCanvas = await toCanvas(element, {
-    quality: 0.95,
-    pixelRatio: 1.5,
+    quality: 0.85,
+    pixelRatio: 1,
     cacheBust: true,
     skipFonts: true,
     fontEmbedCSS: '',
@@ -118,148 +118,61 @@ async function doRecordMotionVideo({
   const height = Math.max(32, Math.floor(fullCanvas.height / 2) * 2);
 
   const effectiveSpeed = Math.max(0.25, motionSpeed || 1);
-  const keyframeCanvases: HTMLCanvasElement[] = [];
 
-  try {
-    // Reset to 0
-    if (onSetTypedLength) onSetTypedLength(0);
-    syncEditorDocument('', element);
-    await forceDomPaint();
+  // ---- GIF Path: still uses array (small # of frames) ----
+  if (isGif) {
+    const gifCanvases: HTMLCanvasElement[] = [];
+    try {
+      if (onSetTypedLength) onSetTypedLength(0);
+      syncEditorDocument('', element);
+      await forceDomPaint();
 
-    if (motionStyle === 'lineByLine') {
-      const textContent = code || element.innerText || '';
-      const lines = textContent.split('\n');
-
-      const maxLineSteps = isGif ? 20 : 50;
-      const lineGroupSize = Math.max(1, Math.ceil(lines.length / maxLineSteps));
-
-      const lineEndIndices: number[] = [];
-      let cumulative = 0;
-      for (let i = 0; i < lines.length; i++) {
-        cumulative += lines[i].length + (i < lines.length - 1 ? 1 : 0);
-        if ((i + 1) % lineGroupSize === 0 || i === lines.length - 1) {
-          lineEndIndices.push(Math.min(totalChars, cumulative));
-        }
-      }
-
-      for (let l = 0; l < lineEndIndices.length; l++) {
-        if (isCancelled?.()) throw new Error('CANCELLED');
-        const charLen = lineEndIndices[l];
-        if (onSetTypedLength) onSetTypedLength(charLen);
-        syncEditorDocument(code.slice(0, charLen), element);
-        await forceDomPaint();
-
-        try {
-          const snapCanvas = await toCanvas(element, {
-            quality: 0.95,
-            pixelRatio: 1.5,
-            cacheBust: true,
-            skipFonts: true,
-            fontEmbedCSS: '',
-            width,
-            height,
-            filter: filterCmWidgetBuffer,
-          });
-          keyframeCanvases.push(snapCanvas);
-        } catch {}
-
-        if (l % 4 === 0) await sleep(10);
-        safeProgress(5 + Math.floor(((l + 1) / lineEndIndices.length) * 40));
-      }
-    } else {
-      // Typewriter mode — 1 to 2 characters per step for TRUE character-by-character fluid typewriter motion
-      const charStep = isGif
-        ? Math.max(1, Math.ceil(totalChars / 35))
-        : Math.max(1, Math.ceil(totalChars / 140)); // Up to 140 keyframes for 1-2 char steps
+      const maxGifSteps = 25;
+      const charStepGif = Math.max(1, Math.ceil(totalChars / maxGifSteps));
       let currentLen = 0;
-      let snapIndex = 0;
 
       while (currentLen < totalChars) {
         if (isCancelled?.()) throw new Error('CANCELLED');
-        currentLen = Math.min(totalChars, currentLen + charStep);
-        snapIndex++;
+        currentLen = Math.min(totalChars, currentLen + charStepGif);
         if (onSetTypedLength) onSetTypedLength(currentLen);
         syncEditorDocument(code.slice(0, currentLen), element);
         await forceDomPaint();
-
         try {
-          const snapCanvas = await toCanvas(element, {
-            quality: 0.95,
-            pixelRatio: 1.5,
-            cacheBust: true,
-            skipFonts: true,
-            fontEmbedCSS: '',
-            width,
-            height,
-            filter: filterCmWidgetBuffer,
-          });
-          keyframeCanvases.push(snapCanvas);
+          gifCanvases.push(await toCanvas(element, {
+            quality: 0.85, pixelRatio: 1, cacheBust: true, skipFonts: true,
+            fontEmbedCSS: '', width, height, filter: filterCmWidgetBuffer,
+          }));
         } catch {}
-
-        if (snapIndex % 4 === 0) await sleep(10);
-
+        await sleep(5);
         safeProgress(5 + Math.floor((currentLen / totalChars) * 40));
       }
-    }
 
-    // Final full code frame snapshot
-    if (isCancelled?.()) throw new Error('CANCELLED');
-    if (onSetTypedLength) onSetTypedLength(totalChars);
-    syncEditorDocument(code, element);
-    await forceDomPaint();
-    try {
-      const finalSnap = await toCanvas(element, {
-        quality: 0.95,
-        pixelRatio: 1.5,
-        cacheBust: true,
-        skipFonts: true,
-        fontEmbedCSS: '',
-        width,
-        height,
-        filter: filterCmWidgetBuffer,
-      });
-      keyframeCanvases.push(finalSnap);
-    } catch {}
+      // Final frame
+      if (onSetTypedLength) onSetTypedLength(totalChars);
+      syncEditorDocument(code, element);
+      await forceDomPaint();
+      try {
+        const finalSnap = await toCanvas(element, {
+          quality: 0.85, pixelRatio: 1, cacheBust: true, skipFonts: true,
+          fontEmbedCSS: '', width, height, filter: filterCmWidgetBuffer,
+        });
+        gifCanvases.push(finalSnap);
+      } catch {}
 
-    safeProgress(48);
+      safeProgress(48);
 
-    // Calculate frame timings with ACCURATE speed scaling
-    const maxTypingSec = effectiveSpeed <= 0.6 ? 16 : effectiveSpeed >= 1.8 ? 4 : 8;
-    const minTypingSec = effectiveSpeed <= 0.6 ? 6 : effectiveSpeed >= 1.8 ? 1.5 : 3;
-    const totalTypingDurationSec = Math.min(
-      maxTypingSec,
-      Math.max(minTypingSec, totalChars / (15 * effectiveSpeed))
-    );
-
-    const snapshotCount = Math.max(1, keyframeCanvases.length);
-    const framesPerSnapshot = Math.max(
-      1,
-      Math.round((totalTypingDurationSec * fps) / snapshotCount)
-    );
-
-    const typingFramesCount = snapshotCount * framesPerSnapshot;
-    const holdFramesCount = Math.round(fps * 1.0);
-    const totalVideoFrames = typingFramesCount + holdFramesCount;
-    const finalCanvas = keyframeCanvases[keyframeCanvases.length - 1] || fullCanvas;
-
-    // Direct streaming getter function (0 RAM overhead)
-    const getFrameCanvas = (frameIdx: number): HTMLCanvasElement => {
-      if (frameIdx < typingFramesCount) {
-        const snapIdx = Math.min(keyframeCanvases.length - 1, Math.floor(frameIdx / framesPerSnapshot));
-        return keyframeCanvases[snapIdx];
-      }
-      return finalCanvas;
-    };
-
-    // Step D: Export as Animated GIF (.gif)
-    if (isGif) {
-      safeProgress(50);
-      const canvasDataUrls = keyframeCanvases.map((c) => c.toDataURL('image/png', 0.9));
-      for (let i = 0; i < 4; i++) {
-        canvasDataUrls.push(finalCanvas.toDataURL('image/png', 0.9));
-      }
-
+      const maxTypingSec = effectiveSpeed <= 0.6 ? 16 : effectiveSpeed >= 1.8 ? 4 : 8;
+      const minTypingSec = effectiveSpeed <= 0.6 ? 6 : effectiveSpeed >= 1.8 ? 1.5 : 3;
+      const totalTypingDurationSec = Math.min(maxTypingSec, Math.max(minTypingSec, totalChars / (15 * effectiveSpeed)));
+      const snapshotCount = Math.max(1, gifCanvases.length);
       const gifInterval = Math.max(0.04, totalTypingDurationSec / snapshotCount);
+
+      safeProgress(50);
+      const canvasDataUrls = gifCanvases.map((c) => c.toDataURL('image/png', 0.85));
+      const finalGifCanvas = gifCanvases[gifCanvases.length - 1] || fullCanvas;
+      for (let i = 0; i < 4; i++) {
+        canvasDataUrls.push(finalGifCanvas.toDataURL('image/png', 0.85));
+      }
 
       return await new Promise<{ blob: Blob; filename: string }>((resolve, reject) => {
         gifshot.createGIF(
@@ -275,85 +188,120 @@ async function doRecordMotionVideo({
             },
           },
           (obj) => {
-            if (isCancelled?.()) {
-              reject(new Error('CANCELLED'));
-              return;
-            }
-            if (obj.error || !obj.image) {
-              reject(new Error(obj.errorMsg || 'Failed to render GIF'));
-              return;
-            }
+            if (isCancelled?.()) { reject(new Error('CANCELLED')); return; }
+            if (obj.error || !obj.image) { reject(new Error(obj.errorMsg || 'Failed to render GIF')); return; }
             safeProgress(100);
-            const blob = dataURLtoBlob(obj.image);
-            resolve({ blob, filename: `codemotion-snippet-${Date.now()}.gif` });
+            resolve({ blob: dataURLtoBlob(obj.image), filename: `codemotion-snippet-${Date.now()}.gif` });
           }
         );
       });
+    } finally {
+      releaseCanvases(gifCanvases);
+      releaseCanvases([fullCanvas]);
+    }
+  }
+
+  // ---- MP4 Path: Streaming encode per-snapshot (zero array storage) ----
+  // Each snapshot is captured, encoded immediately, then released.
+  // Only 1 canvas lives in RAM at any time.
+
+  try {
+    // Reset to 0
+    if (onSetTypedLength) onSetTypedLength(0);
+    syncEditorDocument('', element);
+    await forceDomPaint();
+
+    // Compute snapshot char positions
+    const charPositions: number[] = [];
+    if (motionStyle === 'lineByLine') {
+      const lines = (code || element.innerText || '').split('\n');
+      const maxLineSteps = 50;
+      const lineGroupSize = Math.max(1, Math.ceil(lines.length / maxLineSteps));
+      let cumulative = 0;
+      for (let i = 0; i < lines.length; i++) {
+        cumulative += lines[i].length + (i < lines.length - 1 ? 1 : 0);
+        if ((i + 1) % lineGroupSize === 0 || i === lines.length - 1) {
+          charPositions.push(Math.min(totalChars, cumulative));
+        }
+      }
+    } else {
+      // Typewriter: 50 keyframes (smooth enough, 2.8x less than 140)
+      const charStep = Math.max(1, Math.ceil(totalChars / 50));
+      let cur = 0;
+      while (cur < totalChars) {
+        cur = Math.min(totalChars, cur + charStep);
+        charPositions.push(cur);
+      }
+    }
+    // Ensure final position is totalChars
+    if (charPositions[charPositions.length - 1] !== totalChars) {
+      charPositions.push(totalChars);
     }
 
-    // Step E: Export as MP4 Video (.mp4)
+    const snapshotCount = charPositions.length;
+
+    // Calculate timing
+    const maxTypingSec = effectiveSpeed <= 0.6 ? 16 : effectiveSpeed >= 1.8 ? 4 : 8;
+    const minTypingSec = effectiveSpeed <= 0.6 ? 6 : effectiveSpeed >= 1.8 ? 1.5 : 3;
+    const totalTypingDurationSec = Math.min(maxTypingSec, Math.max(minTypingSec, totalChars / (15 * effectiveSpeed)));
+    const framesPerSnapshot = Math.max(1, Math.round((totalTypingDurationSec * fps) / snapshotCount));
+    const holdFramesCount = Math.round(fps * 1.0);
+
+    safeProgress(5);
+
+    // Determine encoder path
     let result: { blob: Blob; extension: string };
 
     if (typeof VideoEncoder !== 'undefined') {
       try {
-        const blob = await encodeMp4WithMuxerStream(
-          getFrameCanvas,
-          totalVideoFrames,
-          width,
-          height,
-          fps,
-          isCancelled,
-          safeProgress
-        );
-        result = { blob, extension: 'mp4' };
+        result = {
+          blob: await streamEncodeMp4WebCodecs(
+            element, code, charPositions, width, height, fps,
+            framesPerSnapshot, holdFramesCount,
+            isCancelled, onSetTypedLength, safeProgress
+          ),
+          extension: 'mp4',
+        };
       } catch (err) {
         if (err instanceof Error && err.message === 'CANCELLED') throw err;
-        result = await encodeMp4WithWasmStream(
-          getFrameCanvas,
-          totalVideoFrames,
-          width,
-          height,
-          fps,
-          isCancelled,
-          safeProgress
+        result = await streamEncodeMp4Wasm(
+          element, code, charPositions, width, height, fps,
+          framesPerSnapshot, holdFramesCount,
+          isCancelled, onSetTypedLength, safeProgress
         );
       }
     } else {
-      result = await encodeMp4WithWasmStream(
-        getFrameCanvas,
-        totalVideoFrames,
-        width,
-        height,
-        fps,
-        isCancelled,
-        safeProgress
+      result = await streamEncodeMp4Wasm(
+        element, code, charPositions, width, height, fps,
+        framesPerSnapshot, holdFramesCount,
+        isCancelled, onSetTypedLength, safeProgress
       );
     }
 
     safeProgress(100);
     return { blob: result.blob, filename: `codemotion-snippet-${Date.now()}.${result.extension}` };
   } finally {
-    // Explicitly release all canvas VRAM / memory to keep browser light!
-    releaseCanvases(keyframeCanvases);
-    if (fullCanvas) releaseCanvases([fullCanvas]);
+    releaseCanvases([fullCanvas]);
   }
 }
 
 /**
- * Low-RAM Streaming MP4 encoder using WebCodecs with Throttled Queue Protection
+ * Streaming MP4 encoder using WebCodecs — captures and encodes per-snapshot.
+ * Only 1 canvas active in RAM at any time. Zero array storage.
  */
-async function encodeMp4WithMuxerStream(
-  getFrameCanvas: (idx: number) => HTMLCanvasElement,
-  totalFrames: number,
+async function streamEncodeMp4WebCodecs(
+  element: HTMLElement,
+  code: string,
+  charPositions: number[],
   width: number,
   height: number,
   fps: number,
+  framesPerSnapshot: number,
+  holdFramesCount: number,
   isCancelled: (() => boolean) | undefined,
+  onSetTypedLength: ((len: number) => void) | undefined,
   onProgress: (pct: number) => void
 ): Promise<Blob> {
-  const targetWidth = width;
-  const targetHeight = height;
-
   let videoCodec = 'avc1.4D4028';
   let muxerCodec: 'avc' | 'vp9' = 'avc';
 
@@ -364,33 +312,18 @@ async function encodeMp4WithMuxerStream(
     { codec: 'vp09.00.10.08', muxer: 'vp9' as const },
   ];
 
-  if (typeof VideoEncoder !== 'undefined') {
-    for (const test of codecsToTest) {
-      try {
-        const check = await VideoEncoder.isConfigSupported({
-          codec: test.codec,
-          width: targetWidth,
-          height: targetHeight,
-          bitrate: 8_000_000,
-          framerate: fps,
-        });
-
-        if (check.supported) {
-          videoCodec = test.codec;
-          muxerCodec = test.muxer;
-          break;
-        }
-      } catch {}
-    }
+  for (const test of codecsToTest) {
+    try {
+      const check = await VideoEncoder.isConfigSupported({
+        codec: test.codec, width, height, bitrate: 6_000_000, framerate: fps,
+      });
+      if (check.supported) { videoCodec = test.codec; muxerCodec = test.muxer; break; }
+    } catch {}
   }
 
   const muxer = new Mp4Muxer.Muxer({
     target: new Mp4Muxer.ArrayBufferTarget(),
-    video: {
-      codec: muxerCodec,
-      width: targetWidth,
-      height: targetHeight,
-    },
+    video: { codec: muxerCodec, width, height },
     fastStart: 'in-memory',
   });
 
@@ -398,67 +331,103 @@ async function encodeMp4WithMuxerStream(
   const frameDurationUs = Math.round(1_000_000 / fps);
 
   const videoEncoder = new VideoEncoder({
-    output: (chunk, meta) => {
-      muxer.addVideoChunk(chunk, meta);
-    },
-    error: (e) => {
-      encoderError = e;
-    },
+    output: (chunk, meta) => { muxer.addVideoChunk(chunk, meta); },
+    error: (e) => { encoderError = e; },
   });
 
   videoEncoder.configure({
-    codec: videoCodec,
-    width: targetWidth,
-    height: targetHeight,
-    bitrate: 8_000_000,
-    framerate: fps,
+    codec: videoCodec, width, height, bitrate: 6_000_000, framerate: fps,
   });
 
   const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = targetWidth;
-  tempCanvas.height = targetHeight;
+  tempCanvas.width = width;
+  tempCanvas.height = height;
   const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true })!;
   tempCtx.imageSmoothingEnabled = true;
   tempCtx.imageSmoothingQuality = 'high';
 
+  let globalFrameIdx = 0;
+
   try {
-    for (let i = 0; i < totalFrames; i++) {
-      if (isCancelled?.()) {
-        try {
-          videoEncoder.close();
-        } catch {}
-        throw new Error('CANCELLED');
-      }
+    // Encode typing snapshots — capture, encode N frames, release immediately
+    for (let s = 0; s < charPositions.length; s++) {
+      if (isCancelled?.()) { try { videoEncoder.close(); } catch {} throw new Error('CANCELLED'); }
       if (encoderError) throw encoderError;
 
-      // CRASH PROTECTION: Throttles WebCodecs queue to guarantee ZERO browser force-closes
-      while (videoEncoder.encodeQueueSize > 3) {
-        await sleep(15);
-      }
+      const charLen = charPositions[s];
+      if (onSetTypedLength) onSetTypedLength(charLen);
+      syncEditorDocument(code.slice(0, charLen), element);
+      await forceDomPaint();
 
-      const frameCanvas = getFrameCanvas(i);
-      tempCtx.clearRect(0, 0, targetWidth, targetHeight);
-      tempCtx.drawImage(frameCanvas, 0, 0, targetWidth, targetHeight);
-
-      const videoFrame = new VideoFrame(tempCanvas, {
-        timestamp: i * frameDurationUs,
-        duration: frameDurationUs,
+      // Capture single snapshot
+      const snapCanvas = await toCanvas(element, {
+        quality: 0.85, pixelRatio: 1, cacheBust: true, skipFonts: true,
+        fontEmbedCSS: '', width, height, filter: filterCmWidgetBuffer,
       });
 
-      const isKeyframe = i % 15 === 0;
-      videoEncoder.encode(videoFrame, { keyFrame: isKeyframe });
-      videoFrame.close();
+      // Encode this snapshot as N repeated frames
+      for (let f = 0; f < framesPerSnapshot; f++) {
+        if (isCancelled?.()) { try { videoEncoder.close(); } catch {} throw new Error('CANCELLED'); }
+        if (encoderError) throw encoderError;
 
-      if (i % 6 === 0) await sleep(4);
+        // Throttle WebCodecs queue to prevent browser crash
+        while (videoEncoder.encodeQueueSize > 3) { await sleep(10); }
 
-      // Smooth progress scaling up to 92% during frame encoding
-      const pct = 50 + Math.floor((i / totalFrames) * 42);
-      onProgress(pct);
+        tempCtx.clearRect(0, 0, width, height);
+        tempCtx.drawImage(snapCanvas, 0, 0, width, height);
+
+        const videoFrame = new VideoFrame(tempCanvas, {
+          timestamp: globalFrameIdx * frameDurationUs,
+          duration: frameDurationUs,
+        });
+        videoEncoder.encode(videoFrame, { keyFrame: globalFrameIdx % 30 === 0 });
+        videoFrame.close();
+        globalFrameIdx++;
+
+        if (f % 4 === 0) await sleep(2);
+      }
+
+      // Release snapshot immediately — only 1 canvas alive at a time
+      releaseCanvases([snapCanvas]);
+
+      // Progress: 10% to 85% during snapshot encoding
+      onProgress(10 + Math.floor(((s + 1) / charPositions.length) * 75));
     }
 
-    onProgress(94);
+    // Encode hold frames (final frame held for 1 second)
+    // Re-capture final state
+    if (onSetTypedLength) onSetTypedLength(charPositions[charPositions.length - 1]);
+    syncEditorDocument(code, element);
+    await forceDomPaint();
+
+    const holdCanvas = await toCanvas(element, {
+      quality: 0.85, pixelRatio: 1, cacheBust: true, skipFonts: true,
+      fontEmbedCSS: '', width, height, filter: filterCmWidgetBuffer,
+    });
+
+    for (let h = 0; h < holdFramesCount; h++) {
+      if (isCancelled?.()) { try { videoEncoder.close(); } catch {} throw new Error('CANCELLED'); }
+      while (videoEncoder.encodeQueueSize > 3) { await sleep(10); }
+
+      tempCtx.clearRect(0, 0, width, height);
+      tempCtx.drawImage(holdCanvas, 0, 0, width, height);
+
+      const videoFrame = new VideoFrame(tempCanvas, {
+        timestamp: globalFrameIdx * frameDurationUs,
+        duration: frameDurationUs,
+      });
+      videoEncoder.encode(videoFrame, { keyFrame: globalFrameIdx % 30 === 0 });
+      videoFrame.close();
+      globalFrameIdx++;
+
+      if (h % 4 === 0) await sleep(2);
+    }
+
+    releaseCanvases([holdCanvas]);
+
+    onProgress(90);
     await videoEncoder.flush();
-    onProgress(97);
+    onProgress(95);
     muxer.finalize();
     onProgress(99);
 
@@ -470,64 +439,94 @@ async function encodeMp4WithMuxerStream(
 }
 
 /**
- * Low-RAM Streaming MP4 encoder fallback using WASM x264
+ * Streaming WASM fallback encoder — captures and encodes per-snapshot.
+ * Only 1 canvas active in RAM at any time.
  */
-async function encodeMp4WithWasmStream(
-  getFrameCanvas: (idx: number) => HTMLCanvasElement,
-  totalFrames: number,
+async function streamEncodeMp4Wasm(
+  element: HTMLElement,
+  code: string,
+  charPositions: number[],
   width: number,
   height: number,
   fps: number,
+  framesPerSnapshot: number,
+  holdFramesCount: number,
   isCancelled: (() => boolean) | undefined,
+  onSetTypedLength: ((len: number) => void) | undefined,
   onProgress: (pct: number) => void
 ): Promise<{ blob: Blob; extension: string }> {
-  const targetWidth = width;
-  const targetHeight = height;
-
   const wasmFps = Math.min(fps, 30);
   const rateStep = Math.max(1, Math.round(fps / wasmFps));
-  const effectiveFrames = Math.floor(totalFrames / rateStep);
+  const wasmFramesPerSnap = Math.max(1, Math.round(framesPerSnapshot / rateStep));
+  const wasmHoldFrames = Math.max(1, Math.round(holdFramesCount / rateStep));
 
   const HME = await import('h264-mp4-encoder');
   const encoder = await HME.createH264MP4Encoder();
 
-  encoder.width = targetWidth;
-  encoder.height = targetHeight;
+  encoder.width = width;
+  encoder.height = height;
   encoder.frameRate = wasmFps;
-  encoder.kbps = 8000;
+  encoder.kbps = 6000;
   encoder.speed = 10;
   encoder.outputFilename = 'codemotion.mp4';
   encoder.initialize();
 
   const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = targetWidth;
-  tempCanvas.height = targetHeight;
+  tempCanvas.width = width;
+  tempCanvas.height = height;
   const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true })!;
   tempCtx.imageSmoothingEnabled = true;
   tempCtx.imageSmoothingQuality = 'high';
 
   try {
-    for (let i = 0; i < effectiveFrames; i++) {
+    for (let s = 0; s < charPositions.length; s++) {
       if (isCancelled?.()) throw new Error('CANCELLED');
 
-      const frameIdx = i * rateStep;
-      const frameCanvas = getFrameCanvas(frameIdx);
-      tempCtx.clearRect(0, 0, targetWidth, targetHeight);
-      tempCtx.drawImage(frameCanvas, 0, 0, targetWidth, targetHeight);
+      const charLen = charPositions[s];
+      if (onSetTypedLength) onSetTypedLength(charLen);
+      syncEditorDocument(code.slice(0, charLen), element);
+      await forceDomPaint();
 
-      const imageData = tempCtx.getImageData(0, 0, targetWidth, targetHeight);
-      encoder.addFrameRgba(imageData.data);
+      const snapCanvas = await toCanvas(element, {
+        quality: 0.85, pixelRatio: 1, cacheBust: true, skipFonts: true,
+        fontEmbedCSS: '', width, height, filter: filterCmWidgetBuffer,
+      });
 
-      // Yield CPU thread every frame in WASM to prevent Emscripten OOM crash!
-      await sleep(2);
+      tempCtx.clearRect(0, 0, width, height);
+      tempCtx.drawImage(snapCanvas, 0, 0, width, height);
+      const imageData = tempCtx.getImageData(0, 0, width, height);
 
-      const pct = 50 + Math.floor(((i + 1) / effectiveFrames) * 44);
-      onProgress(pct);
+      for (let f = 0; f < wasmFramesPerSnap; f++) {
+        encoder.addFrameRgba(imageData.data);
+        await sleep(2);
+      }
+
+      releaseCanvases([snapCanvas]);
+      onProgress(10 + Math.floor(((s + 1) / charPositions.length) * 75));
     }
 
-    onProgress(96);
+    // Hold frames
+    if (onSetTypedLength) onSetTypedLength(charPositions[charPositions.length - 1]);
+    syncEditorDocument(code, element);
+    await forceDomPaint();
+
+    const holdCanvas = await toCanvas(element, {
+      quality: 0.85, pixelRatio: 1, cacheBust: true, skipFonts: true,
+      fontEmbedCSS: '', width, height, filter: filterCmWidgetBuffer,
+    });
+    tempCtx.clearRect(0, 0, width, height);
+    tempCtx.drawImage(holdCanvas, 0, 0, width, height);
+    const holdData = tempCtx.getImageData(0, 0, width, height);
+
+    for (let h = 0; h < wasmHoldFrames; h++) {
+      encoder.addFrameRgba(holdData.data);
+      await sleep(2);
+    }
+    releaseCanvases([holdCanvas]);
+
+    onProgress(90);
     encoder.finalize();
-    onProgress(98);
+    onProgress(95);
 
     const fileFs = typeof encoder.getFS === 'function' ? encoder.getFS() : (encoder as any).FS;
     const bytes = fileFs.readFile(encoder.outputFilename);

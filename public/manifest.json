@@ -1,0 +1,25 @@
+{
+  "name": "CodeMotion",
+  "short_name": "CodeMotion",
+  "description": "Free client-side tool to turn code into high-res snippet images (PNG/SVG) and 60FPS typing motion videos (MP4 & GIF). No login, 100% private.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#09090b",
+  "background_color": "#09090b",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["developer", "productivity", "utilities"],
+  "lang": "en",
+  "dir": "ltr"
+}

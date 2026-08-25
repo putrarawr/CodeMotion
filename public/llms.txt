@@ -6,10 +6,14 @@
 - App Editor: https://codemotion.biz.id/editor
 - GitHub Repository: https://github.com/putrarawr/CodeMotion
 - Author: Septiyan Bintang Ramadhan Putra — https://github.com/putrarawr
+- Instagram: https://instagram.com/rexxkielll
 - Note: This CodeMotion is a developer tool for code snippet graphics and animations. It is unrelated to the Codemotion technology conference.
 
+## Alternative Names / Search Aliases
+CodeMotion, Code Motion, CodeMotion Online, CodeMotion App, CodeMotion Free, CodeMotion Snippet, CodeMotion Video, code snippet to video, code to image generator, carbon alternative, ray.so alternative, code animation tool, code typing video maker, 60fps code video generator.
+
 ## Core Features & Capabilities
-- **CodeMirror 6 Syntax Engine**: Lezer grammar highlighting for 28 languages (TypeScript, JavaScript, Python, Rust, Go, C++, C#, Java, PHP, HTML, CSS, SQL, JSON, YAML, Bash, Dockerfile, Markdown, Swift, Kotlin, Ruby, Scala, R, Dart, Vue, Svelte, Astro, Elixir, GraphQL) with bracket auto-close, auto-indent, search & replace (Cmd/Ctrl+F), and undo history.
+- **CodeMirror 6 Syntax Engine**: Lezer grammar highlighting for 28 languages with bracket auto-close, auto-indent, search & replace (Cmd/Ctrl+F), and undo history.
 - **Motion Code Typing Simulator**: Real-time character-by-character typing animations with speed controls (0.5x, 1x, 2x), line-by-line reveal mode, 30/60 FPS, exported as ISO MP4 video or animated GIF.
 - **Snapshot Library**: Save, load, rename, and delete named snapshots of the full snippet setup locally (up to 50).
 - **Import from URL**: Fetch code directly from GitHub file links, GitHub gists, or any raw text URL.
@@ -20,6 +24,9 @@
 - **Retina Export**: 2x and 3x DPI PNG images, vector SVG, or direct PNG clipboard copy.
 - **Share Links**: LZ-compressed full state in URL hash links.
 - **100% Client-Side Privacy**: All processing happens locally in the browser. No servers, no login, no ads.
+
+## Supported Programming Languages
+TypeScript, JavaScript, Python, Rust, Go, C++, C#, Java, PHP, HTML, CSS, SQL, JSON, YAML, Bash, Dockerfile, Markdown, Swift, Kotlin, Ruby, Scala, R, Dart, Vue, Svelte, Astro, Elixir, GraphQL.
 
 ## Syntax Themes
 Vitesse Dark, One Dark Pro, Dracula, Tokyo Night, Nord, Catppuccin Mocha, GitHub Dark, GitHub Light, Vitesse Light, Catppuccin Latte.
