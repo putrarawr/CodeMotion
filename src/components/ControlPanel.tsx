@@ -17,6 +17,12 @@ import { SNIPPET_TEMPLATES } from '../utils/snippetTemplates';
 import { fetchCodeFromUrl } from '../utils/urlImport';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import {
+  exportTemplateAsJson,
+  parseAndValidateTemplate,
+  downloadJsonFile,
+} from '../utils/communityTemplates';
+import { INITIAL_PUBLIC_TEMPLATES, type PublicCommunityTemplate } from '../utils/communityTemplatesData';
+import {
   Code,
   Palette,
   Type,
@@ -40,6 +46,10 @@ import {
   Pencil,
   Link2,
   Loader2,
+  FileDown,
+  FileUp,
+  Package,
+  Sparkles,
 } from 'lucide-react';
 
 const LIBRARY_MAX_ITEMS = 50;
@@ -60,6 +70,8 @@ interface ControlPanelProps {
   setSettings: React.Dispatch<React.SetStateAction<SnippetSettings>>;
   onRecordVideo?: () => void;
   recordingProgress?: number | null;
+  onBatchExportZip?: () => void;
+  batchExportProgress?: number | null;
 }
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -67,6 +79,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   setSettings,
   onRecordVideo,
   recordingProgress,
+  onBatchExportZip,
+  batchExportProgress,
 }) => {
   const isDark = settings.appTheme === 'dark';
 
@@ -78,12 +92,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
   // Ref for hidden file input upload
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const templateFileInputRef = useRef<HTMLInputElement>(null);
 
   // Snapshot Library state
   const [library, setLibrary] = useLocalStorage<LibrarySnapshot[]>('codemotion_library', []);
   const [snapshotNameInput, setSnapshotNameInput] = useState<string>('');
   const [renamingSnapshotId, setRenamingSnapshotId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState<string>('');
+
+  // Community Template Modal / State
+  const [exportingTemplateSnapshot, setExportingTemplateSnapshot] = useState<LibrarySnapshot | null>(null);
+  const [templateAuthor, setTemplateAuthor] = useState<string>('');
+  const [templateDescription, setTemplateDescription] = useState<string>('');
+  const [templateGithubInput, setTemplateGithubInput] = useState<string>('');
+  const [showPublishModal, setShowPublishModal] = useState<boolean>(false);
 
   // URL Import popover state
   const [showUrlPopover, setShowUrlPopover] = useState<boolean>(false);
@@ -237,7 +259,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     const cleanSettings: SnippetSettings = { ...settings, watermarkAvatar: '' };
     const now = Date.now();
 
-    setLibrary((prev) => {
+    setLibrary((prev: LibrarySnapshot[]) => {
       let next = [
         { id: `snap-${now}`, name, createdAt: now, updatedAt: now, settings: cleanSettings },
         ...prev,
@@ -275,8 +297,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       setRenamingSnapshotId(null);
       return;
     }
-    setLibrary((prev) =>
-      prev.map((s) =>
+    setLibrary((prev: LibrarySnapshot[]) =>
+      prev.map((s: LibrarySnapshot) =>
         s.id === renamingSnapshotId ? { ...s, name: trimmed.slice(0, 80), updatedAt: Date.now() } : s
       )
     );
@@ -285,8 +307,120 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   };
 
   const handleDeleteSnapshot = (id: string) => {
-    setLibrary((prev) => prev.filter((s) => s.id !== id));
+    setLibrary((prev: LibrarySnapshot[]) => prev.filter((s: LibrarySnapshot) => s.id !== id));
     toast.info('Snapshot deleted');
+  };
+
+  const handleDownloadTemplateJson = (snapshot: LibrarySnapshot) => {
+    const jsonStr = exportTemplateAsJson(snapshot, templateAuthor, templateDescription, []);
+    const cleanName = snapshot.name.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+    downloadJsonFile(jsonStr, `codemotion-template-${cleanName}.json`);
+    toast.success(`Template JSON for "${snapshot.name}" downloaded!`);
+    setExportingTemplateSnapshot(null);
+    setTemplateAuthor('');
+    setTemplateDescription('');
+  };
+
+  const handleImportTemplateFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const content = event.target?.result as string;
+        const template = parseAndValidateTemplate(content);
+
+        const newSnapshot: LibrarySnapshot = {
+          id: `snap-${Date.now()}`,
+          name: template.name,
+          createdAt: template.createdAt,
+          updatedAt: Date.now(),
+          settings: template.settings,
+        };
+
+        setLibrary((prev: LibrarySnapshot[]) => [newSnapshot, ...prev.slice(0, LIBRARY_MAX_ITEMS - 1)]);
+        setSettings((prev) => ({
+          ...template.settings,
+          appTheme: prev.appTheme,
+          isPlayingMotion: false,
+          controlledTypedLength: null,
+        }));
+
+        toast.success(`Imported community template "${template.name}"${template.author ? ` by ${template.author}` : ''}!`);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Failed to import template JSON.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handlePublishEditorSnippetToGallery = () => {
+    const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
+    const currentCode = (activeTab?.code || '').trim();
+    if (!currentCode) {
+      toast.error('Code snippet is empty!');
+      return;
+    }
+
+    const currentNormalizedCode = currentCode.replace(/\s+/g, ' ');
+
+    const dummyIds = new Set(['pub-react-hook', 'pub-rust-axum', 'pub-py-fastapi', 'pub-go-goroutine', 'pub-css-glass', 'pub-ts-utility']);
+    let existing: PublicCommunityTemplate[] = [];
+    try {
+      const saved = localStorage.getItem('codemotion_public_community_templates');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          existing = parsed.filter((t: any) => !dummyIds.has(t?.id));
+        }
+      }
+    } catch {}
+
+    const allTemplates = [...existing, ...INITIAL_PUBLIC_TEMPLATES];
+
+    const isDuplicate = allTemplates.some((t) => {
+      const existingNormalizedCode = (t.code || '').trim().replace(/\s+/g, ' ');
+      return existingNormalizedCode === currentNormalizedCode;
+    });
+
+    if (isDuplicate) {
+      toast.error('Duplicate snippet! This exact code has already been published in the Community Gallery.');
+      return;
+    }
+
+    const authorName = (templateAuthor.trim() || settings.watermarkText || 'Developer').slice(0, 50);
+    const githubHandle = templateGithubInput
+      .trim()
+      .replace(/^https?:\/\/github\.com\//i, '')
+      .replace(/^@/, '') || 'developer';
+
+    const newPublicTemplate: PublicCommunityTemplate = {
+      id: `pub-custom-${Date.now()}`,
+      title: activeTab?.title ? activeTab.title.replace(/\.[^/.]+$/, '') : 'Community Snippet',
+      description: templateDescription.trim() || `Code snippet setup created by ${authorName}`,
+      fileName: activeTab?.title || 'snippet.txt',
+      language: activeTab?.language || 'typescript',
+      theme: settings.theme,
+      themeName: THEMES.find((th) => th.id === settings.theme)?.name || 'Vitesse Dark',
+      background: settings.background,
+      bgLabel: BACKGROUND_PRESETS.find((b) => b.value === settings.background)?.name || 'Custom Gradient',
+      code: activeTab?.code || '',
+      author: authorName,
+      github: githubHandle,
+      createdAt: Date.now(),
+      likes: 0,
+      category: LANGUAGES.find((l) => l.id === activeTab?.language)?.name || 'Code',
+    };
+
+    const updated = [newPublicTemplate, ...existing];
+    try {
+      localStorage.setItem('codemotion_public_community_templates', JSON.stringify(updated));
+    } catch {}
+
+    toast.success(`Published "${newPublicTemplate.title}" to Public Community Gallery with handle @${githubHandle}!`);
+    setShowPublishModal(false);
   };
 
   const handleImportFromUrl = async () => {
@@ -1364,16 +1498,41 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </div>
       )}
 
-      {/* SECTION 6: Saved Snapshots Library */}
+      {/* SECTION 6: Saved Snapshots Library & Community Templates */}
       {activeTabSection === 'library' && (
         <div id="library-section" className="flex flex-col gap-4">
-          {/* Save Snapshot Card */}
+          {/* Hidden File Input for Importing Community Template JSON */}
+          <input
+            type="file"
+            ref={templateFileInputRef}
+            onChange={handleImportTemplateFile}
+            accept=".json,application/json"
+            className="hidden"
+          />
+
+          {/* Save, Import & Publish Actions */}
           <div
             className={`p-4 rounded-2xl border flex flex-col gap-3 ${
               isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200 shadow-xs'
             }`}
           >
-            <span className="text-xs font-bold">Save Current Snapshot</span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold">Save Current Snapshot</span>
+              <button
+                type="button"
+                onClick={() => templateFileInputRef.current?.click()}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
+                  isDark
+                    ? 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700'
+                    : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black'
+                }`}
+                title="Import a template JSON file shared by the community"
+              >
+                <FileUp className="w-3 h-3 text-zinc-400" />
+                <span>Import JSON</span>
+              </button>
+            </div>
+
             <input
               type="text"
               value={snapshotNameInput}
@@ -1391,32 +1550,200 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                   : 'bg-zinc-100 border-zinc-300 text-zinc-900 placeholder:text-zinc-400'
               }`}
             />
-            <button
-              onClick={handleSaveSnapshot}
-              className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm ${
-                isDark ? 'bg-white text-black hover:bg-zinc-200' : 'bg-black text-white hover:bg-zinc-800'
-              }`}
-            >
-              Save Snapshot
-            </button>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={handleSaveSnapshot}
+                className={`py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm ${
+                  isDark ? 'bg-white text-black hover:bg-zinc-200' : 'bg-black text-white hover:bg-zinc-800'
+                }`}
+              >
+                Save Local
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowPublishModal(true)}
+                className={`py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5 border ${
+                  isDark
+                    ? 'bg-zinc-900 border-zinc-700 text-zinc-100 hover:bg-zinc-800'
+                    : 'bg-zinc-100 border-zinc-300 text-zinc-900 hover:bg-zinc-200'
+                }`}
+                title="Publish this snippet setup to the Public Community Gallery with your GitHub handle watermark"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Publish Public</span>
+              </button>
+            </div>
+
             <p className={`text-[11px] m-0 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
-              Saves all code, tabs, and styling settings locally in your browser (max{' '}
-              {LIBRARY_MAX_ITEMS}). Avatar / logo images are not included.
+              Save snapshot locally or publish directly from editor to the Community Gallery with your GitHub handle watermark!
             </p>
           </div>
 
-          {/* Snapshot List */}
-          {library.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <span
-                className={`text-[11px] font-bold uppercase tracking-wider ${
-                  isDark ? 'text-zinc-400' : 'text-zinc-500'
-                }`}
-              >
-                Saved Snapshots ({library.length})
-              </span>
+          {/* Publish from Editor Card Modal */}
+          {showPublishModal && (
+            <div
+              className={`p-4 rounded-2xl border flex flex-col gap-3 ${
+                isDark ? 'bg-zinc-900 border-zinc-700 text-zinc-100 shadow-xl' : 'bg-white border-zinc-300 text-zinc-900 shadow-xl'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-zinc-300" />
+                  <span>Publish Snippet to Gallery</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowPublishModal(false)}
+                  className="text-xs text-zinc-400 hover:text-white cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+
               <div className="flex flex-col gap-2">
-                {library.map((snapshot) => (
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-400 mb-1">Author Name *</label>
+                  <input
+                    type="text"
+                    value={templateAuthor}
+                    onChange={(e) => setTemplateAuthor(e.target.value)}
+                    placeholder={settings.watermarkText || 'e.g. Septiyan Bintang'}
+                    className={`w-full text-xs rounded-xl border p-2 outline-none ${
+                      isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-900'
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-400 mb-1">GitHub Handle / Username *</label>
+                  <input
+                    type="text"
+                    value={templateGithubInput}
+                    onChange={(e) => setTemplateGithubInput(e.target.value)}
+                    placeholder="e.g. putrarawr"
+                    className={`w-full text-xs rounded-xl border p-2 outline-none ${
+                      isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-900'
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-400 mb-1">Description (optional)</label>
+                  <input
+                    type="text"
+                    value={templateDescription}
+                    onChange={(e) => setTemplateDescription(e.target.value)}
+                    placeholder="e.g. Clean async handler setup"
+                    className={`w-full text-xs rounded-xl border p-2 outline-none ${
+                      isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-900'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handlePublishEditorSnippetToGallery}
+                className="w-full py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-black" />
+                <span>Confirm & Publish to Gallery</span>
+              </button>
+            </div>
+          )}
+
+          {/* Export Template Popover Modal Card */}
+          {exportingTemplateSnapshot && (
+            <div
+              className={`p-4 rounded-2xl border flex flex-col gap-3 ${
+                isDark ? 'bg-zinc-900 border-sky-500/40 text-zinc-100' : 'bg-white border-sky-500/50 text-zinc-900 shadow-md'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold flex items-center gap-1.5">
+                  <FileDown className="w-3.5 h-3.5 text-sky-400" />
+                  <span>Export Template JSON</span>
+                </span>
+                <button
+                  onClick={() => setExportingTemplateSnapshot(null)}
+                  className="text-xs text-zinc-400 hover:text-white cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              <span className="text-[11px] text-zinc-400 font-mono font-bold truncate">
+                "{exportingTemplateSnapshot.name}"
+              </span>
+
+              <input
+                type="text"
+                value={templateAuthor}
+                onChange={(e) => setTemplateAuthor(e.target.value)}
+                placeholder="Author Name (optional)"
+                className={`w-full text-xs rounded-xl border p-2 outline-none ${
+                  isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-900'
+                }`}
+              />
+
+              <textarea
+                value={templateDescription}
+                onChange={(e) => setTemplateDescription(e.target.value)}
+                placeholder="Description / Usage tips (optional)"
+                rows={2}
+                className={`w-full text-xs rounded-xl border p-2 outline-none resize-none ${
+                  isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-900'
+                }`}
+              />
+
+              <button
+                onClick={() => handleDownloadTemplateJson(exportingTemplateSnapshot)}
+                className="w-full py-2 rounded-xl text-xs font-bold bg-sky-500 text-white hover:bg-sky-400 transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <FileDown className="w-3.5 h-3.5" />
+                <span>Download .JSON Template</span>
+              </button>
+            </div>
+          )}
+
+          {/* Snapshot List & Batch Export */}
+          {library.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span
+                  className={`text-[11px] font-bold uppercase tracking-wider ${
+                    isDark ? 'text-zinc-400' : 'text-zinc-500'
+                  }`}
+                >
+                  Saved Snapshots ({library.length})
+                </span>
+
+                {onBatchExportZip && (
+                  <button
+                    type="button"
+                    onClick={onBatchExportZip}
+                    disabled={batchExportProgress !== null && batchExportProgress !== undefined}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all cursor-pointer disabled:opacity-50 ${
+                      isDark
+                        ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700'
+                        : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black'
+                    }`}
+                    title="Export all saved snapshots as a single ZIP file containing PNG images"
+                  >
+                    <Package className="w-3 h-3 text-emerald-400" />
+                    <span>
+                      {batchExportProgress !== null && batchExportProgress !== undefined
+                        ? `${batchExportProgress}%`
+                        : 'Export ZIP'}
+                    </span>
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {library.map((snapshot: LibrarySnapshot) => (
                   <div
                     key={snapshot.id}
                     className={`p-3 rounded-xl border transition-all cursor-pointer group ${
@@ -1457,7 +1784,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                               {snapshot.name}
                             </span>
                             <span className={`block text-[10px] mt-0.5 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
-                              {LANGUAGES.find((l) => l.id === snapshot.settings.tabs.find((t) => t.id === snapshot.settings.activeTabId)?.language)
+                              {LANGUAGES.find((l) => l.id === snapshot.settings.tabs.find((t: any) => t.id === snapshot.settings.activeTabId)?.language)
                                 ?.name || 'Code'}{' '}
                               • {THEMES.find((th) => th.id === snapshot.settings.theme)?.name || snapshot.settings.theme} •{' '}
                               {formatRelativeTime(snapshot.updatedAt)}
@@ -1468,6 +1795,16 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
                       {renamingSnapshotId !== snapshot.id && (
                         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExportingTemplateSnapshot(snapshot);
+                            }}
+                            className="p-1.5 rounded-lg text-zinc-400 hover:text-emerald-400 transition-colors cursor-pointer"
+                            title="Export as JSON Template"
+                          >
+                            <FileDown className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1499,7 +1836,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
           {library.length === 0 && (
             <p className={`text-[11px] m-0 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
-              No saved snapshots yet. Save your first one above.
+              No saved snapshots yet. Save your first one above or import a community template JSON file.
             </p>
           )}
         </div>

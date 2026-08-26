@@ -11,6 +11,7 @@ import { Canvas } from './components/Canvas';
 import { ControlPanel } from './components/ControlPanel';
 import { PresetBar } from './components/PresetBar';
 import { LandingPage } from './components/LandingPage';
+import { TemplateGalleryPage } from './components/TemplateGalleryPage';
 import { VideoLoadingOverlay } from './components/VideoLoadingOverlay';
 import { UserJourneyTour } from './components/UserJourneyTour';
 import { ThankYouModal } from './components/ThankYouModal';
@@ -18,6 +19,8 @@ import { Toaster, toast } from 'sonner';
 import { recordMotionVideo, downloadBlob } from './utils/recorder';
 import { decodeStateFromHash } from './utils/urlEncoder';
 import { useCodeImport } from './hooks/useCodeImport';
+import { useSettingsHistory } from './hooks/useSettingsHistory';
+import type { LibrarySnapshot } from './types';
 import { FileUp } from 'lucide-react';
 
 function EditorWorkspace({
@@ -27,8 +30,11 @@ function EditorWorkspace({
   settings: SnippetSettings;
   setSettings: React.Dispatch<React.SetStateAction<SnippetSettings>>;
 }) {
-  const { isExporting, downloadPng, downloadSvg, copyToClipboard } = useExport();
+  const { isExporting, downloadPng, downloadSvg, copyToClipboard, batchExportZip } = useExport();
+  const { undo, redo, canUndo, canRedo } = useSettingsHistory(settings, setSettings);
+
   const [recordingProgress, setRecordingProgress] = useState<number | null>(null);
+  const [batchExportProgress, setBatchExportProgress] = useState<number | null>(null);
   const { isDragging } = useCodeImport({ setSettings });
 
   // Modals state
@@ -106,6 +112,23 @@ function EditorWorkspace({
     }
   };
 
+  const handleBatchExportZip = async () => {
+    let snapshots: LibrarySnapshot[] = [];
+    try {
+      snapshots = JSON.parse(localStorage.getItem('codemotion_library') || '[]');
+    } catch {}
+
+    if (snapshots.length === 0) {
+      toast.info('No saved snapshots in library.');
+      return;
+    }
+
+    setBatchExportProgress(0);
+    await batchExportZip(snapshots, settings, setSettings, (pct) => setBatchExportProgress(pct));
+    setBatchExportProgress(null);
+    setIsThankYouOpen(true);
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
@@ -174,21 +197,18 @@ function EditorWorkspace({
         </div>
       )}
 
-      {/* Interactive User Journey Tour Modal */}
       <UserJourneyTour
         isOpen={isUserTourOpen}
         onClose={() => setIsUserTourOpen(false)}
         isDark={isDark}
       />
 
-      {/* Export Appreciation Thank You Modal */}
       <ThankYouModal
         isOpen={isThankYouOpen}
         onClose={() => setIsThankYouOpen(false)}
         isDark={isDark}
       />
 
-      {/* Editor Header Bar */}
       <Header
         settings={settings}
         setSettings={setSettings}
@@ -213,19 +233,20 @@ function EditorWorkspace({
         onRecordVideo={handleRecordVideo}
         onReset={handleReset}
         onOpenUserTour={() => setIsUserTourOpen(true)}
-        isExporting={isExporting || recordingProgress !== null}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        isExporting={isExporting || recordingProgress !== null || batchExportProgress !== null}
       />
 
-      {/* Main Workspace Layout (Canvas & Sidebar) */}
       <div className="flex-1 w-full flex flex-col min-h-0 pt-16 sm:pt-16">
         <main className="flex-1 lg:h-[calc(100vh-4rem)] grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-0">
-          {/* Left Preview Area: Centered Canvas & Preset Bar (Independent Scroll) */}
           <div
             className={`lg:col-span-8 h-full overflow-y-auto min-h-0 flex flex-col items-center p-4 sm:p-6 relative ${
               isDark ? 'bg-zinc-950/40' : 'bg-zinc-100/40'
             }`}
           >
-            {/* Quick Styles Bar Positioned Directly Above Canvas */}
             <div className="w-full flex justify-center mb-2 z-10">
               <PresetBar settings={settings} setSettings={setSettings} />
             </div>
@@ -235,13 +256,14 @@ function EditorWorkspace({
             </div>
           </div>
 
-          {/* Right Customization Sidebar (Independent Scroll) */}
           <div className="lg:col-span-4 h-full overflow-y-auto min-h-0">
             <ControlPanel
               settings={settings}
               setSettings={setSettings}
               onRecordVideo={handleRecordVideo}
               recordingProgress={recordingProgress}
+              onBatchExportZip={handleBatchExportZip}
+              batchExportProgress={batchExportProgress}
             />
           </div>
         </main>
@@ -298,6 +320,28 @@ function AnimatedRoutes({
           path="/"
           element={
             <LandingPage
+              settings={settings}
+              onToggleAppTheme={toggleAppTheme}
+              onSelectTemplate={(template) => {
+                setSettings((prev) => ({
+                  ...prev,
+                  theme: template.theme || prev.theme,
+                  background: template.background || prev.background,
+                  tabs: prev.tabs.map((t) =>
+                    t.id === prev.activeTabId
+                      ? { ...t, code: template.code, title: template.fileName, language: template.language }
+                      : t
+                  ),
+                }));
+                navigate('/editor');
+              }}
+            />
+          }
+        />
+        <Route
+          path="/templates"
+          element={
+            <TemplateGalleryPage
               settings={settings}
               onToggleAppTheme={toggleAppTheme}
               onSelectTemplate={(template) => {

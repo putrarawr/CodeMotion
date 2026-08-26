@@ -400,15 +400,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             >
               Features
             </a>
-            <a
-              href="#templates"
-              onClick={(e) => scrollToSection(e, 'templates')}
+            <Link
+              to="/templates"
               className={`px-2.5 py-1 rounded-lg transition-all no-underline ${
-                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
+                isDark ? 'text-sky-400 hover:text-sky-300 hover:bg-zinc-950/80' : 'text-sky-600 hover:text-sky-700 hover:bg-zinc-100'
               }`}
             >
-              Templates
-            </a>
+              Community Gallery
+            </Link>
             <a
               href="#faq"
               onClick={(e) => scrollToSection(e, 'faq')}

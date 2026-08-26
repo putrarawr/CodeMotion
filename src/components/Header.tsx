@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, Download, RefreshCw, FileCode2, Image, ChevronDown, Sun, Moon, Check, Home, Video, HelpCircle, Share2, Coffee } from 'lucide-react';
+import { Copy, Download, RefreshCw, FileCode2, Image, ChevronDown, Sun, Moon, Check, Home, Video, HelpCircle, Share2, Coffee, Undo2, Redo2 } from 'lucide-react';
 import { encodeStateToHash } from '../utils/urlEncoder';
 import { toast } from 'sonner';
 import type { SnippetSettings } from '../types';
@@ -15,6 +15,10 @@ interface HeaderProps {
   onRecordVideo: () => void;
   onReset: () => void;
   onOpenUserTour: () => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
   isExporting: boolean;
 }
 
@@ -27,6 +31,10 @@ export const Header: React.FC<HeaderProps> = ({
   onRecordVideo,
   onReset,
   onOpenUserTour,
+  onUndo,
+  onRedo,
+  canUndo = false,
+  canRedo = false,
   isExporting,
 }) => {
   const [showPngDropdown, setShowPngDropdown] = useState(false);
@@ -152,6 +160,34 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Undo Settings Pill */}
+          <button
+            onClick={onUndo}
+            disabled={!canUndo}
+            title="Undo settings change (Cmd/Ctrl + Z)"
+            className={`p-2 rounded-xl border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
+              isDark
+                ? 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black hover:bg-zinc-200'
+            }`}
+          >
+            <Undo2 className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Redo Settings Pill */}
+          <button
+            onClick={onRedo}
+            disabled={!canRedo}
+            title="Redo settings change (Cmd/Ctrl + Shift + Z)"
+            className={`p-2 rounded-xl border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
+              isDark
+                ? 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black hover:bg-zinc-200'
+            }`}
+          >
+            <Redo2 className="w-3.5 h-3.5" />
           </button>
 
           {/* Saweria Donation Button */}
