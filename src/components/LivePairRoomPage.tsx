@@ -1,11 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Users, Copy, Check, LogOut, Timer, ArrowLeft, User, Sparkles, ArrowRight } from 'lucide-react';
+import {
+  Users,
+  Copy,
+  Check,
+  Timer,
+  ArrowLeft,
+  User,
+  Sparkles,
+  MessageSquare,
+  Send,
+  Code,
+  ArrowRight,
+  ShieldCheck,
+  Palette,
+} from 'lucide-react';
 import { useLivePairRoom } from '../hooks/useLivePairRoom';
 import { Canvas } from './Canvas';
 import { ControlPanel } from './ControlPanel';
 import type { SnippetSettings } from '../types';
 import { sanitizeRoomId } from '../utils/security';
+import { SNIPPET_TEMPLATES } from '../utils/snippetTemplates';
 import { toast } from 'sonner';
 
 interface LivePairRoomPageProps {
@@ -21,17 +36,12 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   const roomParam = searchParams.get('room');
   const [copied, setCopied] = useState(false);
   const [roomInput, setRoomInput] = useState('');
+  const [chatInput, setChatInput] = useState('');
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'chat' | 'settings'>('chat');
 
-  // Username prompt modal state
-  const [isUsernamePromptOpen, setIsUsernamePromptOpen] = useState<boolean>(() => {
-    return Boolean(roomParam);
-  });
-  const [tempUsernameInput, setTempUsernameInput] = useState<string>(() => {
-    return localStorage.getItem('codemotion_live_username') || '';
-  });
-  const [pendingAction, setPendingAction] = useState<'JOIN' | 'CREATE' | null>(() => {
-    return roomParam ? 'JOIN' : null;
-  });
+  // Lobby form state
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('react-hooks');
+  const [selectedTimerPreset, setSelectedTimerPreset] = useState<number>(300);
 
   const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
 
@@ -58,9 +68,11 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     timerSeconds,
     isTimerActive,
     peerCursors,
+    chatMessages,
     createRoom,
     joinRoom,
     leaveRoom,
+    sendChatMessage,
     broadcastCodeChange,
     broadcastSettingChange,
     startSprintTimer,
@@ -71,6 +83,16 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   });
 
   const isDark = settings.appTheme === 'dark';
+
+  // Join room automatically if ?room= parameter exists in URL on initial mount
+  useEffect(() => {
+    if (roomParam && !roomId) {
+      const safeId = sanitizeRoomId(roomParam);
+      if (safeId) {
+        joinRoom(safeId);
+      }
+    }
+  }, [roomParam, roomId, joinRoom]);
 
   // Broadcast local code changes
   useEffect(() => {
@@ -112,37 +134,46 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleStartCreateRoom = () => {
-    setPendingAction('CREATE');
-    setIsUsernamePromptOpen(true);
+  const handleCreateRoomFromLobby = () => {
+    // Apply selected template code before launching room
+    const tpl = SNIPPET_TEMPLATES.find((t) => t.id === selectedTemplateId);
+    if (tpl) {
+      setSettings((prev) => ({
+        ...prev,
+        theme: tpl.theme || prev.theme,
+        background: tpl.background || prev.background,
+        tabs: prev.tabs.map((t) =>
+          t.id === prev.activeTabId
+            ? { ...t, code: tpl.code, title: tpl.fileName, language: tpl.language }
+            : t
+        ),
+      }));
+    }
+
+    createRoom();
+
+    if (selectedTimerPreset > 0) {
+      setTimeout(() => {
+        startSprintTimer(selectedTimerPreset);
+      }, 500);
+    }
   };
 
-  const handleStartJoinRoom = (e: React.FormEvent) => {
+  const handleJoinRoomFromLobby = (e: React.FormEvent) => {
     e.preventDefault();
     const safeId = sanitizeRoomId(roomInput);
     if (!safeId) {
       toast.error('Invalid Room ID format.');
       return;
     }
-    setPendingAction('JOIN');
-    setIsUsernamePromptOpen(true);
+    joinRoom(safeId);
   };
 
-  const handleConfirmUsername = (e: React.FormEvent) => {
+  const handleSendChatSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalName = tempUsernameInput.trim() || 'Anonymous';
-    setUsername(finalName);
-    setIsUsernamePromptOpen(false);
-
-    if (pendingAction === 'CREATE') {
-      createRoom();
-    } else if (pendingAction === 'JOIN') {
-      const targetId = roomParam || roomInput;
-      const safeId = sanitizeRoomId(targetId);
-      if (safeId) {
-        joinRoom(safeId);
-      }
-    }
+    if (!chatInput.trim()) return;
+    sendChatMessage(chatInput);
+    setChatInput('');
   };
 
   const formatTimerDisplay = (sec: number | null) => {
@@ -152,49 +183,175 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
+  // STAGE 1: DEDICATED LOBBY DASHBOARD (When not inside an active room)
+  if (!roomId && !roomParam) {
+    return (
+      <div
+        className={`min-h-screen flex flex-col font-sans transition-colors ${
+          isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
+        }`}
+      >
+        {/* Lobby Header */}
+        <header className="w-full border-b border-zinc-800 px-6 py-4 flex items-center justify-between sticky top-0 z-50 backdrop-blur-xl bg-zinc-950/80">
+          <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white text-xs font-bold no-underline transition-all"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Home</span>
+            </Link>
+
+            <div className="flex items-center gap-2 border-l border-zinc-800 pl-3">
+              <Users className="w-4 h-4 text-zinc-300" />
+              <span className="text-xs font-bold tracking-tight font-sans">Live Pair Room Dashboard</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Lobby Container */}
+        <div className="flex-1 w-full max-w-4xl mx-auto p-4 sm:p-8 flex flex-col gap-6 justify-center">
+          <div className="text-center flex flex-col gap-2">
+            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto shadow-xl">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight m-0">Live Pair Coding Room</h1>
+            <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto m-0">
+              Code together in real-time with P2P WebRTC. Instant code sync, live chat, and sprint timers with zero setup required.
+            </p>
+          </div>
+
+          {/* User Display Name Box */}
+          <div className="p-4 rounded-2xl border border-zinc-800 bg-zinc-950/90 shadow-xl flex flex-col gap-2">
+            <label className="text-xs font-bold flex items-center gap-1.5 text-zinc-300">
+              <User className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Your Display Name / Username</span>
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your name (e.g. Putra)"
+              className="w-full text-xs font-mono p-3 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-100 outline-none focus:border-zinc-600"
+            />
+          </div>
+
+          {/* 2-Card Action Grid: Create Room vs Join Room */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Card 1: Create Live Room */}
+            <div className="p-6 rounded-3xl border border-zinc-800 bg-zinc-950/90 shadow-2xl flex flex-col justify-between gap-5 relative">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-zinc-900 border border-zinc-800">
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <h3 className="text-sm font-bold m-0 font-sans">Create & Host Room</h3>
+                </div>
+
+                {/* Starter Code Template Selector */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-bold text-zinc-400">Starter Code Template</label>
+                  <select
+                    value={selectedTemplateId}
+                    onChange={(e) => setSelectedTemplateId(e.target.value)}
+                    className="w-full text-xs font-mono p-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-200 outline-none"
+                  >
+                    {SNIPPET_TEMPLATES.map((tpl) => (
+                      <option key={tpl.id} value={tpl.id}>
+                        {tpl.name} ({tpl.language})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Sprint Timer Selector */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-bold text-zinc-400 flex items-center justify-between">
+                    <span>Sprint Countdown Timer</span>
+                    <span className="text-[10px] text-amber-400 font-mono">
+                      {selectedTimerPreset > 0 ? `${selectedTimerPreset / 60} Mins` : 'Unlimited'}
+                    </span>
+                  </label>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[180, 300, 600, 0].map((sec) => (
+                      <button
+                        key={sec}
+                        type="button"
+                        onClick={() => setSelectedTimerPreset(sec)}
+                        className={`py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                          selectedTimerPreset === sec
+                            ? 'bg-amber-500 text-black border-amber-400'
+                            : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white'
+                        }`}
+                      >
+                        {sec > 0 ? `${sec / 60}m` : 'Off'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleCreateRoomFromLobby}
+                className="w-full py-3 rounded-2xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer shadow-md flex items-center justify-center gap-2"
+              >
+                <span>Launch Live Room</span>
+                <ArrowRight className="w-4 h-4 text-black" />
+              </button>
+            </div>
+
+            {/* Card 2: Join Existing Room */}
+            <div className="p-6 rounded-3xl border border-zinc-800 bg-zinc-950/90 shadow-2xl flex flex-col justify-between gap-5 relative">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-zinc-900 border border-zinc-800">
+                    <Code className="w-4 h-4 text-emerald-400" />
+                  </div>
+                  <h3 className="text-sm font-bold m-0 font-sans">Join Existing Room</h3>
+                </div>
+
+                <p className="text-xs text-zinc-400 m-0 leading-relaxed">
+                  Enter the Room ID shared by your friend to join their active session.
+                </p>
+
+                <form onSubmit={handleJoinRoomFromLobby} className="flex flex-col gap-3">
+                  <input
+                    type="text"
+                    value={roomInput}
+                    onChange={(e) => setRoomInput(e.target.value)}
+                    placeholder="Enter Room ID (e.g. cm-abc123)"
+                    className="w-full text-xs font-mono p-3 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-100 outline-none focus:border-zinc-600"
+                  />
+
+                  <button
+                    type="submit"
+                    className="w-full py-3 rounded-2xl text-xs font-bold border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <span>Join Room</span>
+                    <ArrowRight className="w-4 h-4 text-white" />
+                  </button>
+                </form>
+              </div>
+
+              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-mono">
+                <ShieldCheck className="w-4 h-4 flex-shrink-0" />
+                <span>100% P2P Encrypted & Protected against XSS attacks.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // STAGE 2: ACTIVE LIVE ROOM WORKSPACE (When inside a live room)
   return (
     <div
       className={`min-h-screen flex flex-col font-sans transition-colors ${
         isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
       }`}
     >
-      {/* Upfront Username Join Modal */}
-      {isUsernamePromptOpen && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-sm rounded-3xl border border-zinc-800 bg-zinc-950 p-6 text-zinc-100 shadow-2xl flex flex-col gap-4">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-zinc-900 border border-zinc-800">
-                <User className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold m-0 font-sans">Enter Your Display Name</h3>
-                <p className="text-xs text-zinc-400 m-0">Set your username before joining the Live Room</p>
-              </div>
-            </div>
-
-            <form onSubmit={handleConfirmUsername} className="flex flex-col gap-3">
-              <input
-                type="text"
-                autoFocus
-                value={tempUsernameInput}
-                onChange={(e) => setTempUsernameInput(e.target.value)}
-                placeholder="Enter your name (e.g. Putra)"
-                className="w-full text-xs font-mono p-3 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-100 outline-none focus:border-zinc-600"
-              />
-
-              <button
-                type="submit"
-                className="w-full py-3 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <span>Continue to Live Room</span>
-                <ArrowRight className="w-3.5 h-3.5 text-black" />
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Top Navbar */}
+      {/* Active Room Top Navbar */}
       <header
         className={`w-full border-b px-4 py-3 flex items-center justify-between sticky top-0 z-50 backdrop-blur-xl ${
           isDark ? 'bg-zinc-950/90 border-zinc-800' : 'bg-white/90 border-zinc-200 shadow-xs'
@@ -202,7 +359,8 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
       >
         <div className="flex items-center gap-3">
           <Link
-            to="/editor"
+            to="/live"
+            onClick={leaveRoom}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold no-underline transition-all ${
               isDark
                 ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white'
@@ -210,18 +368,18 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
             }`}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Editor</span>
+            <span>Leave Room</span>
           </Link>
 
           <div className="hidden sm:flex items-center gap-2 border-l border-zinc-800 pl-3">
             <Users className="w-4 h-4 text-zinc-300" />
-            <span className="text-xs font-bold tracking-tight font-sans">Live Pair Coding Room</span>
+            <span className="text-xs font-mono font-bold">Room: {roomId}</span>
           </div>
         </div>
 
         {/* Room Header Controls */}
         <div className="flex items-center gap-2">
-          {/* Username Input Box */}
+          {/* User Name Tag */}
           <div
             className={`flex items-center gap-1.5 px-3 py-1 rounded-xl border text-xs font-mono ${
               isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-100 border-zinc-300'
@@ -237,68 +395,46 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
             />
           </div>
 
-          {roomId ? (
-            <>
-              {/* Sprint Timer Pill Display & Quick Start */}
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-mono font-bold">
-                <Timer className="w-3.5 h-3.5" />
-                <span>{timerSeconds !== null && isTimerActive ? formatTimerDisplay(timerSeconds) : 'Sprint'}</span>
-                {!isTimerActive && (
-                  <div className="flex items-center gap-1 ml-1 border-l border-amber-500/20 pl-1.5">
-                    {[180, 300, 600].map((sec) => (
-                      <button
-                        key={sec}
-                        onClick={() => startSprintTimer(sec)}
-                        className="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 hover:bg-amber-500/30 cursor-pointer"
-                        title={`Start ${sec / 60} min timer`}
-                      >
-                        {sec / 60}m
-                      </button>
-                    ))}
-                  </div>
-                )}
+          {/* Sprint Timer Pill Display & Quick Start */}
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-mono font-bold">
+            <Timer className="w-3.5 h-3.5" />
+            <span>{timerSeconds !== null && isTimerActive ? formatTimerDisplay(timerSeconds) : 'Sprint'}</span>
+            {!isTimerActive && (
+              <div className="flex items-center gap-1 ml-1 border-l border-amber-500/20 pl-1.5">
+                {[180, 300, 600].map((sec) => (
+                  <button
+                    key={sec}
+                    onClick={() => startSprintTimer(sec)}
+                    className="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 hover:bg-amber-500/30 cursor-pointer"
+                    title={`Start ${sec / 60} min timer`}
+                  >
+                    {sec / 60}m
+                  </button>
+                ))}
               </div>
+            )}
+          </div>
 
-              {/* Connected Peers Status Badge */}
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-mono font-bold">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>{connectedPeerCount + 1} Connected</span>
-              </div>
+          {/* Connected Peers Status Badge */}
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-mono font-bold">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>{connectedPeerCount + 1} Connected</span>
+          </div>
 
-              {/* Copy Link Button */}
-              <button
-                onClick={handleCopyLink}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer shadow-xs"
-              >
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                <span className="hidden sm:inline">{copied ? 'Copied' : 'Share Link'}</span>
-              </button>
-
-              {/* Leave Room Button */}
-              <button
-                onClick={leaveRoom}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Leave</span>
-              </button>
-            </>
-          ) : (
-            /* Create / Join Actions */
-            <button
-              onClick={handleStartCreateRoom}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer shadow-sm"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Create Live Room</span>
-            </button>
-          )}
+          {/* Copy Share Link Button */}
+          <button
+            onClick={handleCopyLink}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer shadow-xs"
+          >
+            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{copied ? 'Copied' : 'Share Link'}</span>
+          </button>
         </div>
       </header>
 
       {/* Main Dedicated Workspace */}
       <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-12 min-h-0 overflow-hidden">
-        {/* Left Column: Canvas + Peer Cursors Overlay */}
+        {/* Left Column: Canvas + Peer Cursors Ribbon */}
         <div
           className={`lg:col-span-8 h-full overflow-y-auto min-h-0 flex flex-col items-center p-4 sm:p-6 relative ${
             isDark ? 'bg-zinc-950/40' : 'bg-zinc-100/40'
@@ -319,48 +455,91 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
             </div>
           )}
 
-          {!roomId && (
-            <div className="w-full max-w-md my-8 p-6 rounded-3xl border border-zinc-800 bg-zinc-950 text-zinc-100 flex flex-col gap-4 text-center">
-              <Users className="w-8 h-8 text-zinc-300 mx-auto" />
-              <h3 className="text-base font-bold m-0 font-sans">Dedicated Live Pair Room</h3>
-              <p className="text-xs text-zinc-400 m-0 leading-relaxed">
-                Create a room or join a friend using a Room ID to code together in real-time.
-              </p>
-
-              <button
-                onClick={handleStartCreateRoom}
-                className="w-full py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer"
-              >
-                Create Room Now
-              </button>
-
-              <form onSubmit={handleStartJoinRoom} className="flex gap-2">
-                <input
-                  type="text"
-                  value={roomInput}
-                  onChange={(e) => setRoomInput(e.target.value)}
-                  placeholder="Room ID (e.g. cm-abc123)"
-                  className="flex-1 text-xs font-mono p-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-100 outline-none"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold border border-zinc-700 bg-zinc-800 text-white"
-                >
-                  Join
-                </button>
-              </form>
-            </div>
-          )}
-
           {/* Canvas Container */}
           <div className="w-full flex-1 flex items-center justify-center my-auto">
             <Canvas settings={settings} setSettings={setSettings} />
           </div>
         </div>
 
-        {/* Right Column: Control Panel */}
-        <div className="lg:col-span-4 h-full overflow-y-auto min-h-0 border-l border-zinc-800">
-          <ControlPanel settings={settings} setSettings={setSettings} />
+        {/* Right Column: Collapsible Sidebar (Live Chat vs Settings) */}
+        <div className="lg:col-span-4 h-full overflow-y-auto min-h-0 border-l border-zinc-800 flex flex-col bg-zinc-950">
+          {/* Sidebar Tab Toggle Header */}
+          <div className="p-2 border-b border-zinc-800 grid grid-cols-2 gap-1 bg-zinc-900/60">
+            <button
+              onClick={() => setActiveSidebarTab('chat')}
+              className={`py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                activeSidebarTab === 'chat'
+                  ? 'bg-white text-black border-white shadow-sm'
+                  : 'bg-transparent text-zinc-400 border-transparent hover:text-white'
+              }`}
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Live Chat</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSidebarTab('settings')}
+              className={`py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                activeSidebarTab === 'settings'
+                  ? 'bg-white text-black border-white shadow-sm'
+                  : 'bg-transparent text-zinc-400 border-transparent hover:text-white'
+              }`}
+            >
+              <Palette className="w-3.5 h-3.5" />
+              <span>Theme & Style</span>
+            </button>
+          </div>
+
+          {/* Tab 1: Live Chat / Notes Panel */}
+          {activeSidebarTab === 'chat' && (
+            <div className="flex-1 flex flex-col min-h-0 p-4 justify-between gap-3">
+              <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pr-1">
+                {chatMessages.length === 0 ? (
+                  <div className="text-center text-xs text-zinc-500 my-auto flex flex-col gap-1">
+                    <MessageSquare className="w-6 h-6 text-zinc-600 mx-auto" />
+                    <span>No messages yet. Start the conversation!</span>
+                  </div>
+                ) : (
+                  chatMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className="p-3 rounded-2xl border border-zinc-800 bg-zinc-900/80 flex flex-col gap-1"
+                    >
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-bold text-zinc-200">{msg.sender}</span>
+                        <span className="text-[10px] text-zinc-500 font-mono">{msg.time}</span>
+                      </div>
+                      <p className="text-xs text-zinc-300 font-mono m-0 whitespace-pre-wrap">{msg.text}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Chat Input Form */}
+              <form onSubmit={handleSendChatSubmit} className="flex gap-2">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder="Type a note or message..."
+                  className="flex-1 text-xs font-mono p-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-100 outline-none focus:border-zinc-700"
+                />
+                <button
+                  type="submit"
+                  className="px-3.5 py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer flex items-center justify-center"
+                >
+                  <Send className="w-3.5 h-3.5 text-black" />
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Tab 2: Control Panel Settings */}
+          {activeSidebarTab === 'settings' && (
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <ControlPanel settings={settings} setSettings={setSettings} />
+            </div>
+          )}
         </div>
       </div>
     </div>

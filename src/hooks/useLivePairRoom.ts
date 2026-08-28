@@ -12,8 +12,15 @@ export interface PeerCursorInfo {
   ch: number;
 }
 
+export interface ChatMessage {
+  id: string;
+  sender: string;
+  text: string;
+  time: string;
+}
+
 export interface PeerStatePayload {
-  type: 'SYNC_STATE' | 'CODE_CHANGE' | 'SETTING_CHANGE' | 'TIMER_START' | 'TIMER_TICK' | 'CURSOR_MOVE' | 'USER_JOIN';
+  type: 'SYNC_STATE' | 'CODE_CHANGE' | 'SETTING_CHANGE' | 'TIMER_START' | 'TIMER_TICK' | 'CURSOR_MOVE' | 'USER_JOIN' | 'CHAT_MESSAGE';
   senderId: string;
   username?: string;
   code?: string;
@@ -24,6 +31,7 @@ export interface PeerStatePayload {
   timerSeconds?: number;
   line?: number;
   ch?: number;
+  chatText?: string;
   timestamp?: number;
 }
 
@@ -48,6 +56,7 @@ export const useLivePairRoom = ({
   const [timerSeconds, setTimerSeconds] = useState<number | null>(null);
   const [isTimerActive, setIsTimerActive] = useState<boolean>(false);
   const [peerCursors, setPeerCursors] = useState<Map<string, PeerCursorInfo>>(new Map());
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   const peerRef = useRef<Peer | null>(null);
   const connectionsRef = useRef<Map<string, DataConnection>>(new Map());
@@ -95,6 +104,19 @@ export const useLivePairRoom = ({
             Object.entries(payload.settings).forEach(([k, v]) => {
               updateSetting(k as keyof SnippetSettings, v);
             });
+          }
+          break;
+
+        case 'CHAT_MESSAGE':
+          if (payload.chatText) {
+            const cleanText = sanitizeText(payload.chatText, 1000);
+            const msg: ChatMessage = {
+              id: `${Date.now()}-${Math.random()}`,
+              sender: sanitizeText(payload.username || 'Anonymous', 30),
+              text: cleanText,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            };
+            setChatMessages((prev) => [...prev, msg]);
           }
           break;
 
@@ -262,6 +284,7 @@ export const useLivePairRoom = ({
     setTimerSeconds(null);
     setIsTimerActive(false);
     setPeerCursors(new Map());
+    setChatMessages([]);
 
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
@@ -271,6 +294,33 @@ export const useLivePairRoom = ({
     window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
     toast.info('Left Live Pair Room.');
   }, []);
+
+  // Send P2P Chat Message
+  const sendChatMessage = useCallback(
+    (text: string) => {
+      const cleanText = sanitizeText(text, 1000).trim();
+      if (!cleanText) return;
+
+      const myMsg: ChatMessage = {
+        id: `${Date.now()}-${Math.random()}`,
+        sender: username || 'You',
+        text: cleanText,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      setChatMessages((prev) => [...prev, myMsg]);
+
+      if (isConnected) {
+        broadcastPayload({
+          type: 'CHAT_MESSAGE',
+          senderId: peerIdRef.current,
+          username: username,
+          chatText: cleanText,
+        });
+      }
+    },
+    [broadcastPayload, isConnected, username]
+  );
 
   // Broadcast code changes (ignoring remote-triggered updates to prevent glitch loops)
   const broadcastCodeChange = useCallback(
@@ -282,6 +332,20 @@ export const useLivePairRoom = ({
         senderId: peerIdRef.current,
         username: username,
         code: safeCode,
+      });
+    },
+    [broadcastPayload, isConnected, username]
+  );
+
+  // Broadcast setting changes
+  const broadcastSettingChange = useCallback(
+    (newSettings: Partial<SnippetSettings>) => {
+      if (!isConnected || connectionsRef.current.size === 0) return;
+      broadcastPayload({
+        type: 'SETTING_CHANGE',
+        senderId: peerIdRef.current,
+        username: username,
+        settings: newSettings,
       });
     },
     [broadcastPayload, isConnected, username]
@@ -333,20 +397,6 @@ export const useLivePairRoom = ({
     [broadcastPayload]
   );
 
-  // Broadcast setting changes (e.g. theme, background, font, diffMode)
-  const broadcastSettingChange = useCallback(
-    (newSettings: Partial<SnippetSettings>) => {
-      if (!isConnected || connectionsRef.current.size === 0) return;
-      broadcastPayload({
-        type: 'SETTING_CHANGE',
-        senderId: peerIdRef.current,
-        username: username,
-        settings: newSettings,
-      });
-    },
-    [broadcastPayload, isConnected, username]
-  );
-
   return {
     roomId,
     username,
@@ -357,9 +407,11 @@ export const useLivePairRoom = ({
     timerSeconds,
     isTimerActive,
     peerCursors,
+    chatMessages,
     createRoom,
     joinRoom,
     leaveRoom,
+    sendChatMessage,
     broadcastCodeChange,
     broadcastSettingChange,
     broadcastCursor,
