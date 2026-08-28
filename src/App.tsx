@@ -25,6 +25,7 @@ import { FileUp } from 'lucide-react';
 
 import { useLivePairRoom } from './hooks/useLivePairRoom';
 import { LivePairRoomModal } from './components/LivePairRoomModal';
+import { LivePairRoomPage } from './components/LivePairRoomPage';
 import { PresentationDeckModal } from './components/PresentationDeckModal';
 
 function EditorWorkspace({
@@ -307,11 +308,7 @@ function EditorWorkspace({
         onRecordVideo={handleRecordVideo}
         onReset={handleReset}
         onOpenUserTour={() => setIsUserTourOpen(true)}
-        onOpenLiveRoom={() => setIsLiveRoomModalOpen(true)}
         onOpenPresentationDeck={() => setIsPresentationDeckOpen(true)}
-        liveRoomId={liveRoomId}
-        livePeerCount={livePeerCount}
-        liveTimerSeconds={liveTimerSeconds}
         onUndo={undo}
         onRedo={redo}
         canUndo={canUndo}
@@ -343,7 +340,6 @@ function EditorWorkspace({
               recordingProgress={recordingProgress}
               onBatchExportZip={handleBatchExportZip}
               batchExportProgress={batchExportProgress}
-              onOpenLiveRoom={() => setIsLiveRoomModalOpen(true)}
               onOpenPresentationDeck={() => setIsPresentationDeckOpen(true)}
             />
           </div>
@@ -441,9 +437,14 @@ function AnimatedRoutes({
             />
           }
         />
+
         <Route
           path="/editor"
           element={<EditorWorkspace settings={settings} setSettings={setSettings} />}
+        />
+        <Route
+          path="/live"
+          element={<LivePairRoomPage settings={settings} setSettings={setSettings} />}
         />
         {/* SPA Fallback route to prevent 404 on direct subroutes */}
         <Route path="*" element={<Navigate to="/editor" replace />} />

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X, Monitor } from 'lucide-react';
 import type { LibrarySnapshot, SnippetSettings } from '../types';
+import { Canvas } from './Canvas';
 
 interface PresentationDeckModalProps {
   isOpen: boolean;
@@ -18,15 +19,18 @@ export const PresentationDeckModal: React.FC<PresentationDeckModalProps> = ({
   currentSettings,
 }) => {
   // Use library snapshots as presentation slides; fallback to active tab snippet
-  const slides = librarySnapshots.length > 0 ? librarySnapshots : [
-    {
-      id: 'current-slide',
-      name: currentSettings.tabs[0]?.title || 'Code Slide 1',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      settings: currentSettings,
-    },
-  ];
+  const slides: LibrarySnapshot[] =
+    librarySnapshots.length > 0
+      ? librarySnapshots
+      : [
+          {
+            id: 'current-slide',
+            name: currentSettings.tabs[0]?.title || 'Code Slide 1',
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            settings: currentSettings,
+          },
+        ];
 
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -61,8 +65,6 @@ export const PresentationDeckModal: React.FC<PresentationDeckModalProps> = ({
   }, [isOpen, handleNext, handlePrev, onClose]);
 
   if (!isOpen) return null;
-
-  const activeTab = activeSlide.settings.tabs.find((t: any) => t.id === activeSlide.settings.activeTabId) || activeSlide.settings.tabs[0];
 
   return (
     <div className="fixed inset-0 z-[99999] bg-black/95 text-white flex flex-col justify-between p-4 sm:p-8 select-none pointer-events-auto overflow-hidden">
@@ -99,7 +101,7 @@ export const PresentationDeckModal: React.FC<PresentationDeckModalProps> = ({
       </div>
 
       {/* Main Slide Viewer Canvas Stage */}
-      <div className="flex-1 flex items-center justify-center relative w-full my-4">
+      <div className="flex-1 flex items-center justify-center relative w-full my-4 overflow-hidden">
         {/* Left Arrow Button */}
         <button
           onClick={handlePrev}
@@ -109,41 +111,24 @@ export const PresentationDeckModal: React.FC<PresentationDeckModalProps> = ({
           <ChevronLeft className="w-6 h-6" />
         </button>
 
-        {/* Slide Stage Container with Framer Motion Slide Transition */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeSlide.id}
-            initial={{ opacity: 0, scale: 0.96, x: 20 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            exit={{ opacity: 0, scale: 0.96, x: -20 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="max-w-4xl w-full rounded-3xl p-6 sm:p-10 shadow-2xl transition-all relative overflow-hidden flex flex-col gap-4 border border-white/10"
-            style={{ background: activeSlide.settings.background }}
-          >
-            {/* Slide Window Frame */}
-            <div className="rounded-2xl border border-white/15 bg-black/75 backdrop-blur-xl p-5 shadow-2xl">
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-green-500/80" />
-                  <span className="text-xs font-mono font-bold text-zinc-300 ml-2">
-                    {activeTab?.title || 'snippet.txt'}
-                  </span>
-                </div>
-
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-800">
-                  {activeTab?.language || 'code'}
-                </span>
-              </div>
-
-              {/* Code Content */}
-              <div className="font-mono text-sm leading-relaxed text-zinc-100 overflow-x-auto max-h-[50vh]">
-                <pre className="m-0 font-mono whitespace-pre">{activeTab?.code || ''}</pre>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
+        {/* Slide Stage Container with Smooth Non-Glitching Fade Transition */}
+        <div className="w-full h-full flex items-center justify-center relative max-w-5xl px-12">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeSlide.id}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.18, ease: 'easeInOut' }}
+              className="w-full flex items-center justify-center"
+            >
+              <Canvas
+                settings={activeSlide.settings}
+                setSettings={() => {}}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
         {/* Right Arrow Button */}
         <button

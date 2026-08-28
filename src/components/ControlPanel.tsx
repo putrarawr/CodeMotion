@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import type {
   SnippetSettings,
@@ -74,7 +75,6 @@ interface ControlPanelProps {
   recordingProgress?: number | null;
   onBatchExportZip?: () => void;
   batchExportProgress?: number | null;
-  onOpenLiveRoom?: () => void;
   onOpenPresentationDeck?: () => void;
 }
 
@@ -85,7 +85,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   recordingProgress,
   onBatchExportZip,
   batchExportProgress,
-  onOpenLiveRoom,
   onOpenPresentationDeck,
 }) => {
   const isDark = settings.appTheme === 'dark';
@@ -1584,18 +1583,15 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              {onOpenLiveRoom && (
-                <button
-                  type="button"
-                  onClick={onOpenLiveRoom}
-                  className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                    isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:text-white' : 'bg-zinc-100 border-zinc-300 text-zinc-800'
-                  }`}
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>Live Pair Room</span>
-                </button>
-              )}
+              <Link
+                to="/live"
+                className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 no-underline ${
+                  isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:text-white' : 'bg-zinc-100 border-zinc-300 text-zinc-800'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Live Pair Room</span>
+              </Link>
 
               {onOpenPresentationDeck && (
                 <button

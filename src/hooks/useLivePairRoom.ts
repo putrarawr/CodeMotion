@@ -1,19 +1,28 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import Peer from 'peerjs';
 type DataConnection = ReturnType<InstanceType<typeof Peer>['connect']>;
 import type { SnippetSettings, SupportedLanguage, SupportedTheme } from '../types';
 import { sanitizeRoomId, sanitizeText } from '../utils/security';
 import { toast } from 'sonner';
 
+export interface PeerCursorInfo {
+  peerId: string;
+  username: string;
+  line: number;
+  ch: number;
+}
+
 export interface PeerStatePayload {
-  type: 'SYNC_STATE' | 'CODE_CHANGE' | 'TIMER_START' | 'TIMER_TICK' | 'CURSOR_MOVE';
+  type: 'SYNC_STATE' | 'CODE_CHANGE' | 'TIMER_START' | 'TIMER_TICK' | 'CURSOR_MOVE' | 'USER_JOIN';
   senderId: string;
+  username?: string;
   code?: string;
   title?: string;
   language?: SupportedLanguage;
   theme?: SupportedTheme;
   timerSeconds?: number;
-  cursorLine?: number;
+  line?: number;
+  ch?: number;
   timestamp?: number;
 }
 
@@ -29,29 +38,27 @@ export const useLivePairRoom = ({
   updateActiveTabCode,
 }: UseLivePairRoomProps) => {
   const [roomId, setRoomId] = useState<string | null>(null);
+  const [username, setUsernameState] = useState<string>(() => {
+    return localStorage.getItem('codemotion_live_username') || 'Anonymous';
+  });
   const [isHost, setIsHost] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [connectedPeerCount, setConnectedPeerCount] = useState<number>(0);
   const [timerSeconds, setTimerSeconds] = useState<number | null>(null);
   const [isTimerActive, setIsTimerActive] = useState<boolean>(false);
+  const [peerCursors, setPeerCursors] = useState<Map<string, PeerCursorInfo>>(new Map());
 
   const peerRef = useRef<Peer | null>(null);
   const connectionsRef = useRef<Map<string, DataConnection>>(new Map());
   const peerIdRef = useRef<string>('');
+  const isRemoteChangeRef = useRef<boolean>(false);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize room ID from URL search parameter on mount (e.g. ?room=cm-123456)
-  useEffect(() => {
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const rawRoomParam = urlParams.get('room');
-      const safeRoom = sanitizeRoomId(rawRoomParam);
-
-      if (safeRoom) {
-        joinRoom(safeRoom);
-      }
-    } catch {}
-  }, []);
+  const setUsername = (name: string) => {
+    const cleanName = sanitizeText(name || 'Anonymous', 30).trim() || 'Anonymous';
+    setUsernameState(cleanName);
+    localStorage.setItem('codemotion_live_username', cleanName);
+  };
 
   // Broadcast state payload to all connected peers
   const broadcastPayload = useCallback((payload: PeerStatePayload) => {
@@ -72,16 +79,35 @@ export const useLivePairRoom = ({
         case 'CODE_CHANGE':
           if (payload.code !== undefined) {
             const safeCode = sanitizeText(payload.code, 50000);
+            isRemoteChangeRef.current = true;
             updateActiveTabCode(safeCode);
+            setTimeout(() => {
+              isRemoteChangeRef.current = false;
+            }, 50);
           }
           if (payload.theme) updateSetting('theme', payload.theme);
+          break;
+
+        case 'CURSOR_MOVE':
+          if (payload.line !== undefined && payload.ch !== undefined) {
+            setPeerCursors((prev) => {
+              const updated = new Map(prev);
+              updated.set(payload.senderId, {
+                peerId: payload.senderId,
+                username: sanitizeText(payload.username || 'Anonymous', 30),
+                line: payload.line!,
+                ch: payload.ch!,
+              });
+              return updated;
+            });
+          }
           break;
 
         case 'TIMER_START':
           if (payload.timerSeconds !== undefined) {
             setTimerSeconds(payload.timerSeconds);
             setIsTimerActive(true);
-            toast.info(`Sprint Timer started: ${Math.floor(payload.timerSeconds / 60)} minutes!`);
+            toast.info(`Sprint Timer started: ${Math.floor(payload.timerSeconds / 60)} minutes.`);
           }
           break;
 
@@ -90,7 +116,7 @@ export const useLivePairRoom = ({
             setTimerSeconds(payload.timerSeconds);
             if (payload.timerSeconds === 0) {
               setIsTimerActive(false);
-              toast.success('Sprint Timer finished! Great coding session.');
+              toast.success('Sprint Timer finished. Great coding session.');
             }
           }
           break;
@@ -108,11 +134,12 @@ export const useLivePairRoom = ({
         setIsConnected(true);
         toast.success('Peer connected to Live Coding Room.');
 
-        // Send current active code to newly joined peer
+        // Send current active code & username to newly joined peer
         const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
         conn.send({
           type: 'SYNC_STATE',
           senderId: peerIdRef.current,
+          username: username,
           code: activeTab?.code || '',
           language: activeTab?.language || 'typescript',
           theme: settings.theme,
@@ -127,13 +154,18 @@ export const useLivePairRoom = ({
       conn.on('close', () => {
         connectionsRef.current.delete(conn.peer);
         setConnectedPeerCount(connectionsRef.current.size);
+        setPeerCursors((prev) => {
+          const updated = new Map(prev);
+          updated.delete(conn.peer);
+          return updated;
+        });
         if (connectionsRef.current.size === 0) {
           setIsConnected(false);
         }
         toast.info('Peer disconnected from room.');
       });
     },
-    [handleIncomingPayload, settings, timerSeconds]
+    [handleIncomingPayload, settings, timerSeconds, username]
   );
 
   // Create a new Live Pair Room
@@ -154,7 +186,6 @@ export const useLivePairRoom = ({
       setIsHost(true);
       setIsConnected(true);
 
-      // Update URL with room parameter without reloading page
       const newUrl = `${window.location.pathname}?room=${id}`;
       window.history.replaceState({ path: newUrl }, '', newUrl);
 
@@ -176,7 +207,7 @@ export const useLivePairRoom = ({
     (targetRoomId: string) => {
       const safeRoomId = sanitizeRoomId(targetRoomId);
       if (!safeRoomId) {
-        toast.error('Invalid Room ID format!');
+        toast.error('Invalid Room ID format.');
         return;
       }
 
@@ -192,7 +223,6 @@ export const useLivePairRoom = ({
         setRoomId(safeRoomId);
         setIsHost(false);
 
-        // Update URL parameter
         const newUrl = `${window.location.pathname}?room=${safeRoomId}`;
         window.history.replaceState({ path: newUrl }, '', newUrl);
 
@@ -221,29 +251,45 @@ export const useLivePairRoom = ({
     setConnectedPeerCount(0);
     setTimerSeconds(null);
     setIsTimerActive(false);
+    setPeerCursors(new Map());
 
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
     }
 
-    // Clean up URL parameter
     const cleanUrl = window.location.pathname;
     window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
     toast.info('Left Live Pair Room.');
   }, []);
 
-  // Broadcast code changes
+  // Broadcast code changes (ignoring remote-triggered updates to prevent glitch loops)
   const broadcastCodeChange = useCallback(
     (code: string) => {
-      if (!isConnected || connectionsRef.current.size === 0) return;
+      if (!isConnected || connectionsRef.current.size === 0 || isRemoteChangeRef.current) return;
       const safeCode = sanitizeText(code, 50000);
       broadcastPayload({
         type: 'CODE_CHANGE',
         senderId: peerIdRef.current,
+        username: username,
         code: safeCode,
       });
     },
-    [broadcastPayload, isConnected]
+    [broadcastPayload, isConnected, username]
+  );
+
+  // Broadcast cursor position
+  const broadcastCursor = useCallback(
+    (line: number, ch: number) => {
+      if (!isConnected || connectionsRef.current.size === 0) return;
+      broadcastPayload({
+        type: 'CURSOR_MOVE',
+        senderId: peerIdRef.current,
+        username: username,
+        line,
+        ch,
+      });
+    },
+    [broadcastPayload, isConnected, username]
   );
 
   // Start Sprint Countdown Timer
@@ -279,15 +325,19 @@ export const useLivePairRoom = ({
 
   return {
     roomId,
+    username,
+    setUsername,
     isHost,
     isConnected,
     connectedPeerCount,
     timerSeconds,
     isTimerActive,
+    peerCursors,
     createRoom,
     joinRoom,
     leaveRoom,
     broadcastCodeChange,
+    broadcastCursor,
     startSprintTimer,
   };
 };
