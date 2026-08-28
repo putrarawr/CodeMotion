@@ -436,7 +436,6 @@ export const useLivePairRoom = ({
 
         // If 0 peers remaining, start 60s inactivity session expiration timer
         if (connectionsRef.current.size === 0) {
-          setIsConnected(false);
           resetInactivityTimer();
           inactivityTimeoutRef.current = setTimeout(() => {
             leaveRoom();
