@@ -6,7 +6,6 @@ import {
   ArrowUpRight,
   FileCode,
   Download,
-  Code,
   ExternalLink,
   Heart,
 } from 'lucide-react';
@@ -16,7 +15,7 @@ import { exportTemplateAsJson, downloadJsonFile } from '../utils/communityTempla
 import { Logo } from './Logo';
 import { toast } from 'sonner';
 import { LanguageSwitch } from './LanguageSwitch';
-import { type Language } from '../utils/i18n';
+import { translations, type Language } from '../utils/i18n';
 
 interface TemplateGalleryPageProps {
   settings: SnippetSettings;
@@ -38,6 +37,7 @@ export const TemplateGalleryPage: React.FC<TemplateGalleryPageProps> = ({
   onSelectTemplate,
 }) => {
   const isDark = true;
+  const t = translations[language];
 
   // Load public templates from localStorage (legacy dummy IDs are purged)
   const [publicTemplates, setPublicTemplates] = useState<PublicCommunityTemplate[]>(() => {
@@ -162,38 +162,59 @@ export const TemplateGalleryPage: React.FC<TemplateGalleryPageProps> = ({
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-zinc-800/10 via-zinc-700/10 to-transparent blur-[140px] rounded-full pointer-events-none" />
       </div>
 
-      {/* Header Navigation Bar */}
-      <header
-        className={`w-full border-b sticky top-0 z-40 backdrop-blur-xl ${
-          isDark ? 'bg-zinc-950/80 border-zinc-800/80 text-white' : 'bg-white/80 border-zinc-200 text-zinc-900'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5 no-underline">
-            <Logo className="w-5 h-5 text-white" />
-            <span className="text-sm font-bold tracking-tight">CodeMotion</span>
+      {/* 1. Header Navigation - Floating Dynamic Island Layout */}
+      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-5xl px-3 sm:px-6 flex justify-center select-none pointer-events-auto">
+        <header
+          className="w-full rounded-2xl sm:rounded-3xl border border-zinc-800 shadow-2xl backdrop-blur-xl px-4 py-2 flex items-center justify-between relative bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 text-white shadow-black/60 transition-all duration-300"
+        >
+          {/* Left: Brand Logo */}
+          <Link
+            to="/"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-zinc-800 bg-zinc-950/80 hover:border-zinc-700 text-zinc-100 transition-all no-underline flex-shrink-0 z-10"
+          >
+            <Logo className="w-3.5 h-3.5" />
+            <span className="text-[11px] font-bold tracking-tight font-sans">CodeMotion</span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          {/* Center Nav: Dynamic Island Links */}
+          <nav className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-1 sm:gap-2 text-[11px] font-semibold">
+            <Link
+              to="/"
+              className="px-2.5 py-1 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-950/80 transition-all no-underline"
+            >
+              {t.navHome}
+            </Link>
             <Link
               to="/editor"
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all no-underline ${
-                isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:text-white' : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:text-black'
-              }`}
+              className="px-2.5 py-1 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-950/80 transition-all no-underline"
             >
-              <Code className="w-3.5 h-3.5 text-zinc-300" />
-              <span>Editor Workspace</span>
+              {t.navEditor}
             </Link>
+            <Link
+              to="/templates"
+              className="px-2.5 py-1 rounded-lg text-white font-bold bg-zinc-800 transition-all no-underline"
+            >
+              {t.navTemplates}
+            </Link>
+            <Link
+              to="/live"
+              className="px-2.5 py-1 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-950/80 transition-all no-underline"
+            >
+              {t.navLivePair}
+            </Link>
+          </nav>
 
+          {/* Right: Actions */}
+          <div className="flex items-center gap-1.5 flex-shrink-0 z-10">
             {onLanguageChange && (
               <LanguageSwitch language={language} onLanguageChange={onLanguageChange} />
             )}
           </div>
-        </div>
-      </header>
+        </header>
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10 flex-1 z-10 w-full flex flex-col gap-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10 pt-20 sm:pt-24 flex-1 z-10 w-full flex flex-col gap-8">
         {/* Hero Section */}
         <div className="flex flex-col items-center text-center gap-3 max-w-3xl mx-auto">
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">

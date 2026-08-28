@@ -2,16 +2,21 @@ export type Language = 'id' | 'en';
 
 export const translations = {
   id: {
-    // Header
-    navEditor: 'Editor',
-    navTemplates: 'Template',
-    navLivePair: 'Live Coding',
+    // Dynamic Island Nav
+    navHome: 'Beranda',
+    navEditor: 'Editor Kode',
+    navTemplates: 'Galeri Komunitas',
+    navLivePair: 'Live Room',
     navBuyCoffee: 'Dukung Kami',
+
+    // Editor Actions
     btnCopyImage: 'Salin Gambar',
     btnDownloadPng: 'Unduh PNG',
     btnDownloadSvg: 'Unduh SVG',
     btnRecordVideo: 'Rekam Video',
     btnReset: 'Reset Editor',
+    btnPresent: 'Presentasi',
+    btnGuide: 'Panduan',
 
     // Landing Page
     landingBadge: 'Multiplayer Real-time Code Editor',
@@ -19,6 +24,13 @@ export const translations = {
     landingSubtitle: 'Platform visual penulisan kode modern dengan fitur Live Pair Coding WebRTC, animasi mp4, preset sosial media, dan kustomisasi obsidian dark.',
     landingBtnLaunchEditor: 'Buka Editor Kode',
     landingBtnJoinLive: 'Ruang Live Coding',
+
+    // Template Gallery Page
+    galleryTitle: 'Galeri Komunitas CodeMotion',
+    gallerySubtitle: 'Jelajahi dan gunakan template snippet koding karya komunitas developer global.',
+    gallerySearchPlaceholder: 'Cari template, bahasa, atau pembuat...',
+    galleryBtnUseTemplate: 'Buka di Editor',
+    galleryBtnDownloadJson: 'Unduh JSON',
 
     // Live Room Page
     lobbyTitle: 'Live Pair Room',
@@ -68,16 +80,21 @@ export const translations = {
     toastCopiedLink: 'Link Ruangan disalin ke clipboard!',
   },
   en: {
-    // Header
-    navEditor: 'Editor',
-    navTemplates: 'Templates',
-    navLivePair: 'Live Pair',
+    // Dynamic Island Nav
+    navHome: 'Home',
+    navEditor: 'Code Editor',
+    navTemplates: 'Community Gallery',
+    navLivePair: 'Live Room',
     navBuyCoffee: 'Support Us',
+
+    // Editor Actions
     btnCopyImage: 'Copy Image',
     btnDownloadPng: 'Download PNG',
     btnDownloadSvg: 'Download SVG',
     btnRecordVideo: 'Record Video',
     btnReset: 'Reset Editor',
+    btnPresent: 'Present',
+    btnGuide: 'Guide',
 
     // Landing Page
     landingBadge: 'Real-time Multiplayer Code Editor',
@@ -85,6 +102,13 @@ export const translations = {
     landingSubtitle: 'Modern visual code platform with WebRTC Live Pair Coding, mp4 animation recording, social presets, and obsidian dark customization.',
     landingBtnLaunchEditor: 'Open Code Editor',
     landingBtnJoinLive: 'Live Coding Room',
+
+    // Template Gallery Page
+    galleryTitle: 'CodeMotion Community Gallery',
+    gallerySubtitle: 'Explore and use code snippet templates crafted by developers worldwide.',
+    gallerySearchPlaceholder: 'Search templates, languages, or authors...',
+    galleryBtnUseTemplate: 'Open in Editor',
+    galleryBtnDownloadJson: 'Download JSON',
 
     // Live Room Page
     lobbyTitle: 'Live Pair Room',

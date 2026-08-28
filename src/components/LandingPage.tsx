@@ -32,7 +32,6 @@ import {
   Pause,
   RotateCcw,
   Video,
-  Sparkles,
   FileCode,
   ArrowUpRight,
   ArrowUp,
@@ -41,7 +40,6 @@ import {
 import type { SnippetSettings } from '../types';
 import { SNIPPET_TEMPLATES, TEMPLATE_CATEGORIES, type SnippetTemplate } from '../utils/snippetTemplates';
 import { Logo } from './Logo';
-import { WhatsNewModal } from './WhatsNewModal';
 
 import { LanguageSwitch } from './LanguageSwitch';
 import { type Language } from '../utils/i18n';
@@ -107,7 +105,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'id', onLan
       py: y,
     });
   };
-  const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
+
   const [landingTemplateCategory, setLandingTemplateCategory] = useState<string>('all');
   const [showBackToTop, setShowBackToTop] = useState(false);
 
@@ -337,28 +335,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'id', onLan
         )}
 
         {/* Top-Center Soft Ambient Glow Light */}
-        <div
-          className={`absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[550px] rounded-full blur-[140px] opacity-20 ${
-            isDark
-              ? 'bg-gradient-to-tr from-zinc-700 via-zinc-800 to-zinc-900'
-              : 'bg-gradient-to-tr from-zinc-300 via-zinc-400 to-zinc-500'
-          }`}
-        />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[550px] rounded-full blur-[140px] opacity-20 bg-gradient-to-tr from-zinc-700 via-zinc-800 to-zinc-900" />
         {/* Subtle Radial Fade Vignette */}
-        <div
-          className={`absolute inset-0 ${
-            isDark
-              ? 'bg-[radial-gradient(ellipse_at_center,transparent_20%,#09090b_85%)]'
-              : 'bg-[radial-gradient(ellipse_at_center,transparent_20%,#fafafa_85%)]'
-          }`}
-        />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,#09090b_85%)]" />
       </div>
-
-      <WhatsNewModal
-        isOpen={isWhatsNewOpen}
-        onClose={() => setIsWhatsNewOpen(false)}
-        isDark={isDark}
-      />
 
       {/* 1. Header Navigation - Clean Dead-Centered Layout */}
       <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-5xl px-3 sm:px-6 flex justify-center select-none pointer-events-auto">
@@ -431,18 +411,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'id', onLan
 
           {/* Right: Actions */}
           <div className="flex items-center gap-1.5 flex-shrink-0 z-10">
-            <button
-              onClick={() => setIsWhatsNewOpen(true)}
-              className={`hidden sm:flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-lg border transition-all cursor-pointer ${
-                isDark
-                  ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
-                  : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
-              }`}
-              title="View Product Updates"
-            >
-              <Sparkles className="w-3 h-3 text-zinc-300" />
-              <span>What's New</span>
-            </button>
 
             {onLanguageChange && (
               <LanguageSwitch language={language} onLanguageChange={onLanguageChange} />

@@ -23,8 +23,9 @@ import type { SnippetSettings, SupportedLanguage } from '../types';
 import { sanitizeRoomId } from '../utils/security';
 import { SNIPPET_TEMPLATES } from '../utils/snippetTemplates';
 import { LanguageSwitch } from './LanguageSwitch';
-import { type Language } from '../utils/i18n';
+import { translations, type Language } from '../utils/i18n';
 import { toast } from 'sonner';
+import { Logo } from './Logo';
 
 interface LivePairRoomPageProps {
   settings: SnippetSettings;
@@ -39,6 +40,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   language = 'id',
   onLanguageChange,
 }) => {
+  const t = translations[language];
   const [searchParams] = useSearchParams();
   const roomParam = searchParams.get('room');
   const [copied, setCopied] = useState(false);
@@ -374,30 +376,57 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
           </div>
         )}
 
-        {/* Lobby Header */}
-        <header className="w-full border-b border-zinc-800 px-6 py-4 flex items-center justify-between sticky top-0 z-50 backdrop-blur-xl bg-zinc-950/80">
-          <div className="flex items-center gap-3">
+        {/* Floating Dynamic Island Header */}
+        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-5xl px-3 sm:px-6 flex justify-center select-none pointer-events-auto">
+          <header className="w-full rounded-2xl sm:rounded-3xl border border-zinc-800 shadow-2xl backdrop-blur-xl px-4 py-2 flex items-center justify-between relative bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 text-white shadow-black/60 transition-all duration-300">
+            {/* Left: Brand Logo */}
             <Link
               to="/"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white text-xs font-bold no-underline transition-all"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-zinc-800 bg-zinc-950/80 hover:border-zinc-700 text-zinc-100 transition-all no-underline flex-shrink-0 z-10"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Home</span>
+              <Logo className="w-3.5 h-3.5" />
+              <span className="text-[11px] font-bold tracking-tight font-sans">CodeMotion</span>
             </Link>
 
-            <div className="flex items-center gap-2 border-l border-zinc-800 pl-3">
-              <Users className="w-4 h-4 text-zinc-300" />
-              <span className="text-xs font-bold tracking-tight font-sans">Live Pair Room Dashboard</span>
-            </div>
-          </div>
+            {/* Center Nav: Dynamic Island Links */}
+            <nav className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-1 sm:gap-2 text-[11px] font-semibold">
+              <Link
+                to="/"
+                className="px-2.5 py-1 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-950/80 transition-all no-underline"
+              >
+                {t.navHome}
+              </Link>
+              <Link
+                to="/editor"
+                className="px-2.5 py-1 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-950/80 transition-all no-underline"
+              >
+                {t.navEditor}
+              </Link>
+              <Link
+                to="/templates"
+                className="px-2.5 py-1 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-950/80 transition-all no-underline"
+              >
+                {t.navTemplates}
+              </Link>
+              <Link
+                to="/live"
+                className="px-2.5 py-1 rounded-lg text-white font-bold bg-zinc-800 transition-all no-underline"
+              >
+                {t.navLivePair}
+              </Link>
+            </nav>
 
-          {onLanguageChange && (
-            <LanguageSwitch language={language} onLanguageChange={onLanguageChange} />
-          )}
-        </header>
+            {/* Right Actions */}
+            <div className="flex items-center gap-1.5 flex-shrink-0 z-10">
+              {onLanguageChange && (
+                <LanguageSwitch language={language} onLanguageChange={onLanguageChange} />
+              )}
+            </div>
+          </header>
+        </div>
 
         {/* Main Lobby Container */}
-        <div className="flex-1 w-full max-w-4xl mx-auto p-4 sm:p-8 flex flex-col gap-6 justify-center">
+        <div className="flex-1 w-full max-w-4xl mx-auto p-4 sm:p-8 pt-20 sm:pt-24 flex flex-col gap-6 justify-center">
           <div className="text-center flex flex-col gap-2">
             <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto shadow-xl">
               <Users className="w-6 h-6 text-white" />
