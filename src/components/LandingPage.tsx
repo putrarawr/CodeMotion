@@ -25,8 +25,6 @@ import { VscCode } from 'react-icons/vsc';
 import {
   Layers,
   ArrowRight,
-  Sun,
-  Moon,
   ChevronDown,
   ChevronUp,
   Palette,
@@ -45,9 +43,13 @@ import { SNIPPET_TEMPLATES, TEMPLATE_CATEGORIES, type SnippetTemplate } from '..
 import { Logo } from './Logo';
 import { WhatsNewModal } from './WhatsNewModal';
 
+import { LanguageSwitch } from './LanguageSwitch';
+import { type Language } from '../utils/i18n';
+
 interface LandingPageProps {
   settings: SnippetSettings;
-  onToggleAppTheme: () => void;
+  language?: Language;
+  onLanguageChange?: (lang: Language) => void;
   onSelectTemplate?: (template: SnippetTemplate) => void;
 }
 
@@ -84,8 +86,8 @@ const MOTION_PREVIEW_TOKENS: CodeToken[] = [
 
 const TOTAL_MOTION_CHARS = MOTION_PREVIEW_TOKENS.reduce((acc, t) => acc + t.text.length, 0);
 
-export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppTheme, onSelectTemplate }) => {
-  const isDark = settings.appTheme === 'dark';
+export const LandingPage: React.FC<LandingPageProps> = ({ language = 'id', onLanguageChange, onSelectTemplate }) => {
+  const isDark = true;
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   // Interactive 3D Background Parallax & Spotlight Cursor State
@@ -442,16 +444,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
               <span>What's New</span>
             </button>
 
-            <button
-              onClick={onToggleAppTheme}
-              className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-                isDark
-                  ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
-                  : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
-              }`}
-            >
-              {isDark ? <Sun className="w-3 h-3 text-amber-400" /> : <Moon className="w-3 h-3 text-zinc-800" />}
-            </button>
+            {onLanguageChange && (
+              <LanguageSwitch language={language} onLanguageChange={onLanguageChange} />
+            )}
 
             <Link
               to="/editor"

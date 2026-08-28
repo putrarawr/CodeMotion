@@ -6,8 +6,6 @@ import {
   ArrowUpRight,
   FileCode,
   Download,
-  Sun,
-  Moon,
   Code,
   ExternalLink,
   Heart,
@@ -17,10 +15,13 @@ import { type PublicCommunityTemplate } from '../utils/communityTemplatesData';
 import { exportTemplateAsJson, downloadJsonFile } from '../utils/communityTemplates';
 import { Logo } from './Logo';
 import { toast } from 'sonner';
+import { LanguageSwitch } from './LanguageSwitch';
+import { type Language } from '../utils/i18n';
 
 interface TemplateGalleryPageProps {
   settings: SnippetSettings;
-  onToggleAppTheme: () => void;
+  language?: Language;
+  onLanguageChange?: (lang: Language) => void;
   onSelectTemplate: (template: {
     code: string;
     fileName: string;
@@ -32,10 +33,11 @@ interface TemplateGalleryPageProps {
 
 export const TemplateGalleryPage: React.FC<TemplateGalleryPageProps> = ({
   settings,
-  onToggleAppTheme,
+  language = 'id',
+  onLanguageChange,
   onSelectTemplate,
 }) => {
-  const isDark = settings.appTheme === 'dark';
+  const isDark = true;
 
   // Load public templates from localStorage (legacy dummy IDs are purged)
   const [publicTemplates, setPublicTemplates] = useState<PublicCommunityTemplate[]>(() => {
@@ -183,15 +185,9 @@ export const TemplateGalleryPage: React.FC<TemplateGalleryPageProps> = ({
               <span>Editor Workspace</span>
             </Link>
 
-            <button
-              onClick={onToggleAppTheme}
-              className={`p-2 rounded-xl border transition-all cursor-pointer ${
-                isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-300' : 'bg-zinc-100 border-zinc-300 text-zinc-700'
-              }`}
-              title="Toggle theme"
-            >
-              {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-            </button>
+            {onLanguageChange && (
+              <LanguageSwitch language={language} onLanguageChange={onLanguageChange} />
+            )}
           </div>
         </div>
       </header>

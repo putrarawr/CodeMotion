@@ -25,13 +25,18 @@ import { FileUp } from 'lucide-react';
 
 import { LivePairRoomPage } from './components/LivePairRoomPage';
 import { PresentationDeckModal } from './components/PresentationDeckModal';
+import { type Language } from './utils/i18n';
 
 function EditorWorkspace({
   settings,
   setSettings,
+  language,
+  setLanguage,
 }: {
   settings: SnippetSettings;
   setSettings: React.Dispatch<React.SetStateAction<SnippetSettings>>;
+  language: Language;
+  setLanguage: (lang: Language) => void;
 }) {
   const { isExporting, downloadPng, downloadSvg, copyToClipboard, batchExportZip } = useExport();
   const { undo, redo, canUndo, canRedo } = useSettingsHistory(settings, setSettings);
@@ -229,6 +234,8 @@ function EditorWorkspace({
       <Header
         settings={settings}
         setSettings={setSettings}
+        language={language}
+        onLanguageChange={setLanguage}
         onCopyImage={async () => {
           await copyToClipboard(3, 'export-container');
           setIsThankYouOpen(true);
@@ -294,11 +301,13 @@ function EditorWorkspace({
 function AnimatedRoutes({
   settings,
   setSettings,
-  toggleAppTheme,
+  language,
+  setLanguage,
 }: {
   settings: SnippetSettings;
   setSettings: React.Dispatch<React.SetStateAction<SnippetSettings>>;
-  toggleAppTheme: () => void;
+  language: Language;
+  setLanguage: (lang: Language) => void;
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -340,7 +349,8 @@ function AnimatedRoutes({
           element={
             <LandingPage
               settings={settings}
-              onToggleAppTheme={toggleAppTheme}
+              language={language}
+              onLanguageChange={setLanguage}
               onSelectTemplate={(template) => {
                 setSettings((prev) => ({
                   ...prev,
@@ -362,7 +372,8 @@ function AnimatedRoutes({
           element={
             <TemplateGalleryPage
               settings={settings}
-              onToggleAppTheme={toggleAppTheme}
+              language={language}
+              onLanguageChange={setLanguage}
               onSelectTemplate={(template) => {
                 setSettings((prev) => ({
                   ...prev,
@@ -382,11 +393,11 @@ function AnimatedRoutes({
 
         <Route
           path="/editor"
-          element={<EditorWorkspace settings={settings} setSettings={setSettings} />}
+          element={<EditorWorkspace settings={settings} setSettings={setSettings} language={language} setLanguage={setLanguage} />}
         />
         <Route
           path="/live"
-          element={<LivePairRoomPage settings={settings} setSettings={setSettings} />}
+          element={<LivePairRoomPage settings={settings} setSettings={setSettings} language={language} onLanguageChange={setLanguage} />}
         />
         {/* SPA Fallback route to prevent 404 on direct subroutes */}
         <Route path="*" element={<Navigate to="/editor" replace />} />
@@ -400,28 +411,20 @@ export default function App() {
     'codemotion_settings',
     DEFAULT_SETTINGS
   );
+  const [language, setLanguage] = useLocalStorage<Language>('codemotion_language', 'id');
 
   useEffect(() => {
-    if (settings.appTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [settings.appTheme]);
-
-  const toggleAppTheme = () => {
-    setSettings((prev) => ({
-      ...prev,
-      appTheme: prev.appTheme === 'dark' ? 'light' : 'dark',
-    }));
-  };
+    // Force Obsidian Dark Mode permanently
+    document.documentElement.classList.add('dark');
+  }, []);
 
   return (
     <BrowserRouter>
       <AnimatedRoutes
         settings={settings}
         setSettings={setSettings}
-        toggleAppTheme={toggleAppTheme}
+        language={language}
+        setLanguage={setLanguage}
       />
     </BrowserRouter>
   );

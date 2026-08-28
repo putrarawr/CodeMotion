@@ -1,16 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, Download, RefreshCw, FileCode2, Image, ChevronDown, Sun, Moon, Check, Home, Video, HelpCircle, Share2, Coffee, Undo2, Redo2 } from 'lucide-react';
+import { Copy, Download, RefreshCw, FileCode2, Image, ChevronDown, Check, Home, Video, HelpCircle, Share2, Coffee, Undo2, Redo2 } from 'lucide-react';
 import { encodeStateToHash } from '../utils/urlEncoder';
 import { toast } from 'sonner';
 import type { SnippetSettings } from '../types';
 import { Logo } from './Logo';
 
+import { LanguageSwitch } from './LanguageSwitch';
+import { type Language } from '../utils/i18n';
+
 import { Monitor } from 'lucide-react';
 
 interface HeaderProps {
   settings: SnippetSettings;
-  setSettings: React.Dispatch<React.SetStateAction<SnippetSettings>>;
+  setSettings?: React.Dispatch<React.SetStateAction<SnippetSettings>>;
+  language: Language;
+  onLanguageChange: (lang: Language) => void;
   onCopyImage: () => void;
   onDownloadPng: (ratio: number) => void;
   onDownloadSvg: () => void;
@@ -27,7 +32,8 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   settings,
-  setSettings,
+  language,
+  onLanguageChange,
   onCopyImage,
   onDownloadPng,
   onDownloadSvg,
@@ -59,12 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const toggleAppTheme = () => {
-    setSettings((prev) => ({
-      ...prev,
-      appTheme: prev.appTheme === 'dark' ? 'light' : 'dark',
-    }));
-  };
+
 
   const handleExportPng = (ratio: number) => {
     setSelectedRatio(ratio);
@@ -156,18 +157,8 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden sm:inline">Landing</span>
           </Link>
 
-          {/* UI Theme Switcher Pill */}
-          <button
-            onClick={toggleAppTheme}
-            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            className={`p-2 rounded-xl border transition-all cursor-pointer ${
-              isDark
-                ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
-                : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
-            }`}
-          >
-            {isDark ? <Sun className="w-3.5 h-3.5 text-zinc-300" /> : <Moon className="w-3.5 h-3.5 text-zinc-800" />}
-          </button>
+          {/* Language Switcher Pill (Indonesian ID vs English EN) */}
+          <LanguageSwitch language={language} onLanguageChange={onLanguageChange} />
 
           {/* Reset Pill */}
           <button

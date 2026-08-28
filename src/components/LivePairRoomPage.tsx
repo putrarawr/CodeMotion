@@ -22,16 +22,22 @@ import { ControlPanel } from './ControlPanel';
 import type { SnippetSettings, SupportedLanguage } from '../types';
 import { sanitizeRoomId } from '../utils/security';
 import { SNIPPET_TEMPLATES } from '../utils/snippetTemplates';
+import { LanguageSwitch } from './LanguageSwitch';
+import { type Language } from '../utils/i18n';
 import { toast } from 'sonner';
 
 interface LivePairRoomPageProps {
   settings: SnippetSettings;
   setSettings: React.Dispatch<React.SetStateAction<SnippetSettings>>;
+  language?: Language;
+  onLanguageChange?: (lang: Language) => void;
 }
 
 export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   settings,
   setSettings,
+  language = 'id',
+  onLanguageChange,
 }) => {
   const [searchParams] = useSearchParams();
   const roomParam = searchParams.get('room');
@@ -384,6 +390,10 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
               <span className="text-xs font-bold tracking-tight font-sans">Live Pair Room Dashboard</span>
             </div>
           </div>
+
+          {onLanguageChange && (
+            <LanguageSwitch language={language} onLanguageChange={onLanguageChange} />
+          )}
         </header>
 
         {/* Main Lobby Container */}
@@ -790,6 +800,11 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
             {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
             <span className="hidden sm:inline">{copied ? 'Copied' : 'Share Link'}</span>
           </button>
+
+          {/* Language Switcher Pill */}
+          {onLanguageChange && (
+            <LanguageSwitch language={language} onLanguageChange={onLanguageChange} />
+          )}
         </div>
       </header>
 
