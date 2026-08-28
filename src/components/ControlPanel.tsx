@@ -50,6 +50,7 @@ import {
   FileUp,
   Package,
   Sparkles,
+  ChevronDown,
 } from 'lucide-react';
 
 const LIBRARY_MAX_ITEMS = 50;
@@ -122,6 +123,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const [customColor1, setCustomColor1] = useState<string>(settings.customColor1 || '#1e1b4b');
   const [customColor2, setCustomColor2] = useState<string>(settings.customColor2 || '#09090b');
   const [customAngle, setCustomAngle] = useState<number>(settings.customGradientAngle || 135);
+  // Advanced Options Accordion Collapsible State
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(false);
 
   // Annotation form state
   const [newAnnotationLineInput, setNewAnnotationLineInput] = useState<string>('1');
@@ -864,6 +867,90 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 onChange={(e) => updateSetting('fontSize', Number(e.target.value))}
                 className="w-full accent-indigo-500 cursor-pointer"
               />
+            </div>
+
+            {/* Advanced Fine-Tuning Options Accordion Toggle */}
+            <div className="border-t border-zinc-800/60 pt-3 mt-2">
+              <button
+                type="button"
+                onClick={() => setShowAdvancedOptions((prev) => !prev)}
+                className="w-full flex items-center justify-between p-3 rounded-2xl border border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-all text-xs font-bold cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <Maximize2 className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>Advanced Fine-Tuning Options</span>
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showAdvancedOptions ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showAdvancedOptions && (
+                <div className="flex flex-col gap-4 mt-3 p-4 rounded-2xl border border-zinc-800/60 bg-zinc-950/60 transition-all">
+                  {/* Canvas Outer Padding Slider */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[11px] text-zinc-400 font-medium">Canvas Outer Padding</span>
+                      <span className="font-mono font-bold text-xs">{settings.padding}px</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="16"
+                      max="128"
+                      step="8"
+                      value={settings.padding}
+                      onChange={(e) => updateSetting('padding', Number(e.target.value))}
+                      className="w-full accent-zinc-400 cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Window Border Radius Slider */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[11px] text-zinc-400 font-medium">Window Border Radius</span>
+                      <span className="font-mono font-bold text-xs">{settings.borderRadius || 16}px</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="32"
+                      step="2"
+                      value={settings.borderRadius || 16}
+                      onChange={(e) => updateSetting('borderRadius', Number(e.target.value))}
+                      className="w-full accent-zinc-400 cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Line Height Slider */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[11px] text-zinc-400 font-medium">Line Height Spacing</span>
+                      <span className="font-mono font-bold text-xs">{settings.lineHeight || 1.5}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1.2"
+                      max="2.2"
+                      step="0.1"
+                      value={settings.lineHeight || 1.5}
+                      onChange={(e) => updateSetting('lineHeight', Number(e.target.value))}
+                      className="w-full accent-zinc-400 cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Line Numbers Toggle */}
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800/40">
+                    <span className="text-xs font-semibold text-zinc-300">Show Line Numbers</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.lineNumbers}
+                        onChange={(e) => updateSetting('lineNumbers', e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-8 h-4 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-white" />
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

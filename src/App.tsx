@@ -13,7 +13,7 @@ import { PresetBar } from './components/PresetBar';
 import { LandingPage } from './components/LandingPage';
 import { TemplateGalleryPage } from './components/TemplateGalleryPage';
 import { VideoLoadingOverlay } from './components/VideoLoadingOverlay';
-import { UserJourneyTour, FloatingTourBanner } from './components/UserJourneyTour';
+import { UserJourneyTour } from './components/UserJourneyTour';
 import { ThankYouModal } from './components/ThankYouModal';
 import { Toaster, toast } from 'sonner';
 import { recordMotionVideo, downloadBlob } from './utils/recorder';
@@ -46,9 +46,16 @@ function EditorWorkspace({
   const { isDragging } = useCodeImport({ setSettings });
 
   // Modals state
-  const [isUserTourOpen, setIsUserTourOpen] = useState(false);
+  const [isUserTourOpen, setIsUserTourOpen] = useState(() => {
+    return localStorage.getItem('codemotion_tour_seen') !== 'true';
+  });
   const [isThankYouOpen, setIsThankYouOpen] = useState(false);
   const [isPresentationDeckOpen, setIsPresentationDeckOpen] = useState(false);
+
+  const handleCloseUserTour = () => {
+    setIsUserTourOpen(false);
+    localStorage.setItem('codemotion_tour_seen', 'true');
+  };
 
   const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
   const isDark = settings.appTheme === 'dark';
@@ -207,13 +214,8 @@ function EditorWorkspace({
 
       <UserJourneyTour
         isOpen={isUserTourOpen}
-        onClose={() => setIsUserTourOpen(false)}
+        onClose={handleCloseUserTour}
         isDark={isDark}
-      />
-
-      <FloatingTourBanner
-        onStartTour={() => setIsUserTourOpen(true)}
-        language={language}
       />
 
       <ThankYouModal
