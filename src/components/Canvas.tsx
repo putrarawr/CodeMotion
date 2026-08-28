@@ -147,7 +147,7 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
           ref={containerRef}
           id="export-container"
           className={`w-full relative flex flex-col items-center overflow-hidden transition-all duration-150 ${
-            isResizing ? 'select-none ring-2 ring-sky-500/50' : ''
+            isResizing ? 'select-none ring-2 ring-zinc-500/50' : ''
           } ${getAspectRatioStyle()}`}
           style={{
             maxWidth: `${canvasWidth}px`,
@@ -159,7 +159,7 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
           {/* Left & Right Drag Handles */}
           <div
             onMouseDown={handleResizeStart}
-            className="absolute right-1 top-1/2 -translate-y-1/2 w-4 h-12 rounded-full bg-black/40 hover:bg-sky-500/80 border border-white/20 flex items-center justify-center cursor-ew-resize opacity-0 group-hover:opacity-100 hover:opacity-100 transition-all z-30 shadow-lg"
+            className="absolute right-1 top-1/2 -translate-y-1/2 w-4 h-12 rounded-full bg-black/40 hover:bg-zinc-700/80 border border-white/20 flex items-center justify-center cursor-ew-resize opacity-0 group-hover:opacity-100 hover:opacity-100 transition-all z-30 shadow-lg"
             title="Drag to resize canvas width"
           >
             <GripVertical className="w-3 h-3 text-white" />
@@ -167,7 +167,7 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
 
           <div
             onMouseDown={handleResizeStart}
-            className="absolute left-1 top-1/2 -translate-y-1/2 w-4 h-12 rounded-full bg-black/40 hover:bg-sky-500/80 border border-white/20 flex items-center justify-center cursor-ew-resize opacity-0 group-hover:opacity-100 hover:opacity-100 transition-all z-30 shadow-lg"
+            className="absolute left-1 top-1/2 -translate-y-1/2 w-4 h-12 rounded-full bg-black/40 hover:bg-zinc-700/80 border border-white/20 flex items-center justify-center cursor-ew-resize opacity-0 group-hover:opacity-100 hover:opacity-100 transition-all z-30 shadow-lg"
             title="Drag to resize canvas width"
           >
             <GripVertical className="w-3 h-3 text-white" />

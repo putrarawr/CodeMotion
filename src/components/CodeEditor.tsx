@@ -38,7 +38,7 @@ class MotionCursorWidget extends WidgetType {
   toDOM() {
     const span = document.createElement('span');
     span.className =
-      'inline-block w-2 h-4 bg-sky-400 ml-0.5 animate-pulse rounded-xs opacity-90 align-middle';
+      'inline-block w-2 h-4 bg-white ml-0.5 animate-pulse rounded-xs opacity-90 align-middle';
     return span;
   }
   ignoreEvent() {
@@ -394,7 +394,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                   : ann?.color === 'amber'
                   ? 'border-amber-500/50 bg-amber-950/90 text-amber-200'
                   : ann?.color === 'sky'
-                  ? 'border-sky-500/50 bg-sky-950/90 text-sky-200'
+                  ? 'border-zinc-700 bg-zinc-900/90 text-zinc-100'
                   : ann?.color === 'purple'
                   ? 'border-purple-500/50 bg-purple-950/90 text-purple-200'
                   : 'border-zinc-700 bg-zinc-900/90 text-zinc-100';

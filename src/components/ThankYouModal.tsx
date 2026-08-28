@@ -58,7 +58,7 @@ export const ThankYouModal: React.FC<ThankYouModalProps> = ({
 
         {/* Header Icon Badge */}
         <div className="flex flex-col items-center text-center">
-          <div className="relative mb-4 flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500/20 via-purple-500/20 to-sky-500/20 border border-amber-500/30 shadow-inner">
+          <div className="relative mb-4 flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500/20 via-purple-500/20 to-zinc-500/20 border border-amber-500/30 shadow-inner">
             <Sparkles className="w-8 h-8 text-amber-400 animate-pulse" />
             <div className="absolute -bottom-1 -right-1 p-1 bg-emerald-500 text-black rounded-full shadow-md">
               <CheckCircle2 className="w-3.5 h-3.5 text-zinc-950" />

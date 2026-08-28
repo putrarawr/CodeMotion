@@ -28,7 +28,7 @@ export function useExport() {
         particleCount: 50,
         spread: 60,
         origin: { y: 0.85 },
-        colors: ['#6366f1', '#a855f7', '#ec4899', '#3b82f6'],
+        colors: ['#ffffff', '#e4e4e7', '#a1a1aa', '#71717a'],
       });
     } catch {
       // Ignore if canvas confetti isn't supported

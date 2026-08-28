@@ -871,7 +871,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           id="motion-card"
           className={`p-4 rounded-2xl border transition-all flex flex-col gap-4 ${
             settings.isPlayingMotion
-              ? 'bg-gradient-to-r from-sky-500/10 via-sky-500/5 to-transparent border-sky-500/30'
+              ? 'bg-gradient-to-r from-zinc-800/40 via-zinc-800/20 to-transparent border-zinc-700/50'
               : isDark
               ? 'bg-zinc-900/60 border-zinc-800/80'
               : 'bg-white border-zinc-200 shadow-xs'
@@ -882,7 +882,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               <div
                 className={`p-2 rounded-xl border ${
                   settings.isPlayingMotion
-                    ? 'bg-sky-500/20 text-sky-400 border-sky-500/40 animate-pulse'
+                    ? 'bg-zinc-800 text-zinc-100 border-zinc-700 animate-pulse'
                     : isDark
                     ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
                     : 'bg-zinc-100 text-zinc-600 border-zinc-300'
@@ -902,7 +902,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               onClick={() => updateSetting('isPlayingMotion', !settings.isPlayingMotion)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                 settings.isPlayingMotion
-                  ? 'bg-sky-500 text-white border-sky-400 shadow-sm'
+                  ? 'bg-white text-black border-white shadow-sm'
                   : isDark
                   ? 'bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
                   : 'bg-zinc-100 text-zinc-800 hover:bg-zinc-200'
@@ -956,7 +956,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                   onClick={() => updateSetting('motionStyle', 'typewriter')}
                   className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
                     (settings.motionStyle || 'typewriter') === 'typewriter'
-                      ? 'bg-sky-500/20 text-sky-400 border-sky-500/40'
+                      ? 'bg-zinc-800 text-zinc-100 border-zinc-700'
                       : isDark
                       ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
                       : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black'
@@ -970,7 +970,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                   onClick={() => updateSetting('motionStyle', 'lineByLine')}
                   className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
                     settings.motionStyle === 'lineByLine'
-                      ? 'bg-sky-500/20 text-sky-400 border-sky-500/40'
+                      ? 'bg-zinc-800 text-zinc-100 border-zinc-700'
                       : isDark
                       ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
                       : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black'
@@ -991,7 +991,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     onClick={() => updateSetting('motionSpeed', s)}
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer ${
                       settings.motionSpeed === s
-                        ? 'bg-sky-500/20 text-sky-400 border-sky-500/40'
+                        ? 'bg-zinc-800 text-zinc-100 border-zinc-700'
                         : isDark
                         ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
                         : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black'
@@ -1013,7 +1013,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     onClick={() => updateSetting('motionFps', f)}
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer ${
                       (settings.motionFps || 60) === f
-                        ? 'bg-sky-500 text-white border-sky-400 shadow-xs'
+                        ? 'bg-white text-black border-white shadow-xs'
                         : isDark
                         ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
                         : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black'
@@ -1199,7 +1199,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           {/* Social Media Templates Bar */}
           <div className="flex flex-col gap-2">
             <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-              <Share className="w-3.5 h-3.5 text-sky-400" />
+              <Share className="w-3.5 h-3.5 text-zinc-300" />
               <span>Social Media Canvas Templates</span>
             </label>
 
@@ -1214,7 +1214,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     onClick={() => applySocialPreset(preset)}
                     className={`w-full p-3 rounded-2xl border transition-all text-left flex items-center justify-between cursor-pointer ${
                       isCurrent
-                        ? 'bg-sky-500/10 border-sky-500/40 text-sky-300'
+                        ? 'bg-zinc-800 border-zinc-700 text-zinc-100'
                         : isDark
                         ? 'bg-zinc-900/60 border-zinc-800/80 hover:bg-zinc-800/60 text-zinc-200'
                         : 'bg-white border-zinc-200 hover:bg-zinc-50 text-zinc-900 shadow-xs'
@@ -1222,7 +1222,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                   >
                     <div className="flex items-center gap-2.5">
                       <div className="p-2 rounded-xl bg-zinc-800/60 border border-zinc-700/50">
-                        <Maximize2 className="w-3.5 h-3.5 text-sky-400" />
+                        <Maximize2 className="w-3.5 h-3.5 text-zinc-300" />
                       </div>
                       <div className="flex flex-col">
                         <span className="text-xs font-bold">{preset.name}</span>
@@ -1231,7 +1231,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                         </span>
                       </div>
                     </div>
-                    {isCurrent && <Check className="w-4 h-4 text-sky-400" />}
+                    {isCurrent && <Check className="w-4 h-4 text-zinc-100" />}
                   </button>
                 );
               })}
@@ -1279,14 +1279,14 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               step="10"
               value={settings.canvasWidth || 800}
               onChange={(e) => updateSetting('canvasWidth', Number(e.target.value))}
-              className="w-full accent-sky-500 cursor-pointer"
+              className="w-full accent-zinc-400 cursor-pointer"
             />
           </div>
 
           {/* Canvas Background Gradients */}
           <div className="flex flex-col gap-2 border-t border-zinc-800/40 pt-3">
             <label className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-              <Palette className="w-3.5 h-3.5" />
+              <Palette className="w-3.5 h-3.5 text-zinc-300" />
               <span>Canvas Background</span>
             </label>
 
@@ -1407,7 +1407,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                       setCustomAngle(deg);
                       applyCustomThemeBackground(customColor1, customColor2, 'gradient', deg);
                     }}
-                    className="w-full accent-sky-500 cursor-pointer"
+                    className="w-full accent-zinc-400 cursor-pointer"
                   />
                 </div>
               )}
@@ -1461,7 +1461,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                         : 'bg-zinc-50 border-zinc-300 text-zinc-700 hover:bg-zinc-100'
                     }`}
                   >
-                    <Upload className="w-3.5 h-3.5 text-sky-400" />
+                    <Upload className="w-3.5 h-3.5 text-zinc-300" />
                     <span>{settings.watermarkAvatar ? 'Change Logo / Avatar' : 'Upload Logo / Avatar'}</span>
                     <input
                       type="file"
@@ -1482,7 +1482,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
                   {settings.watermarkAvatar && (
                     <button
-                      onClick={() => updateSetting('watermarkAvatar', '')}
+                      type="button"
+                      onClick={() => updateSetting('watermarkAvatar', undefined)}
                       className={`px-3 py-2.5 rounded-xl border text-xs font-semibold text-red-400 hover:bg-red-500/10 cursor-pointer ${
                         isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-zinc-300'
                       }`}
@@ -1630,13 +1631,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-zinc-400 mb-1">Description (optional)</label>
-                  <input
-                    type="text"
+                  <label className="block text-[10px] font-bold text-zinc-400 mb-1">Snippet Description *</label>
+                  <textarea
                     value={templateDescription}
                     onChange={(e) => setTemplateDescription(e.target.value)}
-                    placeholder="e.g. Clean async handler setup"
-                    className={`w-full text-xs rounded-xl border p-2 outline-none ${
+                    placeholder="Short description of this code setup..."
+                    rows={2}
+                    className={`w-full text-xs rounded-xl border p-2 outline-none resize-none ${
                       isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-100 border-zinc-300 text-zinc-900'
                     }`}
                   />
@@ -1649,21 +1650,21 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 className="w-full py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
               >
                 <Sparkles className="w-3.5 h-3.5 text-black" />
-                <span>Confirm & Publish to Gallery</span>
+                <span>Publish to Public Gallery</span>
               </button>
             </div>
           )}
 
-          {/* Export Template Popover Modal Card */}
+          {/* Export JSON Template Drawer */}
           {exportingTemplateSnapshot && (
             <div
               className={`p-4 rounded-2xl border flex flex-col gap-3 ${
-                isDark ? 'bg-zinc-900 border-sky-500/40 text-zinc-100' : 'bg-white border-sky-500/50 text-zinc-900 shadow-md'
+                isDark ? 'bg-zinc-900 border-zinc-700 text-zinc-100' : 'bg-white border-zinc-300 text-zinc-900 shadow-md'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold flex items-center gap-1.5">
-                  <FileDown className="w-3.5 h-3.5 text-sky-400" />
+                  <FileDown className="w-3.5 h-3.5 text-zinc-300" />
                   <span>Export Template JSON</span>
                 </span>
                 <button
@@ -1700,7 +1701,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
               <button
                 onClick={() => handleDownloadTemplateJson(exportingTemplateSnapshot)}
-                className="w-full py-2 rounded-xl text-xs font-bold bg-sky-500 text-white hover:bg-sky-400 transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+                className="w-full py-2 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
               >
                 <FileDown className="w-3.5 h-3.5" />
                 <span>Download .JSON Template</span>
@@ -1774,8 +1775,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                             }}
                             className={`w-full text-xs font-mono font-bold rounded-lg border p-1.5 outline-none ${
                               isDark
-                                ? 'bg-zinc-950 border-sky-500/50 text-zinc-100'
-                                : 'bg-zinc-100 border-sky-500/60 text-zinc-900'
+                                ? 'bg-zinc-950 border-zinc-700 text-zinc-100'
+                                : 'bg-zinc-100 border-zinc-300 text-zinc-900'
                             }`}
                           />
                         ) : (
@@ -1810,7 +1811,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                               e.stopPropagation();
                               handleStartRenameSnapshot(snapshot);
                             }}
-                            className="p-1.5 rounded-lg text-zinc-400 hover:text-sky-400 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
                             title="Rename Snapshot"
                           >
                             <Pencil className="w-3.5 h-3.5" />

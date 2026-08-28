@@ -1,6 +1,18 @@
-# CodeMotion
+<p align="center">
+  <img src="public/banner.png" alt="CodeMotion Banner" width="100%" />
+</p>
 
-> Client-Side Animated Code Snippet & Video Generator
+<h1 align="center">CodeMotion</h1>
+
+<p align="center">
+  <strong>Client-Side Animated Code Snippet & Video Generator</strong>
+</p>
+
+<p align="center">
+  <a href="https://codemotion.biz.id/"><img src="https://img.shields.io/badge/Live-Demo-white?style=for-the-badge&logo=vercel&logoColor=black" alt="Live Demo" /></a>
+  <a href="https://github.com/putrarawr/CodeMotion"><img src="https://img.shields.io/badge/GitHub-Repository-zinc?style=for-the-badge&logo=github&logoColor=white" alt="GitHub Repo" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-white?style=for-the-badge" alt="License MIT" /></a>
+</p>
 
 CodeMotion by [Septiyan Bintang Ramadhan Putra](https://github.com/putrarawr) — Repository: [putrarawr/CodeMotion](https://github.com/putrarawr/CodeMotion).
 

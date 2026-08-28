@@ -171,8 +171,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
   const themes = [
     { name: 'Vitesse Dark', dot: 'bg-emerald-400' },
     { name: 'Dracula Official', dot: 'bg-purple-400' },
-    { name: 'Nord Slate', dot: 'bg-cyan-400' },
-    { name: 'One Dark Pro', dot: 'bg-blue-400' },
+    { name: 'Nord Slate', dot: 'bg-zinc-400' },
+    { name: 'One Dark Pro', dot: 'bg-zinc-300' },
     { name: 'Tokyo Night', dot: 'bg-indigo-400' },
     { name: 'Catppuccin Mocha', dot: 'bg-rose-400' },
     { name: 'GitHub Dark', dot: 'bg-zinc-400' },
@@ -232,8 +232,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
       else if (token.type === 'string') colorClass = 'text-emerald-400';
       else if (token.type === 'number') colorClass = 'text-amber-400 font-mono';
       else if (token.type === 'comment') colorClass = 'text-zinc-500 italic';
-      else if (token.type === 'class') colorClass = 'text-sky-300 font-semibold';
-      else if (token.type === 'property') colorClass = 'text-sky-400';
+      else if (token.type === 'class') colorClass = 'text-zinc-200 font-semibold';
+      else if (token.type === 'property') colorClass = 'text-zinc-300';
 
       elements.push(
         <span key={i} className={colorClass}>
@@ -336,10 +336,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
 
         {/* Top-Center Soft Ambient Glow Light */}
         <div
-          className={`absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[550px] rounded-full blur-[140px] opacity-25 ${
+          className={`absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[550px] rounded-full blur-[140px] opacity-20 ${
             isDark
-              ? 'bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600'
-              : 'bg-gradient-to-tr from-sky-300 via-indigo-300 to-purple-400'
+              ? 'bg-gradient-to-tr from-zinc-700 via-zinc-800 to-zinc-900'
+              : 'bg-gradient-to-tr from-zinc-300 via-zinc-400 to-zinc-500'
           }`}
         />
         {/* Subtle Radial Fade Vignette */}
@@ -403,7 +403,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             <Link
               to="/templates"
               className={`px-2.5 py-1 rounded-lg transition-all no-underline ${
-                isDark ? 'text-sky-400 hover:text-sky-300 hover:bg-zinc-950/80' : 'text-sky-600 hover:text-sky-700 hover:bg-zinc-100'
+                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
               Community Gallery

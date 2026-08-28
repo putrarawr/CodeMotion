@@ -36,7 +36,7 @@ export const VideoLoadingOverlay: React.FC<VideoLoadingOverlayProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <Loader2 className="w-3.5 h-3.5 text-sky-400 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 text-zinc-300 animate-spin" />
                 <h3 className="text-xs font-bold tracking-tight font-sans m-0">
                   Background Render
                 </h3>
@@ -66,12 +66,12 @@ export const VideoLoadingOverlay: React.FC<VideoLoadingOverlayProps> = ({
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between text-[10px] font-mono font-bold">
             <span className="opacity-70">Processing frames</span>
-            <span className="text-sky-400">{progress}%</span>
+            <span className="text-zinc-200">{progress}%</span>
           </div>
 
           <div className={`w-full h-1.5 rounded-full overflow-hidden border ${isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-100 border-zinc-300'}`}>
             <motion.div
-              className="h-full bg-sky-500 rounded-full"
+              className="h-full bg-white rounded-full"
               initial={{ width: '0%' }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.1, ease: 'linear' }}
