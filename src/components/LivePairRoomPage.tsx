@@ -145,20 +145,22 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   };
 
   const handleCreateRoomFromLobby = () => {
-    // Apply selected template code before launching room
-    const tpl = SNIPPET_TEMPLATES.find((t) => t.id === selectedTemplateId);
-    if (tpl) {
-      setSettings((prev) => ({
-        ...prev,
-        theme: tpl.theme || prev.theme,
-        background: tpl.background || prev.background,
-        tabs: prev.tabs.map((t) =>
-          t.id === prev.activeTabId
-            ? { ...t, code: tpl.code, title: tpl.fileName, language: tpl.language }
-            : t
-        ),
-      }));
-    }
+    // Apply selected template code before launching room & reset old standalone tabs
+    const tpl = SNIPPET_TEMPLATES.find((t) => t.id === selectedTemplateId) || SNIPPET_TEMPLATES[0];
+    setSettings((prev) => ({
+      ...prev,
+      theme: tpl.theme || prev.theme,
+      background: tpl.background || prev.background,
+      activeTabId: 'live-tab-1',
+      tabs: [
+        {
+          id: 'live-tab-1',
+          title: tpl.fileName || 'main.ts',
+          language: tpl.language || 'typescript',
+          code: tpl.code,
+        },
+      ],
+    }));
 
     createRoom();
     setIsCreatedRoomModalOpen(true);
@@ -177,6 +179,21 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
       toast.error('Invalid Room ID format.');
       return;
     }
+
+    // Clean old standalone editor session code immediately
+    setSettings((prev) => ({
+      ...prev,
+      activeTabId: 'live-tab-1',
+      tabs: [
+        {
+          id: 'live-tab-1',
+          title: 'workspace.ts',
+          language: 'typescript',
+          code: '// Synchronizing workspace code with Host...\n',
+        },
+      ],
+    }));
+
     joinRoom(safeId);
   };
 
@@ -255,6 +272,18 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
                   const finalName = urlUsernameInput.trim() || 'Anonymous';
                   setUsername(finalName);
                   setIsPendingUrlJoinModalOpen(false);
+                  setSettings((prev) => ({
+                    ...prev,
+                    activeTabId: 'live-tab-1',
+                    tabs: [
+                      {
+                        id: 'live-tab-1',
+                        title: 'workspace.ts',
+                        language: 'typescript',
+                        code: '// Synchronizing workspace code with Host...\n',
+                      },
+                    ],
+                  }));
                   if (roomParam) {
                     const safeId = sanitizeRoomId(roomParam);
                     if (safeId) joinRoom(safeId);
