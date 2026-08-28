@@ -32,6 +32,7 @@ export interface PeerStatePayload {
     | 'USER_LEAVE'
     | 'USERNAME_CHANGE'
     | 'ROOM_DISBANDED'
+    | 'PEER_COUNT_UPDATE'
     | 'CHAT_MESSAGE';
   senderId: string;
   username?: string;
@@ -41,6 +42,7 @@ export interface PeerStatePayload {
   language?: SupportedLanguage;
   settings?: Partial<SnippetSettings>;
   timerSeconds?: number;
+  totalMembers?: number;
   line?: number;
   ch?: number;
   chatText?: string;
@@ -64,6 +66,7 @@ export const useLivePairRoom = ({
   });
   const [isHost, setIsHost] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [connectedPeerCount, setConnectedPeerCount] = useState<number>(0);
   const [timerSeconds, setTimerSeconds] = useState<number | null>(null);
   const [isTimerActive, setIsTimerActive] = useState<boolean>(false);
@@ -131,6 +134,10 @@ export const useLivePairRoom = ({
   // Leave room and invalidate session
   const leaveRoom = useCallback(() => {
     resetInactivityTimer();
+    if (joinTimeoutRef.current) {
+      clearTimeout(joinTimeoutRef.current);
+      joinTimeoutRef.current = null;
+    }
     if (peerRef.current) {
       peerRef.current.destroy();
       peerRef.current = null;
@@ -141,6 +148,7 @@ export const useLivePairRoom = ({
     setIsHost(false);
     isHostRef.current = false;
     setIsConnected(false);
+    setIsConnecting(false);
     setConnectedPeerCount(0);
     setTimerSeconds(null);
     setIsTimerActive(false);
@@ -204,6 +212,12 @@ export const useLivePairRoom = ({
             Object.entries(payload.settings).forEach(([k, v]) => {
               updateSetting(k as keyof SnippetSettings, v);
             });
+          }
+          break;
+
+        case 'PEER_COUNT_UPDATE':
+          if (payload.totalMembers !== undefined) {
+            setConnectedPeerCount(Math.max(0, payload.totalMembers - 1));
           }
           break;
 
@@ -285,7 +299,7 @@ export const useLivePairRoom = ({
           break;
       }
     },
-    [addSystemChatMessage, updateActiveTabCode, updateSetting]
+    [addSystemChatMessage, leaveRoom, updateActiveTabCode, updateSetting]
   );
 
   // Set up connection listeners (Host & Guest sides)
@@ -297,10 +311,23 @@ export const useLivePairRoom = ({
           joinTimeoutRef.current = null;
         }
         connectionsRef.current.set(conn.peer, conn);
+
+        const totalRoomMembers = connectionsRef.current.size + 1;
         setConnectedPeerCount(connectionsRef.current.size);
         setIsConnected(true);
+        setIsConnecting(false);
         resetInactivityTimer();
         setRoomNotFoundError(null);
+
+        // Host broadcasts PEER_COUNT_UPDATE to all guests
+        if (isHostRef.current) {
+          broadcastPayload({
+            type: 'PEER_COUNT_UPDATE',
+            senderId: peerIdRef.current,
+            totalMembers: totalRoomMembers,
+          });
+        }
+
         toast.success('Peer connected to Live Room.');
 
         // Send USER_JOIN notification payload
@@ -340,12 +367,22 @@ export const useLivePairRoom = ({
         connectionsRef.current.delete(conn.peer);
         peerUsernamesRef.current.delete(conn.peer);
 
+        const totalRoomMembers = connectionsRef.current.size + 1;
         setConnectedPeerCount(connectionsRef.current.size);
         setPeerCursors((prev) => {
           const updated = new Map(prev);
           updated.delete(conn.peer);
           return updated;
         });
+
+        // Host broadcasts updated peer count to remaining guests
+        if (isHostRef.current) {
+          broadcastPayload({
+            type: 'PEER_COUNT_UPDATE',
+            senderId: peerIdRef.current,
+            totalMembers: totalRoomMembers,
+          });
+        }
 
         addSystemChatMessage(`${leavingPeerName} left the Live Room.`);
         toast.info(`${leavingPeerName} left the room.`);
@@ -361,11 +398,13 @@ export const useLivePairRoom = ({
         }
       });
     },
-    [addSystemChatMessage, handleIncomingPayload, leaveRoom, resetInactivityTimer, settings, timerSeconds, username]
+    [addSystemChatMessage, broadcastPayload, handleIncomingPayload, leaveRoom, resetInactivityTimer, settings, timerSeconds, username]
   );
 
   // Create a new Live Pair Room
   const createRoom = useCallback(() => {
+    if (isConnecting) return;
+    setIsConnecting(true);
     setRoomNotFoundError(null);
     const newRoomId = `cm-${Math.random().toString(36).substring(2, 8)}`;
     const safeRoomId = sanitizeRoomId(newRoomId)!;
@@ -383,6 +422,7 @@ export const useLivePairRoom = ({
       setIsHost(true);
       isHostRef.current = true;
       setIsConnected(true);
+      setIsConnecting(false);
 
       const newUrl = `${window.location.pathname}?room=${id}`;
       window.history.replaceState({ path: newUrl }, '', newUrl);
@@ -405,20 +445,24 @@ export const useLivePairRoom = ({
     });
 
     peer.on('error', (err) => {
-      console.error('PeerJS error:', err);
+      console.error('PeerJS create error:', err);
+      setIsConnecting(false);
       toast.error('Connection error: ' + err.message);
     });
-  }, [addSystemChatMessage, leaveRoom, resetInactivityTimer, setupConnection, username]);
+  }, [addSystemChatMessage, isConnecting, leaveRoom, resetInactivityTimer, setupConnection, username]);
 
   // Join an existing Live Pair Room
   const joinRoom = useCallback(
     (targetRoomId: string) => {
+      if (isConnecting) return;
       setRoomNotFoundError(null);
       const safeRoomId = sanitizeRoomId(targetRoomId);
       if (!safeRoomId) {
         setRoomNotFoundError(`Invalid Room ID format: '${targetRoomId}'.`);
         return;
       }
+
+      setIsConnecting(true);
 
       if (peerRef.current) {
         peerRef.current.destroy();
@@ -429,18 +473,24 @@ export const useLivePairRoom = ({
 
       peer.on('open', (id) => {
         peerIdRef.current = id;
+        setRoomId(safeRoomId);
+        setIsHost(false);
+        isHostRef.current = false;
+
+        const newUrl = `${window.location.pathname}?room=${safeRoomId}`;
+        window.history.replaceState({ path: newUrl }, '', newUrl);
 
         const conn = peer.connect(safeRoomId);
         setupConnection(conn);
 
-        // 6-Second Connection Timeout for Room Existence Validation
+        // 12-Second Connection Timeout for Room Existence Validation
         if (joinTimeoutRef.current) clearTimeout(joinTimeoutRef.current);
         joinTimeoutRef.current = setTimeout(() => {
           if (!connectionsRef.current.get(safeRoomId)?.open) {
             leaveRoom();
             setRoomNotFoundError(`Room ID '${safeRoomId}' was not found, is offline, or has ended.`);
           }
-        }, 6000);
+        }, 12000);
       });
 
       peer.on('error', (err) => {
@@ -449,7 +499,7 @@ export const useLivePairRoom = ({
         setRoomNotFoundError(`Room ID '${safeRoomId}' was not found or has already ended.`);
       });
     },
-    [leaveRoom, setupConnection]
+    [isConnecting, leaveRoom, setupConnection]
   );
 
   // Send P2P Chat Message
@@ -561,6 +611,7 @@ export const useLivePairRoom = ({
     setUsername,
     isHost,
     isConnected,
+    isConnecting,
     connectedPeerCount,
     timerSeconds,
     isTimerActive,

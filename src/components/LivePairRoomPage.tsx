@@ -69,6 +69,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     setUsername,
     isHost,
     isConnected,
+    isConnecting,
     connectedPeerCount,
     timerSeconds,
     isTimerActive,
@@ -379,9 +380,10 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
 
               <button
                 onClick={handleCreateRoomFromLobby}
-                className="w-full py-3 rounded-2xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer shadow-md flex items-center justify-center gap-2"
+                disabled={isConnecting}
+                className="w-full py-3 rounded-2xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>Launch Live Room</span>
+                <span>{isConnecting ? 'Connecting...' : 'Launch Live Room'}</span>
                 <ArrowRight className="w-4 h-4 text-black" />
               </button>
             </div>
@@ -411,9 +413,10 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
 
                   <button
                     type="submit"
-                    className="w-full py-3 rounded-2xl text-xs font-bold border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 transition-all cursor-pointer flex items-center justify-center gap-2"
+                    disabled={isConnecting}
+                    className="w-full py-3 rounded-2xl text-xs font-bold border border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span>Join Room</span>
+                    <span>{isConnecting ? 'Connecting...' : 'Join Room'}</span>
                     <ArrowRight className="w-4 h-4 text-white" />
                   </button>
                 </form>
