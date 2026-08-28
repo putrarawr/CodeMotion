@@ -433,7 +433,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
         )}
 
-        {/* Real-time Multiplayer Peer Cursor Flags Overlay */}
+        {/* Real-time Multiplayer Peer Cursor Flags Overlay (Floating Above Code Line) */}
         {peerCursors && peerCursors.size > 0 && (
           <div
             className="absolute inset-0 pointer-events-none z-30 font-mono"
@@ -444,15 +444,15 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             }}
           >
             {Array.from(peerCursors.values()).map((peer) => {
-              const topOffset = peer.line * (fontSize * lineHeight) + 4;
+              const topOffset = peer.line * (fontSize * lineHeight) - 2;
               return (
                 <div
                   key={peer.peerId}
-                  className="absolute left-14 flex items-center gap-1.5 pointer-events-none transition-all duration-150"
+                  className="absolute left-14 flex items-center gap-1 pointer-events-none transition-all duration-150 -translate-y-full"
                   style={{ top: `${topOffset}px` }}
                 >
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500 text-black font-sans text-[10px] font-extrabold shadow-xl">
-                    <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-t-lg rounded-br-lg bg-emerald-500 text-black font-sans text-[10px] font-extrabold shadow-xl">
+                    <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
                     <span>{peer.username || 'Anonymous'}</span>
                   </div>
                 </div>
