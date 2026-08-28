@@ -53,7 +53,7 @@ export interface PeerStatePayload {
 interface UseLivePairRoomProps {
   settings: SnippetSettings;
   updateSetting: <K extends keyof SnippetSettings>(key: K, value: SnippetSettings[K]) => void;
-  updateActiveTabCode: (code: string, tabId?: string) => void;
+  updateActiveTabCode: (code: string, tabId?: string, title?: string, language?: SupportedLanguage) => void;
 }
 
 export const useLivePairRoom = ({
@@ -61,6 +61,8 @@ export const useLivePairRoom = ({
   updateSetting,
   updateActiveTabCode,
 }: UseLivePairRoomProps) => {
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
   const [roomId, setRoomId] = useState<string | null>(null);
   const [username, setUsernameState] = useState<string>(() => {
     return localStorage.getItem('codemotion_live_username') || 'Anonymous';
@@ -194,23 +196,24 @@ export const useLivePairRoom = ({
       switch (payload.type) {
         case 'REQUEST_SYNC':
           if (isHostRef.current) {
-            const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
+            const curSettings = settingsRef.current;
+            const activeTab = curSettings.tabs.find((t) => t.id === curSettings.activeTabId) || curSettings.tabs[0];
             broadcastPayload({
               type: 'SYNC_STATE',
               senderId: peerIdRef.current,
               username: username,
-              tabId: settings.activeTabId,
+              tabId: curSettings.activeTabId,
               title: activeTab?.title,
               code: activeTab?.code || '',
               language: activeTab?.language || 'typescript',
               timerSeconds: timerSeconds || undefined,
               settings: {
-                theme: settings.theme,
-                background: settings.background,
-                fontFamily: settings.fontFamily,
-                fontSize: settings.fontSize,
-                diffMode: settings.diffMode,
-                windowStyle: settings.windowStyle,
+                theme: curSettings.theme,
+                background: curSettings.background,
+                fontFamily: curSettings.fontFamily,
+                fontSize: curSettings.fontSize,
+                diffMode: curSettings.diffMode,
+                windowStyle: curSettings.windowStyle,
               },
             });
           }
@@ -221,7 +224,7 @@ export const useLivePairRoom = ({
           if (payload.code !== undefined) {
             const safeCode = sanitizeText(payload.code, 50000);
             isRemoteChangeRef.current = true;
-            updateActiveTabCode(safeCode, payload.tabId);
+            updateActiveTabCode(safeCode, payload.tabId, payload.title, payload.language);
             setTimeout(() => {
               isRemoteChangeRef.current = false;
             }, 50);
@@ -374,23 +377,24 @@ export const useLivePairRoom = ({
 
         // Host sends current active code & state to newly joined peer (immediately + after 150ms delay)
         if (isHostRef.current) {
-          const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
+          const curSettings = settingsRef.current;
+          const activeTab = curSettings.tabs.find((t) => t.id === curSettings.activeTabId) || curSettings.tabs[0];
           const syncPayload: PeerStatePayload = {
             type: 'SYNC_STATE',
             senderId: peerIdRef.current,
             username: username,
-            tabId: settings.activeTabId,
+            tabId: curSettings.activeTabId,
             title: activeTab?.title,
             code: activeTab?.code || '',
             language: activeTab?.language || 'typescript',
             timerSeconds: timerSeconds || undefined,
             settings: {
-              theme: settings.theme,
-              background: settings.background,
-              fontFamily: settings.fontFamily,
-              fontSize: settings.fontSize,
-              diffMode: settings.diffMode,
-              windowStyle: settings.windowStyle,
+              theme: curSettings.theme,
+              background: curSettings.background,
+              fontFamily: curSettings.fontFamily,
+              fontSize: curSettings.fontSize,
+              diffMode: curSettings.diffMode,
+              windowStyle: curSettings.windowStyle,
             },
           };
 
@@ -577,15 +581,20 @@ export const useLivePairRoom = ({
     (code: string, tabId?: string) => {
       if (!isConnected || connectionsRef.current.size === 0 || isRemoteChangeRef.current) return;
       const safeCode = sanitizeText(code, 50000);
+      const curSettings = settingsRef.current;
+      const activeTab = curSettings.tabs.find((t) => t.id === (tabId || curSettings.activeTabId)) || curSettings.tabs[0];
+
       broadcastPayload({
         type: 'CODE_CHANGE',
         senderId: peerIdRef.current,
         username: username,
-        tabId: tabId || settings.activeTabId,
+        tabId: tabId || curSettings.activeTabId,
+        title: activeTab?.title,
+        language: activeTab?.language,
         code: safeCode,
       });
     },
-    [broadcastPayload, isConnected, settings.activeTabId, username]
+    [broadcastPayload, isConnected, username]
   );
 
   // Broadcast setting changes
