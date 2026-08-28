@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/banner.png" alt="CodeMotion Banner" width="100%" />
+  <img src="public/banner1.png" alt="CodeMotion Banner" width="100%" />
 </p>
 
 <h1 align="center">CodeMotion</h1>
