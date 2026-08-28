@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { SiGithub } from 'react-icons/si';
 import {
   Search,
@@ -214,7 +215,12 @@ export const TemplateGalleryPage: React.FC<TemplateGalleryPageProps> = ({
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10 pt-20 sm:pt-24 flex-1 z-10 w-full flex flex-col gap-8">
+      <motion.main
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        className="max-w-7xl mx-auto px-4 sm:px-6 py-10 pt-20 sm:pt-24 flex-1 z-10 w-full flex flex-col gap-8"
+      >
         {/* Hero Section */}
         <div className="flex flex-col items-center text-center gap-3 max-w-3xl mx-auto">
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
@@ -414,7 +420,7 @@ export const TemplateGalleryPage: React.FC<TemplateGalleryPageProps> = ({
             </p>
           </div>
         )}
-      </main>
+      </motion.main>
     </div>
   );
 };

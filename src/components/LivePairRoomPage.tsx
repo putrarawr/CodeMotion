@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Users,
   Copy,
@@ -426,7 +427,12 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
         </div>
 
         {/* Main Lobby Container */}
-        <div className="flex-1 w-full max-w-4xl mx-auto p-4 sm:p-8 pt-20 sm:pt-24 flex flex-col gap-6 justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="flex-1 w-full max-w-4xl mx-auto p-4 sm:p-8 pt-20 sm:pt-24 flex flex-col gap-6 justify-center"
+        >
           <div className="text-center flex flex-col gap-2">
             <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto shadow-xl">
               <Users className="w-6 h-6 text-white" />
@@ -557,7 +563,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }

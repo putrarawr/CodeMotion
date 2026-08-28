@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, Download, RefreshCw, Image, ChevronDown, Check, Video, HelpCircle, Share2, Undo2, Redo2, Monitor } from 'lucide-react';
+import { Copy, Download, RefreshCw, Image, ChevronDown, Check, Video, HelpCircle, Share2, Undo2, Redo2, Monitor, Home } from 'lucide-react';
 import { encodeStateToHash } from '../utils/urlEncoder';
 import { toast } from 'sonner';
 import type { SnippetSettings } from '../types';
@@ -77,48 +77,38 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-6xl px-3 sm:px-6 flex justify-center select-none pointer-events-auto">
+    <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-5xl px-3 sm:px-6 flex justify-center select-none pointer-events-auto">
       <header className="w-full rounded-2xl sm:rounded-3xl border border-zinc-800 shadow-2xl backdrop-blur-xl px-3.5 py-2 flex items-center justify-between bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 text-white shadow-black/60 transition-all duration-300">
         
-        {/* Left: Brand Logo + Primary Page Navigation */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* Left: Brand Logo & Home Navigation */}
+        <div className="flex items-center gap-2">
           <Link
             to="/"
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-zinc-800 bg-zinc-950/80 hover:border-zinc-700 text-zinc-100 transition-all no-underline flex-shrink-0"
+            title="Return to Home"
           >
             <Logo className="w-3.5 h-3.5" />
             <span className="text-[11px] font-bold tracking-tight font-sans">CodeMotion</span>
           </Link>
 
-          <nav className="hidden sm:flex items-center gap-1 text-[11px] font-semibold border-l border-zinc-800/80 pl-2">
-            <Link
-              to="/"
-              className="px-2 py-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all no-underline"
-            >
-              {t.navHome}
-            </Link>
-            <Link
-              to="/templates"
-              className="px-2 py-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all no-underline"
-            >
-              {t.navTemplates}
-            </Link>
-            <Link
-              to="/live"
-              className="px-2 py-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all no-underline"
-            >
-              {t.navLivePair}
-            </Link>
-          </nav>
+          <Link
+            to="/"
+            className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg border border-zinc-800/60 bg-zinc-900/50 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all no-underline text-[11px] font-medium"
+            title="Return to Home"
+          >
+            <Home className="w-3 h-3 text-zinc-400" />
+            <span>{t.navHome}</span>
+          </Link>
         </div>
 
-        {/* Right: Actions & Tools */}
+        {/* Right: Clean Editor Action Toolbar (Spacious, No Overcrowding) */}
         <div id="header-export-actions" className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          
           {/* Presentation Deck Button */}
           {onOpenPresentationDeck && (
             <button
               onClick={onOpenPresentationDeck}
-              title="Open Presentation Deck"
+              title="Presentation Slideshow"
               className="hidden lg:flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-xl border border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer"
             >
               <Monitor className="w-3.5 h-3.5 text-zinc-300" />
@@ -129,14 +119,14 @@ export const Header: React.FC<HeaderProps> = ({
           {/* User Guide Tour */}
           <button
             onClick={onOpenUserTour}
-            title="Open Interactive Guide"
+            title="Interactive User Guide"
             className="hidden md:flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-xl border border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer"
           >
             <HelpCircle className="w-3.5 h-3.5 text-zinc-300" />
             <span>{t.btnGuide}</span>
           </button>
 
-          {/* Language Switcher Pill */}
+          {/* Language Switcher Switch Side */}
           <LanguageSwitch language={language} onLanguageChange={onLanguageChange} />
 
           {/* Reset Editor */}
@@ -148,25 +138,25 @@ export const Header: React.FC<HeaderProps> = ({
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
 
-          {/* Undo */}
-          <button
-            onClick={onUndo}
-            disabled={!canUndo}
-            title="Undo (Ctrl+Z)"
-            className="p-1.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            <Undo2 className="w-3.5 h-3.5" />
-          </button>
-
-          {/* Redo */}
-          <button
-            onClick={onRedo}
-            disabled={!canRedo}
-            title="Redo (Ctrl+Shift+Z)"
-            className="p-1.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            <Redo2 className="w-3.5 h-3.5" />
-          </button>
+          {/* Undo / Redo */}
+          <div className="hidden sm:flex items-center gap-1">
+            <button
+              onClick={onUndo}
+              disabled={!canUndo}
+              title="Undo (Ctrl+Z)"
+              className="p-1.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Undo2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={onRedo}
+              disabled={!canRedo}
+              title="Redo (Ctrl+Shift+Z)"
+              className="p-1.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Redo2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
 
           {/* Share Link */}
           <button
@@ -189,7 +179,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden sm:inline">{t.btnCopyImage}</span>
           </button>
 
-          {/* Export Dropdown */}
+          {/* Primary Export Dropdown */}
           <div id="header-export-btn" className="relative" ref={pngDropdownRef}>
             <div className="flex items-center rounded-xl border border-white bg-white text-black hover:bg-zinc-200 transition-all overflow-hidden shadow-sm">
               <button

@@ -36,6 +36,7 @@ import {
   ArrowUpRight,
   ArrowUp,
   Coffee,
+  Users,
 } from 'lucide-react';
 import type { SnippetSettings } from '../types';
 import { SNIPPET_TEMPLATES, TEMPLATE_CATEGORIES, type SnippetTemplate } from '../utils/snippetTemplates';
@@ -461,7 +462,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'en', onLan
               isDark ? 'text-zinc-400' : 'text-zinc-600'
             }`}
           >
-            Paste code, select an animation style, and export studio-quality typing videos (MP4/GIF) for coding tutorials, YouTube Shorts, Reels, and social posts | zero video editing required.
+            {t.landingSubtitle}
           </motion.p>
 
           <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center gap-4">
@@ -470,8 +471,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'en', onLan
               className="flex items-center gap-2.5 px-8 py-4 rounded-2xl text-sm font-bold bg-white text-black hover:bg-zinc-200 transition-all shadow-xl transform hover:scale-105 no-underline"
             >
               <Logo className="w-5 h-5 text-black" />
-              <span>Open Editor</span>
+              <span>{t.landingBtnLaunchEditor}</span>
               <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link
+              to="/live"
+              className="flex items-center gap-2.5 px-8 py-4 rounded-2xl text-sm font-bold border border-zinc-800 bg-zinc-950/80 text-white hover:bg-zinc-900 transition-all shadow-xl transform hover:scale-105 no-underline"
+            >
+              <Users className="w-5 h-5 text-zinc-300" />
+              <span>{t.landingBtnJoinLive}</span>
             </Link>
           </motion.div>
         </motion.div>
@@ -529,10 +537,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'en', onLan
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
-              Character-by-Character Typing Motion
+              {t.motionTitle}
             </h2>
             <p className={`text-sm max-w-xl mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Real-time interactive code typing simulation.
+              {t.motionSubtitle}
             </p>
           </div>
 
@@ -619,10 +627,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'en', onLan
       <section id="features" className="py-16 px-6 lg:px-12 max-w-6xl mx-auto w-full border-t border-zinc-800/60">
         <div className="text-center mb-12">
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
-            Built for Modern Developers
+            {t.landingTitle}
           </h2>
           <p className={`text-sm max-w-xl mx-auto ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            Essential tools for rendering code snippet images and motion.
+            {t.landingSubtitle}
           </p>
         </div>
 
@@ -637,9 +645,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'en', onLan
             }`}>
               <VscCode className="w-5 h-5" />
             </div>
-            <h3 className={`text-base font-bold mb-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>VS Code Shiki Engine</h3>
+            <h3 className={`text-base font-bold mb-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>{t.featShikiTitle}</h3>
             <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Powered by Shiki and official TextMate grammars for accurate syntax highlighting.
+              {t.featShikiDesc}
             </p>
           </div>
 
@@ -653,9 +661,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'en', onLan
             }`}>
               <Layers className="w-5 h-5" />
             </div>
-            <h3 className={`text-base font-bold mb-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>Multi-Tab File Navigation</h3>
+            <h3 className={`text-base font-bold mb-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>{t.featTabTitle}</h3>
             <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Organize multiple file tabs inside a single window frame with custom titles.
+              {t.featTabDesc}
             </p>
           </div>
 
@@ -669,9 +677,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'en', onLan
             }`}>
               <SiGit className="w-5 h-5" />
             </div>
-            <h3 className={`text-base font-bold mb-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>Code Diff Mode</h3>
+            <h3 className={`text-base font-bold mb-2 ${isDark ? 'text-white' : 'text-zinc-900'}`}>{t.featDiffTitle}</h3>
             <p className={`text-xs leading-relaxed m-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Highlight line additions (+) and deletions (-) for code reviews and refactoring.
+              {t.featDiffDesc}
             </p>
           </div>
         </div>
