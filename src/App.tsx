@@ -23,6 +23,10 @@ import { useSettingsHistory } from './hooks/useSettingsHistory';
 import type { LibrarySnapshot } from './types';
 import { FileUp } from 'lucide-react';
 
+import { useLivePairRoom } from './hooks/useLivePairRoom';
+import { LivePairRoomModal } from './components/LivePairRoomModal';
+import { PresentationDeckModal } from './components/PresentationDeckModal';
+
 function EditorWorkspace({
   settings,
   setSettings,
@@ -40,14 +44,55 @@ function EditorWorkspace({
   // Modals state
   const [isUserTourOpen, setIsUserTourOpen] = useState(false);
   const [isThankYouOpen, setIsThankYouOpen] = useState(false);
+  const [isLiveRoomModalOpen, setIsLiveRoomModalOpen] = useState(false);
+  const [isPresentationDeckOpen, setIsPresentationDeckOpen] = useState(false);
+
+  // Live Pair Room Hook
+  const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
+
+  const updateActiveTabCode = (newCode: string) => {
+    setSettings((prev) => {
+      const activeId = prev.activeTabId;
+      return {
+        ...prev,
+        tabs: prev.tabs.map((t) => (t.id === activeId ? { ...t, code: newCode } : t)),
+      };
+    });
+  };
+
+  const updateSetting = <K extends keyof SnippetSettings>(key: K, value: SnippetSettings[K]) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const {
+    roomId: liveRoomId,
+    isConnected: isLiveConnected,
+    connectedPeerCount: livePeerCount,
+    timerSeconds: liveTimerSeconds,
+    isTimerActive: isLiveTimerActive,
+    createRoom: createLiveRoom,
+    joinRoom: joinLiveRoom,
+    leaveRoom: leaveLiveRoom,
+    broadcastCodeChange,
+    startSprintTimer,
+  } = useLivePairRoom({
+    settings,
+    updateSetting,
+    updateActiveTabCode,
+  });
+
+  // Broadcast code change when code updates in active room
+  useEffect(() => {
+    if (isLiveConnected && activeTab?.code) {
+      broadcastCodeChange(activeTab.code);
+    }
+  }, [activeTab?.code, isLiveConnected, broadcastCodeChange]);
 
   const isDark = settings.appTheme === 'dark';
 
   const handleReset = () => {
     setSettings(DEFAULT_SETTINGS);
   };
-
-  const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
 
   const isCancelledRef = useRef(false);
   const isRecordingRef = useRef(false);
@@ -209,6 +254,35 @@ function EditorWorkspace({
         isDark={isDark}
       />
 
+      <LivePairRoomModal
+        isOpen={isLiveRoomModalOpen}
+        onClose={() => setIsLiveRoomModalOpen(false)}
+        isDark={isDark}
+        roomId={liveRoomId}
+        isConnected={isLiveConnected}
+        connectedPeerCount={livePeerCount}
+        timerSeconds={liveTimerSeconds}
+        isTimerActive={isLiveTimerActive}
+        onCreateRoom={createLiveRoom}
+        onJoinRoom={joinLiveRoom}
+        onLeaveRoom={leaveLiveRoom}
+        onStartTimer={startSprintTimer}
+      />
+
+      <PresentationDeckModal
+        isOpen={isPresentationDeckOpen}
+        onClose={() => setIsPresentationDeckOpen(false)}
+        isDark={isDark}
+        librarySnapshots={(() => {
+          try {
+            return JSON.parse(localStorage.getItem('codemotion_library') || '[]');
+          } catch {
+            return [];
+          }
+        })()}
+        currentSettings={settings}
+      />
+
       <Header
         settings={settings}
         setSettings={setSettings}
@@ -233,6 +307,11 @@ function EditorWorkspace({
         onRecordVideo={handleRecordVideo}
         onReset={handleReset}
         onOpenUserTour={() => setIsUserTourOpen(true)}
+        onOpenLiveRoom={() => setIsLiveRoomModalOpen(true)}
+        onOpenPresentationDeck={() => setIsPresentationDeckOpen(true)}
+        liveRoomId={liveRoomId}
+        livePeerCount={livePeerCount}
+        liveTimerSeconds={liveTimerSeconds}
         onUndo={undo}
         onRedo={redo}
         canUndo={canUndo}
@@ -264,6 +343,8 @@ function EditorWorkspace({
               recordingProgress={recordingProgress}
               onBatchExportZip={handleBatchExportZip}
               batchExportProgress={batchExportProgress}
+              onOpenLiveRoom={() => setIsLiveRoomModalOpen(true)}
+              onOpenPresentationDeck={() => setIsPresentationDeckOpen(true)}
             />
           </div>
         </main>

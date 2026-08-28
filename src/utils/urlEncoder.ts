@@ -95,23 +95,30 @@ export function decodeStateFromHash(hashOrUrl: string): Partial<SnippetSettings>
   return null;
 }
 
+import { sanitizeText } from './security';
+
 function buildSettingsFromPayload(payload: CompactSharePayload): Partial<SnippetSettings> {
+  const safeTitle = sanitizeText(payload.t || 'App.tsx', 100);
+  const safeCode = sanitizeText(payload.c || '', 50000);
+  const safeWatermark = sanitizeText(payload.u || '', 100);
+  const safeBg = payload.bg && !payload.bg.toLowerCase().includes('javascript:') ? payload.bg : 'linear-gradient(135deg, #18181b 0%, #09090b 100%)';
+
   return {
     tabs: [
       {
         id: 'shared-tab',
-        title: payload.t || 'App.tsx',
+        title: safeTitle,
         language: (payload.l as any) || 'typescript',
-        code: payload.c,
+        code: safeCode,
       },
     ],
     activeTabId: 'shared-tab',
     theme: (payload.th as any) || 'vitesse-dark',
-    background: payload.bg || 'linear-gradient(135deg, #18181b 0%, #09090b 100%)',
+    background: safeBg,
     fontFamily: payload.f || '"JetBrains Mono", monospace',
     fontSize: payload.fs || 14,
     diffMode: Boolean(payload.diff),
-    watermarkText: payload.u || '',
-    watermark: Boolean(payload.u),
+    watermarkText: safeWatermark,
+    watermark: Boolean(safeWatermark),
   };
 }

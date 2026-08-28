@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import type { SnippetSettings } from '../types';
 import { Logo } from './Logo';
 
+import { Users, Monitor } from 'lucide-react';
+
 interface HeaderProps {
   settings: SnippetSettings;
   setSettings: React.Dispatch<React.SetStateAction<SnippetSettings>>;
@@ -15,6 +17,11 @@ interface HeaderProps {
   onRecordVideo: () => void;
   onReset: () => void;
   onOpenUserTour: () => void;
+  onOpenLiveRoom?: () => void;
+  onOpenPresentationDeck?: () => void;
+  liveRoomId?: string | null;
+  livePeerCount?: number;
+  liveTimerSeconds?: number | null;
   onUndo?: () => void;
   onRedo?: () => void;
   canUndo?: boolean;
@@ -31,6 +38,10 @@ export const Header: React.FC<HeaderProps> = ({
   onRecordVideo,
   onReset,
   onOpenUserTour,
+  onOpenLiveRoom,
+  onOpenPresentationDeck,
+  liveRoomId,
+  livePeerCount,
   onUndo,
   onRedo,
   canUndo = false,
@@ -108,6 +119,39 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Obsidian Section: All Actions & Controls (Clean Flex Row, 0 Overlap) */}
         <div id="header-export-actions" className="flex items-center gap-1.5 sm:gap-2">
+          {/* Live Pair Room Status Pill Button */}
+          {onOpenLiveRoom && (
+            <button
+              onClick={onOpenLiveRoom}
+              title="Open Live Pair Coding Room & Sprint Timer"
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                liveRoomId
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-mono'
+                  : isDark
+                  ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
+                  : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>{liveRoomId ? `Live (${(livePeerCount || 0) + 1})` : 'Live Pair'}</span>
+            </button>
+          )}
+
+          {/* Presentation Deck Mode Button */}
+          {onOpenPresentationDeck && (
+            <button
+              onClick={onOpenPresentationDeck}
+              title="Open Code Presentation Deck (Fullscreen Slideshow)"
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
+                  : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
+              }`}
+            >
+              <Monitor className="w-3.5 h-3.5 text-zinc-300" />
+              <span className="hidden sm:inline">Present</span>
+            </button>
+          )}
           {/* User Guide Tour Pill */}
           <button
             onClick={onOpenUserTour}
