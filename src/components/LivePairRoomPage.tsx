@@ -40,6 +40,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   const [chatInput, setChatInput] = useState('');
   const [activeSidebarTab, setActiveSidebarTab] = useState<'chat' | 'settings'>('chat');
   const [isDisbandModalOpen, setIsDisbandModalOpen] = useState(false);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
 
   // Lobby form state
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('react-hook');
@@ -73,6 +74,8 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     isTimerActive,
     peerCursors,
     chatMessages,
+    roomNotFoundError,
+    setRoomNotFoundError,
     createRoom,
     joinRoom,
     leaveRoom,
@@ -89,15 +92,12 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
 
   const isDark = settings.appTheme === 'dark';
 
-  // Join room automatically if ?room= parameter exists in URL on initial mount
-  useEffect(() => {
-    if (roomParam && !roomId) {
-      const safeId = sanitizeRoomId(roomParam);
-      if (safeId) {
-        joinRoom(safeId);
-      }
-    }
-  }, [roomParam, roomId, joinRoom]);
+  const [isPendingUrlJoinModalOpen, setIsPendingUrlJoinModalOpen] = useState<boolean>(() => {
+    return Boolean(roomParam && !roomId);
+  });
+  const [urlUsernameInput, setUrlUsernameInput] = useState<string>(() => {
+    return localStorage.getItem('codemotion_live_username') || '';
+  });
 
   // Broadcast local code changes for active tab
   useEffect(() => {
@@ -196,6 +196,87 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
           isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
         }`}
       >
+        {/* Upfront Username Modal for Incoming URL Share Links */}
+        {isPendingUrlJoinModalOpen && (
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <div className="w-full max-w-sm rounded-3xl border border-zinc-800 bg-zinc-950 p-6 text-zinc-100 shadow-2xl flex flex-col gap-4">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-zinc-900 border border-zinc-800">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold m-0 font-sans">Enter Display Name to Join</h3>
+                  <p className="text-xs text-zinc-400 m-0">Joining Room: {roomParam}</p>
+                </div>
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const finalName = urlUsernameInput.trim() || 'Anonymous';
+                  setUsername(finalName);
+                  setIsPendingUrlJoinModalOpen(false);
+                  if (roomParam) {
+                    const safeId = sanitizeRoomId(roomParam);
+                    if (safeId) joinRoom(safeId);
+                  }
+                }}
+                className="flex flex-col gap-3"
+              >
+                <input
+                  type="text"
+                  autoFocus
+                  value={urlUsernameInput}
+                  onChange={(e) => setUrlUsernameInput(e.target.value)}
+                  placeholder="Enter your name (e.g. Putra)"
+                  className="w-full text-xs font-mono p-3 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-100 outline-none focus:border-zinc-600"
+                />
+
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <span>Join Room Now</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-black" />
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Room Not Found Error Modal */}
+        {roomNotFoundError && (
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <div className="w-full max-w-sm rounded-3xl border border-red-500/30 bg-zinc-950 p-6 text-zinc-100 shadow-2xl flex flex-col gap-4">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/30">
+                  <Info className="w-4 h-4 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold m-0 font-sans">Room Not Found or Invalid</h3>
+                  <p className="text-xs text-zinc-400 m-0">Live Pair Coding Room</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-zinc-300 m-0 leading-relaxed font-mono">
+                {roomNotFoundError}
+              </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setRoomNotFoundError(null);
+                  const cleanUrl = window.location.pathname;
+                  window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+                }}
+                className="w-full py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer"
+              >
+                Dismiss & Back to Lobby
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Lobby Header */}
         <header className="w-full border-b border-zinc-800 px-6 py-4 flex items-center justify-between sticky top-0 z-50 backdrop-blur-xl bg-zinc-950/80">
           <div className="flex items-center gap-3">
@@ -354,13 +435,18 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     if (isHost) {
       setIsDisbandModalOpen(true);
     } else {
-      leaveRoom();
+      setIsLeaveModalOpen(true);
     }
   };
 
   const handleConfirmDisband = () => {
     setIsDisbandModalOpen(false);
     disbandRoom();
+  };
+
+  const handleConfirmLeave = () => {
+    setIsLeaveModalOpen(false);
+    leaveRoom();
   };
 
   // STAGE 2: ACTIVE LIVE ROOM WORKSPACE (When inside a live room)
@@ -370,6 +456,77 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
         isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
       }`}
     >
+      {/* Room Not Found Error Modal */}
+      {roomNotFoundError && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-sm rounded-3xl border border-red-500/30 bg-zinc-950 p-6 text-zinc-100 shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/30">
+                <Info className="w-4 h-4 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold m-0 font-sans">Room Not Found or Invalid</h3>
+                <p className="text-xs text-zinc-400 m-0">Live Pair Coding Room</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-300 m-0 leading-relaxed font-mono">
+              {roomNotFoundError}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setRoomNotFoundError(null);
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+              }}
+              className="w-full py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer"
+            >
+              Back to Live Lobby
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Guest Leave Room Confirmation Modal */}
+      {isLeaveModalOpen && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-sm rounded-3xl border border-zinc-800 bg-zinc-950 p-6 text-zinc-100 shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-zinc-900 border border-zinc-800">
+                <Info className="w-4 h-4 text-zinc-300" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold m-0 font-sans">Leave Live Room?</h3>
+                <p className="text-xs text-zinc-400 m-0">Collaborative Session</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-300 m-0 leading-relaxed font-mono">
+              Are you sure you want to leave this live room? You will be disconnected from the collaborative workspace.
+            </p>
+
+            <div className="flex gap-2 mt-1">
+              <button
+                type="button"
+                onClick={() => setIsLeaveModalOpen(false)}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmLeave}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer"
+              >
+                Leave Room
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Host Disband Room Confirmation Modal */}
       {isDisbandModalOpen && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
