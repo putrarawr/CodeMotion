@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import Peer from 'peerjs';
 type DataConnection = ReturnType<InstanceType<typeof Peer>['connect']>;
-import type { SnippetSettings, SupportedLanguage, SupportedTheme } from '../types';
+import type { SnippetSettings, SupportedLanguage } from '../types';
 import { sanitizeRoomId, sanitizeText } from '../utils/security';
 import { toast } from 'sonner';
 
@@ -17,16 +17,27 @@ export interface ChatMessage {
   sender: string;
   text: string;
   time: string;
+  isSystem?: boolean;
 }
 
 export interface PeerStatePayload {
-  type: 'SYNC_STATE' | 'CODE_CHANGE' | 'SETTING_CHANGE' | 'TIMER_START' | 'TIMER_TICK' | 'CURSOR_MOVE' | 'USER_JOIN' | 'CHAT_MESSAGE';
+  type:
+    | 'SYNC_STATE'
+    | 'CODE_CHANGE'
+    | 'SETTING_CHANGE'
+    | 'TIMER_START'
+    | 'TIMER_TICK'
+    | 'CURSOR_MOVE'
+    | 'USER_JOIN'
+    | 'USER_LEAVE'
+    | 'USERNAME_CHANGE'
+    | 'CHAT_MESSAGE';
   senderId: string;
   username?: string;
   code?: string;
+  tabId?: string;
   title?: string;
   language?: SupportedLanguage;
-  theme?: SupportedTheme;
   settings?: Partial<SnippetSettings>;
   timerSeconds?: number;
   line?: number;
@@ -38,7 +49,7 @@ export interface PeerStatePayload {
 interface UseLivePairRoomProps {
   settings: SnippetSettings;
   updateSetting: <K extends keyof SnippetSettings>(key: K, value: SnippetSettings[K]) => void;
-  updateActiveTabCode: (code: string) => void;
+  updateActiveTabCode: (code: string, tabId?: string) => void;
 }
 
 export const useLivePairRoom = ({
@@ -65,20 +76,7 @@ export const useLivePairRoom = ({
   const isRemoteChangeRef = useRef<boolean>(false);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const inactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const setUsername = (name: string) => {
-    const cleanName = sanitizeText(name || 'Anonymous', 30).trim() || 'Anonymous';
-    setUsernameState(cleanName);
-    localStorage.setItem('codemotion_live_username', cleanName);
-  };
-
-  // Reset 1-Minute Inactivity Session Expiration Timer
-  const resetInactivityTimer = useCallback(() => {
-    if (inactivityTimeoutRef.current) {
-      clearTimeout(inactivityTimeoutRef.current);
-      inactivityTimeoutRef.current = null;
-    }
-  }, []);
+  const peerUsernamesRef = useRef<Map<string, string>>(new Map());
 
   // Broadcast state payload to all connected peers
   const broadcastPayload = useCallback((payload: PeerStatePayload) => {
@@ -89,6 +87,44 @@ export const useLivePairRoom = ({
     });
   }, []);
 
+  // Update username dynamically inside active room & broadcast update
+  const setUsername = useCallback(
+    (name: string) => {
+      const cleanName = sanitizeText(name || 'Anonymous', 30).trim() || 'Anonymous';
+      setUsernameState(cleanName);
+      localStorage.setItem('codemotion_live_username', cleanName);
+
+      if (isConnected && connectionsRef.current.size > 0) {
+        broadcastPayload({
+          type: 'USERNAME_CHANGE',
+          senderId: peerIdRef.current,
+          username: cleanName,
+        });
+      }
+    },
+    [broadcastPayload, isConnected]
+  );
+
+  // Reset 1-Minute Inactivity Session Expiration Timer
+  const resetInactivityTimer = useCallback(() => {
+    if (inactivityTimeoutRef.current) {
+      clearTimeout(inactivityTimeoutRef.current);
+      inactivityTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Add System Event Chat Message
+  const addSystemChatMessage = useCallback((text: string) => {
+    const sysMsg: ChatMessage = {
+      id: `sys-${Date.now()}-${Math.random()}`,
+      sender: 'System',
+      text,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isSystem: true,
+    };
+    setChatMessages((prev) => [...prev, sysMsg]);
+  }, []);
+
   // Leave room and invalidate session
   const leaveRoom = useCallback(() => {
     resetInactivityTimer();
@@ -97,6 +133,7 @@ export const useLivePairRoom = ({
       peerRef.current = null;
     }
     connectionsRef.current.clear();
+    peerUsernamesRef.current.clear();
     setRoomId(null);
     setIsHost(false);
     isHostRef.current = false;
@@ -135,19 +172,47 @@ export const useLivePairRoom = ({
           if (payload.code !== undefined) {
             const safeCode = sanitizeText(payload.code, 50000);
             isRemoteChangeRef.current = true;
-            updateActiveTabCode(safeCode);
+            updateActiveTabCode(safeCode, payload.tabId);
             setTimeout(() => {
               isRemoteChangeRef.current = false;
             }, 50);
           }
-          if (payload.theme) updateSetting('theme', payload.theme);
-          break;
-
-        case 'SETTING_CHANGE':
-          if (payload.theme) updateSetting('theme', payload.theme);
           if (payload.settings) {
             Object.entries(payload.settings).forEach(([k, v]) => {
               updateSetting(k as keyof SnippetSettings, v);
+            });
+          }
+          break;
+
+        case 'SETTING_CHANGE':
+          if (payload.settings) {
+            Object.entries(payload.settings).forEach(([k, v]) => {
+              updateSetting(k as keyof SnippetSettings, v);
+            });
+          }
+          break;
+
+        case 'USER_JOIN':
+          if (payload.username) {
+            peerUsernamesRef.current.set(payload.senderId, payload.username);
+            addSystemChatMessage(`${payload.username} joined the Live Room.`);
+          }
+          break;
+
+        case 'USERNAME_CHANGE':
+          if (payload.username) {
+            const oldName = peerUsernamesRef.current.get(payload.senderId) || 'Peer';
+            peerUsernamesRef.current.set(payload.senderId, payload.username);
+            addSystemChatMessage(`${oldName} changed name to ${payload.username}.`);
+
+            // Update peer cursors username
+            setPeerCursors((prev) => {
+              const updated = new Map(prev);
+              const existing = updated.get(payload.senderId);
+              if (existing) {
+                updated.set(payload.senderId, { ...existing, username: payload.username! });
+              }
+              return updated;
             });
           }
           break;
@@ -167,11 +232,12 @@ export const useLivePairRoom = ({
 
         case 'CURSOR_MOVE':
           if (payload.line !== undefined && payload.ch !== undefined) {
+            const peerName = payload.username || peerUsernamesRef.current.get(payload.senderId) || 'Anonymous';
             setPeerCursors((prev) => {
               const updated = new Map(prev);
               updated.set(payload.senderId, {
                 peerId: payload.senderId,
-                username: sanitizeText(payload.username || 'Anonymous', 30),
+                username: sanitizeText(peerName, 30),
                 line: payload.line!,
                 ch: payload.ch!,
               });
@@ -199,7 +265,7 @@ export const useLivePairRoom = ({
           break;
       }
     },
-    [updateActiveTabCode, updateSetting]
+    [addSystemChatMessage, updateActiveTabCode, updateSetting]
   );
 
   // Set up connection listeners (Host & Guest sides)
@@ -210,18 +276,33 @@ export const useLivePairRoom = ({
         setConnectedPeerCount(connectionsRef.current.size);
         setIsConnected(true);
         resetInactivityTimer();
-        toast.success('Peer connected to Live Coding Room.');
+        toast.success('Peer connected to Live Room.');
 
-        // Send current active state & username to newly joined peer
+        // Send USER_JOIN notification payload
+        conn.send({
+          type: 'USER_JOIN',
+          senderId: peerIdRef.current,
+          username: username,
+        });
+
+        // Send current active code & username to newly joined peer
         const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
         conn.send({
           type: 'SYNC_STATE',
           senderId: peerIdRef.current,
           username: username,
+          tabId: settings.activeTabId,
           code: activeTab?.code || '',
           language: activeTab?.language || 'typescript',
-          theme: settings.theme,
           timerSeconds: timerSeconds || undefined,
+          settings: {
+            theme: settings.theme,
+            background: settings.background,
+            fontFamily: settings.fontFamily,
+            fontSize: settings.fontSize,
+            diffMode: settings.diffMode,
+            windowStyle: settings.windowStyle,
+          },
         });
       });
 
@@ -230,7 +311,10 @@ export const useLivePairRoom = ({
       });
 
       conn.on('close', () => {
+        const leavingPeerName = peerUsernamesRef.current.get(conn.peer) || 'A peer';
         connectionsRef.current.delete(conn.peer);
+        peerUsernamesRef.current.delete(conn.peer);
+
         setConnectedPeerCount(connectionsRef.current.size);
         setPeerCursors((prev) => {
           const updated = new Map(prev);
@@ -238,7 +322,8 @@ export const useLivePairRoom = ({
           return updated;
         });
 
-        toast.info('Peer disconnected from room.');
+        addSystemChatMessage(`${leavingPeerName} left the Live Room.`);
+        toast.info(`${leavingPeerName} left the room.`);
 
         // If 0 peers remaining, start 60s inactivity session expiration timer
         if (connectionsRef.current.size === 0) {
@@ -251,7 +336,7 @@ export const useLivePairRoom = ({
         }
       });
     },
-    [handleIncomingPayload, leaveRoom, resetInactivityTimer, settings, timerSeconds, username]
+    [addSystemChatMessage, handleIncomingPayload, leaveRoom, resetInactivityTimer, settings, timerSeconds, username]
   );
 
   // Create a new Live Pair Room
@@ -277,6 +362,7 @@ export const useLivePairRoom = ({
       window.history.replaceState({ path: newUrl }, '', newUrl);
 
       toast.success(`Created Live Room: ${id}`);
+      addSystemChatMessage(`Live Room ${id} launched by ${username}.`);
 
       // Start 60s inactivity expiration timer (if no guest connects within 60s)
       resetInactivityTimer();
@@ -296,7 +382,7 @@ export const useLivePairRoom = ({
       console.error('PeerJS error:', err);
       toast.error('Connection error: ' + err.message);
     });
-  }, [leaveRoom, resetInactivityTimer, setupConnection]);
+  }, [addSystemChatMessage, leaveRoom, resetInactivityTimer, setupConnection, username]);
 
   // Join an existing Live Pair Room
   const joinRoom = useCallback(
@@ -364,17 +450,18 @@ export const useLivePairRoom = ({
 
   // Broadcast code changes (ignoring remote-triggered updates to prevent glitch loops)
   const broadcastCodeChange = useCallback(
-    (code: string) => {
+    (code: string, tabId?: string) => {
       if (!isConnected || connectionsRef.current.size === 0 || isRemoteChangeRef.current) return;
       const safeCode = sanitizeText(code, 50000);
       broadcastPayload({
         type: 'CODE_CHANGE',
         senderId: peerIdRef.current,
         username: username,
+        tabId: tabId || settings.activeTabId,
         code: safeCode,
       });
     },
-    [broadcastPayload, isConnected, username]
+    [broadcastPayload, isConnected, settings.activeTabId, username]
   );
 
   // Broadcast setting changes

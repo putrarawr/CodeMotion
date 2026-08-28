@@ -14,6 +14,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Palette,
+  Info,
 } from 'lucide-react';
 import { useLivePairRoom } from '../hooks/useLivePairRoom';
 import { Canvas } from './Canvas';
@@ -40,14 +41,15 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   const [activeSidebarTab, setActiveSidebarTab] = useState<'chat' | 'settings'>('chat');
 
   // Lobby form state
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('react-hooks');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('react-hook');
   const [selectedTimerPreset, setSelectedTimerPreset] = useState<number>(300);
 
   const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
 
-  const updateActiveTabCode = (newCode: string) => {
+  // Tab-isolated code update (does not force tab switch on remote peer)
+  const updateActiveTabCode = (newCode: string, targetTabId?: string) => {
     setSettings((prev) => {
-      const activeId = prev.activeTabId;
+      const activeId = targetTabId || prev.activeTabId;
       return {
         ...prev,
         tabs: prev.tabs.map((t) => (t.id === activeId ? { ...t, code: newCode } : t)),
@@ -94,12 +96,12 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     }
   }, [roomParam, roomId, joinRoom]);
 
-  // Broadcast local code changes
+  // Broadcast local code changes for active tab
   useEffect(() => {
     if (isConnected && activeTab?.code) {
-      broadcastCodeChange(activeTab.code);
+      broadcastCodeChange(activeTab.code, activeTab.id);
     }
-  }, [activeTab?.code, isConnected, broadcastCodeChange]);
+  }, [activeTab?.code, activeTab?.id, isConnected, broadcastCodeChange]);
 
   // Broadcast settings changes (theme, background, font, diffMode)
   useEffect(() => {
@@ -379,11 +381,12 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
 
         {/* Room Header Controls */}
         <div className="flex items-center gap-2">
-          {/* User Name Tag */}
+          {/* User Name Input Tag (Dynamically Editable Inside Active Room!) */}
           <div
             className={`flex items-center gap-1.5 px-3 py-1 rounded-xl border text-xs font-mono ${
               isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-100 border-zinc-300'
             }`}
+            title="Edit your display name"
           >
             <User className="w-3.5 h-3.5 text-zinc-400" />
             <input
@@ -415,7 +418,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
             )}
           </div>
 
-          {/* Connected Peers Status Badge */}
+          {/* Connected Peers Status Badge (Real-Time Counter) */}
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-mono font-bold">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             <span>{connectedPeerCount + 1} Connected</span>
@@ -434,24 +437,40 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
 
       {/* Main Dedicated Workspace */}
       <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-12 min-h-0 overflow-hidden">
-        {/* Left Column: Canvas + Peer Cursors Ribbon */}
+        {/* Left Column: Canvas + Peer Cursors Line Badge Ribbon */}
         <div
           className={`lg:col-span-8 h-full overflow-y-auto min-h-0 flex flex-col items-center p-4 sm:p-6 relative ${
             isDark ? 'bg-zinc-950/40' : 'bg-zinc-100/40'
           }`}
         >
-          {/* Peer Cursors Badge Ribbon */}
+          {/* Peer Active Line & Variable Callout Badge (Clean Obsidian Style, No Emojis) */}
           {peerCursors.size > 0 && (
-            <div className="w-full max-w-2xl mb-3 flex flex-wrap gap-2 items-center justify-center">
-              {Array.from(peerCursors.values()).map((peer) => (
-                <div
-                  key={peer.peerId}
-                  className="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-zinc-900 border border-zinc-700 text-zinc-200 shadow-md flex items-center gap-1.5"
-                >
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>{peer.username || 'Anonymous'} is active</span>
-                </div>
-              ))}
+            <div className="w-full max-w-3xl mb-3 flex flex-wrap gap-2.5 items-center justify-center">
+              {Array.from(peerCursors.values()).map((peer) => {
+                const codeLines = activeTab?.code ? activeTab.code.split('\n') : [];
+                const activeLineCode = codeLines[peer.line]?.trim();
+
+                return (
+                  <div
+                    key={peer.peerId}
+                    className="px-4 py-2 rounded-2xl bg-zinc-950/90 border border-emerald-500/40 shadow-2xl flex items-center gap-3 backdrop-blur-md transition-all text-xs font-mono"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="font-bold text-emerald-300">{peer.username || 'Anonymous'}</span>
+                    </div>
+                    <div className="h-3.5 w-px bg-zinc-800" />
+                    <div className="text-zinc-400">
+                      Line <span className="text-zinc-200 font-semibold">{peer.line + 1}</span>
+                    </div>
+                    {activeLineCode && (
+                      <div className="px-2.5 py-0.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 text-[11px] max-w-xs truncate font-mono">
+                        {activeLineCode}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -490,28 +509,40 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
             </button>
           </div>
 
-          {/* Tab 1: Live Chat / Notes Panel */}
+          {/* Tab 1: Live Chat / System Event Notes Panel */}
           {activeSidebarTab === 'chat' && (
             <div className="flex-1 flex flex-col min-h-0 p-4 justify-between gap-3">
               <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pr-1">
                 {chatMessages.length === 0 ? (
                   <div className="text-center text-xs text-zinc-500 my-auto flex flex-col gap-1">
                     <MessageSquare className="w-6 h-6 text-zinc-600 mx-auto" />
-                    <span>No messages yet. Start the conversation!</span>
+                    <span>No messages yet. Start typing to chat!</span>
                   </div>
                 ) : (
-                  chatMessages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className="p-3 rounded-2xl border border-zinc-800 bg-zinc-900/80 flex flex-col gap-1"
-                    >
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-bold text-zinc-200">{msg.sender}</span>
-                        <span className="text-[10px] text-zinc-500 font-mono">{msg.time}</span>
+                  chatMessages.map((msg) =>
+                    msg.isSystem ? (
+                      /* System Event Message Pill */
+                      <div
+                        key={msg.id}
+                        className="py-1 px-3 rounded-xl bg-zinc-900/60 border border-zinc-800/80 text-[11px] font-mono text-zinc-400 text-center my-1 flex items-center justify-center gap-1.5"
+                      >
+                        <Info className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                        <span>{msg.text}</span>
                       </div>
-                      <p className="text-xs text-zinc-300 font-mono m-0 whitespace-pre-wrap">{msg.text}</p>
-                    </div>
-                  ))
+                    ) : (
+                      /* User Chat Message Bubble */
+                      <div
+                        key={msg.id}
+                        className="p-3 rounded-2xl border border-zinc-800 bg-zinc-900/80 flex flex-col gap-1"
+                      >
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-zinc-200">{msg.sender}</span>
+                          <span className="text-[10px] text-zinc-500 font-mono">{msg.time}</span>
+                        </div>
+                        <p className="text-xs text-zinc-300 font-mono m-0 whitespace-pre-wrap">{msg.text}</p>
+                      </div>
+                    )
+                  )
                 )}
               </div>
 
@@ -521,7 +552,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Type a note or message..."
+                  placeholder="Type a message..."
                   className="flex-1 text-xs font-mono p-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-100 outline-none focus:border-zinc-700"
                 />
                 <button
