@@ -215,37 +215,37 @@ export const Header: React.FC<HeaderProps> = ({
             href="https://saweria.co/codemotion"
             target="_blank"
             rel="noopener noreferrer"
-            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all no-underline cursor-pointer ${
+            className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all no-underline cursor-pointer whitespace-nowrap flex-shrink-0 ${
               isDark
                 ? 'bg-zinc-950 border-zinc-800 text-amber-300 hover:bg-zinc-800 hover:text-amber-200'
                 : 'bg-zinc-100 border-zinc-300 text-amber-700 hover:bg-zinc-200'
             }`}
             title="Support CodeMotion development via Saweria"
           >
-            <Coffee className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden md:inline">Buy me a coffee</span>
+            <Coffee className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+            <span className="whitespace-nowrap">Buy me a coffee</span>
           </a>
 
           {/* Share Link Button */}
           <button
             onClick={handleShareLink}
             disabled={isExporting}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all disabled:opacity-50 cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all disabled:opacity-50 cursor-pointer whitespace-nowrap flex-shrink-0 ${
               isDark
                 ? 'bg-zinc-950 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
                 : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-zinc-200'
             }`}
             title="Share snippet via URL hash link"
           >
-            <Share2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Share</span>
+            <Share2 className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">Share</span>
           </button>
 
           {/* Copy Image Button */}
           <button
             onClick={onCopyImage}
             disabled={isExporting}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl border transition-all disabled:opacity-50 cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl border transition-all disabled:opacity-50 cursor-pointer whitespace-nowrap flex-shrink-0 ${
               isDark
                 ? 'bg-zinc-950 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
                 : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-zinc-200'

@@ -61,14 +61,24 @@ export const useLivePairRoom = ({
   const peerRef = useRef<Peer | null>(null);
   const connectionsRef = useRef<Map<string, DataConnection>>(new Map());
   const peerIdRef = useRef<string>('');
+  const isHostRef = useRef<boolean>(false);
   const isRemoteChangeRef = useRef<boolean>(false);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const inactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const setUsername = (name: string) => {
     const cleanName = sanitizeText(name || 'Anonymous', 30).trim() || 'Anonymous';
     setUsernameState(cleanName);
     localStorage.setItem('codemotion_live_username', cleanName);
   };
+
+  // Reset 1-Minute Inactivity Session Expiration Timer
+  const resetInactivityTimer = useCallback(() => {
+    if (inactivityTimeoutRef.current) {
+      clearTimeout(inactivityTimeoutRef.current);
+      inactivityTimeoutRef.current = null;
+    }
+  }, []);
 
   // Broadcast state payload to all connected peers
   const broadcastPayload = useCallback((payload: PeerStatePayload) => {
@@ -79,10 +89,45 @@ export const useLivePairRoom = ({
     });
   }, []);
 
-  // Handle incoming data payload from a peer
+  // Leave room and invalidate session
+  const leaveRoom = useCallback(() => {
+    resetInactivityTimer();
+    if (peerRef.current) {
+      peerRef.current.destroy();
+      peerRef.current = null;
+    }
+    connectionsRef.current.clear();
+    setRoomId(null);
+    setIsHost(false);
+    isHostRef.current = false;
+    setIsConnected(false);
+    setConnectedPeerCount(0);
+    setTimerSeconds(null);
+    setIsTimerActive(false);
+    setPeerCursors(new Map());
+    setChatMessages([]);
+
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
+
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+  }, [resetInactivityTimer]);
+
+  // Handle incoming data payload from a peer + Relay if Host
   const handleIncomingPayload = useCallback(
     (payload: PeerStatePayload) => {
       if (payload.senderId === peerIdRef.current) return;
+
+      // Host Relay: Forward payload to all other connected peers
+      if (isHostRef.current) {
+        connectionsRef.current.forEach((conn, pId) => {
+          if (pId !== payload.senderId && conn.open) {
+            conn.send(payload);
+          }
+        });
+      }
 
       switch (payload.type) {
         case 'SYNC_STATE':
@@ -157,16 +202,17 @@ export const useLivePairRoom = ({
     [updateActiveTabCode, updateSetting]
   );
 
-  // Set up connection listeners
+  // Set up connection listeners (Host & Guest sides)
   const setupConnection = useCallback(
     (conn: DataConnection) => {
       conn.on('open', () => {
         connectionsRef.current.set(conn.peer, conn);
         setConnectedPeerCount(connectionsRef.current.size);
         setIsConnected(true);
+        resetInactivityTimer();
         toast.success('Peer connected to Live Coding Room.');
 
-        // Send current active code & username to newly joined peer
+        // Send current active state & username to newly joined peer
         const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
         conn.send({
           type: 'SYNC_STATE',
@@ -191,13 +237,21 @@ export const useLivePairRoom = ({
           updated.delete(conn.peer);
           return updated;
         });
+
+        toast.info('Peer disconnected from room.');
+
+        // If 0 peers remaining, start 60s inactivity session expiration timer
         if (connectionsRef.current.size === 0) {
           setIsConnected(false);
+          resetInactivityTimer();
+          inactivityTimeoutRef.current = setTimeout(() => {
+            leaveRoom();
+            toast.error('Room session expired: No peers connected for 1 minute.');
+          }, 60000);
         }
-        toast.info('Peer disconnected from room.');
       });
     },
-    [handleIncomingPayload, settings, timerSeconds, username]
+    [handleIncomingPayload, leaveRoom, resetInactivityTimer, settings, timerSeconds, username]
   );
 
   // Create a new Live Pair Room
@@ -216,12 +270,22 @@ export const useLivePairRoom = ({
       peerIdRef.current = id;
       setRoomId(id);
       setIsHost(true);
+      isHostRef.current = true;
       setIsConnected(true);
 
       const newUrl = `${window.location.pathname}?room=${id}`;
       window.history.replaceState({ path: newUrl }, '', newUrl);
 
       toast.success(`Created Live Room: ${id}`);
+
+      // Start 60s inactivity expiration timer (if no guest connects within 60s)
+      resetInactivityTimer();
+      inactivityTimeoutRef.current = setTimeout(() => {
+        if (connectionsRef.current.size === 0) {
+          leaveRoom();
+          toast.error('Room session expired: No peers connected for 1 minute.');
+        }
+      }, 60000);
     });
 
     peer.on('connection', (conn) => {
@@ -232,7 +296,7 @@ export const useLivePairRoom = ({
       console.error('PeerJS error:', err);
       toast.error('Connection error: ' + err.message);
     });
-  }, [setupConnection]);
+  }, [leaveRoom, resetInactivityTimer, setupConnection]);
 
   // Join an existing Live Pair Room
   const joinRoom = useCallback(
@@ -254,6 +318,7 @@ export const useLivePairRoom = ({
         peerIdRef.current = id;
         setRoomId(safeRoomId);
         setIsHost(false);
+        isHostRef.current = false;
 
         const newUrl = `${window.location.pathname}?room=${safeRoomId}`;
         window.history.replaceState({ path: newUrl }, '', newUrl);
@@ -269,31 +334,6 @@ export const useLivePairRoom = ({
     },
     [setupConnection]
   );
-
-  // Leave current room
-  const leaveRoom = useCallback(() => {
-    if (peerRef.current) {
-      peerRef.current.destroy();
-      peerRef.current = null;
-    }
-    connectionsRef.current.clear();
-    setRoomId(null);
-    setIsHost(false);
-    setIsConnected(false);
-    setConnectedPeerCount(0);
-    setTimerSeconds(null);
-    setIsTimerActive(false);
-    setPeerCursors(new Map());
-    setChatMessages([]);
-
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-    }
-
-    const cleanUrl = window.location.pathname;
-    window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-    toast.info('Left Live Pair Room.');
-  }, []);
 
   // Send P2P Chat Message
   const sendChatMessage = useCallback(
