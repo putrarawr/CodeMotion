@@ -408,6 +408,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ settings, onToggleAppT
             >
               Community Gallery
             </Link>
+            <Link
+              to="/live"
+              className={`px-2.5 py-1 rounded-lg transition-all no-underline ${
+                isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
+              }`}
+            >
+              Live Room
+            </Link>
             <a
               href="#faq"
               onClick={(e) => scrollToSection(e, 'faq')}

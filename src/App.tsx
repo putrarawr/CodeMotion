@@ -214,7 +214,7 @@ function EditorWorkspace({
         isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
       }`}
     >
-      <Toaster position="bottom-right" theme={isDark ? 'dark' : 'light'} closeButton />
+      <Toaster position="bottom-right" theme={isDark ? 'dark' : 'light'} visibleToasts={2} duration={2500} closeButton />
 
       {/* Full Screen Video Recording Overlay Spinner */}
       <AnimatePresence>

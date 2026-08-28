@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Users, Copy, Check, LogOut, Timer, ArrowLeft, User, Sparkles } from 'lucide-react';
+import { Users, Copy, Check, LogOut, Timer, ArrowLeft, User, Sparkles, ArrowRight } from 'lucide-react';
 import { useLivePairRoom } from '../hooks/useLivePairRoom';
 import { Canvas } from './Canvas';
 import { ControlPanel } from './ControlPanel';
@@ -21,6 +21,17 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   const roomParam = searchParams.get('room');
   const [copied, setCopied] = useState(false);
   const [roomInput, setRoomInput] = useState('');
+
+  // Username prompt modal state
+  const [isUsernamePromptOpen, setIsUsernamePromptOpen] = useState<boolean>(() => {
+    return Boolean(roomParam);
+  });
+  const [tempUsernameInput, setTempUsernameInput] = useState<string>(() => {
+    return localStorage.getItem('codemotion_live_username') || '';
+  });
+  const [pendingAction, setPendingAction] = useState<'JOIN' | 'CREATE' | null>(() => {
+    return roomParam ? 'JOIN' : null;
+  });
 
   const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
 
@@ -51,6 +62,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     joinRoom,
     leaveRoom,
     broadcastCodeChange,
+    broadcastSettingChange,
     startSprintTimer,
   } = useLivePairRoom({
     settings,
@@ -60,22 +72,35 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
 
   const isDark = settings.appTheme === 'dark';
 
-  // Automatically join room if ?room= parameter exists in URL on mount
-  useEffect(() => {
-    if (roomParam && !roomId) {
-      const safeId = sanitizeRoomId(roomParam);
-      if (safeId) {
-        joinRoom(safeId);
-      }
-    }
-  }, [roomParam, roomId, joinRoom]);
-
   // Broadcast local code changes
   useEffect(() => {
     if (isConnected && activeTab?.code) {
       broadcastCodeChange(activeTab.code);
     }
   }, [activeTab?.code, isConnected, broadcastCodeChange]);
+
+  // Broadcast settings changes (theme, background, font, diffMode)
+  useEffect(() => {
+    if (isConnected) {
+      broadcastSettingChange({
+        theme: settings.theme,
+        background: settings.background,
+        fontFamily: settings.fontFamily,
+        fontSize: settings.fontSize,
+        diffMode: settings.diffMode,
+        windowStyle: settings.windowStyle,
+      });
+    }
+  }, [
+    settings.theme,
+    settings.background,
+    settings.fontFamily,
+    settings.fontSize,
+    settings.diffMode,
+    settings.windowStyle,
+    isConnected,
+    broadcastSettingChange,
+  ]);
 
   const shareableUrl = roomId ? `${window.location.origin}/live?room=${roomId}` : '';
 
@@ -87,14 +112,37 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleJoinSubmit = (e: React.FormEvent) => {
+  const handleStartCreateRoom = () => {
+    setPendingAction('CREATE');
+    setIsUsernamePromptOpen(true);
+  };
+
+  const handleStartJoinRoom = (e: React.FormEvent) => {
     e.preventDefault();
     const safeId = sanitizeRoomId(roomInput);
     if (!safeId) {
-      toast.error('Invalid Room ID.');
+      toast.error('Invalid Room ID format.');
       return;
     }
-    joinRoom(safeId);
+    setPendingAction('JOIN');
+    setIsUsernamePromptOpen(true);
+  };
+
+  const handleConfirmUsername = (e: React.FormEvent) => {
+    e.preventDefault();
+    const finalName = tempUsernameInput.trim() || 'Anonymous';
+    setUsername(finalName);
+    setIsUsernamePromptOpen(false);
+
+    if (pendingAction === 'CREATE') {
+      createRoom();
+    } else if (pendingAction === 'JOIN') {
+      const targetId = roomParam || roomInput;
+      const safeId = sanitizeRoomId(targetId);
+      if (safeId) {
+        joinRoom(safeId);
+      }
+    }
   };
 
   const formatTimerDisplay = (sec: number | null) => {
@@ -110,6 +158,42 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
         isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
       }`}
     >
+      {/* Upfront Username Join Modal */}
+      {isUsernamePromptOpen && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-sm rounded-3xl border border-zinc-800 bg-zinc-950 p-6 text-zinc-100 shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-zinc-900 border border-zinc-800">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold m-0 font-sans">Enter Your Display Name</h3>
+                <p className="text-xs text-zinc-400 m-0">Set your username before joining the Live Room</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleConfirmUsername} className="flex flex-col gap-3">
+              <input
+                type="text"
+                autoFocus
+                value={tempUsernameInput}
+                onChange={(e) => setTempUsernameInput(e.target.value)}
+                placeholder="Enter your name (e.g. Putra)"
+                className="w-full text-xs font-mono p-3 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-100 outline-none focus:border-zinc-600"
+              />
+
+              <button
+                type="submit"
+                className="w-full py-3 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <span>Continue to Live Room</span>
+                <ArrowRight className="w-3.5 h-3.5 text-black" />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Top Navbar */}
       <header
         className={`w-full border-b px-4 py-3 flex items-center justify-between sticky top-0 z-50 backdrop-blur-xl ${
@@ -202,7 +286,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
           ) : (
             /* Create / Join Actions */
             <button
-              onClick={createRoom}
+              onClick={handleStartCreateRoom}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer shadow-sm"
             >
               <Sparkles className="w-3.5 h-3.5" />
@@ -228,8 +312,8 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
                   key={peer.peerId}
                   className="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-zinc-900 border border-zinc-700 text-zinc-200 shadow-md flex items-center gap-1.5"
                 >
-                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                  <span>{peer.username || 'Anonymous'} is typing...</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>{peer.username || 'Anonymous'} is active</span>
                 </div>
               ))}
             </div>
@@ -244,13 +328,13 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
               </p>
 
               <button
-                onClick={createRoom}
+                onClick={handleStartCreateRoom}
                 className="w-full py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer"
               >
                 Create Room Now
               </button>
 
-              <form onSubmit={handleJoinSubmit} className="flex gap-2">
+              <form onSubmit={handleStartJoinRoom} className="flex gap-2">
                 <input
                   type="text"
                   value={roomInput}

@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import type {
   SnippetSettings,
@@ -66,7 +65,7 @@ const formatRelativeTime = (timestamp: number): string => {
   return new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
-import { Users, Monitor } from 'lucide-react';
+import { Monitor } from 'lucide-react';
 
 interface ControlPanelProps {
   settings: SnippetSettings;
@@ -1582,33 +1581,23 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <Link
-                to="/live"
-                className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 no-underline ${
-                  isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:text-white' : 'bg-zinc-100 border-zinc-300 text-zinc-800'
-                }`}
-              >
-                <Users className="w-3.5 h-3.5" />
-                <span>Live Pair Room</span>
-              </Link>
-
-              {onOpenPresentationDeck && (
+            {onOpenPresentationDeck && (
+              <div className="w-full mt-1">
                 <button
                   type="button"
                   onClick={onOpenPresentationDeck}
-                  className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  className={`w-full py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                     isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:text-white' : 'bg-zinc-100 border-zinc-300 text-zinc-800'
                   }`}
                 >
                   <Monitor className="w-3.5 h-3.5" />
                   <span>Present Deck</span>
                 </button>
-              )}
-            </div>
+              </div>
+            )}
 
             <p className={`text-[11px] m-0 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
-              Save snapshot locally, publish to Community Gallery, collaborate via Live Room, or present as a slide deck!
+              Save snapshot locally, publish to Community Gallery, or present as a slide deck!
             </p>
           </div>
 

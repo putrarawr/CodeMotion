@@ -13,13 +13,14 @@ export interface PeerCursorInfo {
 }
 
 export interface PeerStatePayload {
-  type: 'SYNC_STATE' | 'CODE_CHANGE' | 'TIMER_START' | 'TIMER_TICK' | 'CURSOR_MOVE' | 'USER_JOIN';
+  type: 'SYNC_STATE' | 'CODE_CHANGE' | 'SETTING_CHANGE' | 'TIMER_START' | 'TIMER_TICK' | 'CURSOR_MOVE' | 'USER_JOIN';
   senderId: string;
   username?: string;
   code?: string;
   title?: string;
   language?: SupportedLanguage;
   theme?: SupportedTheme;
+  settings?: Partial<SnippetSettings>;
   timerSeconds?: number;
   line?: number;
   ch?: number;
@@ -86,6 +87,15 @@ export const useLivePairRoom = ({
             }, 50);
           }
           if (payload.theme) updateSetting('theme', payload.theme);
+          break;
+
+        case 'SETTING_CHANGE':
+          if (payload.theme) updateSetting('theme', payload.theme);
+          if (payload.settings) {
+            Object.entries(payload.settings).forEach(([k, v]) => {
+              updateSetting(k as keyof SnippetSettings, v);
+            });
+          }
           break;
 
         case 'CURSOR_MOVE':
@@ -323,6 +333,20 @@ export const useLivePairRoom = ({
     [broadcastPayload]
   );
 
+  // Broadcast setting changes (e.g. theme, background, font, diffMode)
+  const broadcastSettingChange = useCallback(
+    (newSettings: Partial<SnippetSettings>) => {
+      if (!isConnected || connectionsRef.current.size === 0) return;
+      broadcastPayload({
+        type: 'SETTING_CHANGE',
+        senderId: peerIdRef.current,
+        username: username,
+        settings: newSettings,
+      });
+    },
+    [broadcastPayload, isConnected, username]
+  );
+
   return {
     roomId,
     username,
@@ -337,6 +361,7 @@ export const useLivePairRoom = ({
     joinRoom,
     leaveRoom,
     broadcastCodeChange,
+    broadcastSettingChange,
     broadcastCursor,
     startSprintTimer,
   };
