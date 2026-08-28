@@ -31,6 +31,7 @@ export interface PeerStatePayload {
     | 'USER_JOIN'
     | 'USER_LEAVE'
     | 'USERNAME_CHANGE'
+    | 'ROOM_DISBANDED'
     | 'CHAT_MESSAGE';
   senderId: string;
   username?: string;
@@ -152,6 +153,18 @@ export const useLivePairRoom = ({
     window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
   }, [resetInactivityTimer]);
 
+  // Host Disband Room (broadcasts ROOM_DISBANDED payload to all peers and invalidates room link)
+  const disbandRoom = useCallback(() => {
+    if (isConnected && connectionsRef.current.size > 0) {
+      broadcastPayload({
+        type: 'ROOM_DISBANDED',
+        senderId: peerIdRef.current,
+      });
+    }
+    leaveRoom();
+    toast.info('Live Room disbanded. The room link has been invalidated.');
+  }, [broadcastPayload, isConnected, leaveRoom]);
+
   // Handle incoming data payload from a peer + Relay if Host
   const handleIncomingPayload = useCallback(
     (payload: PeerStatePayload) => {
@@ -215,6 +228,11 @@ export const useLivePairRoom = ({
               return updated;
             });
           }
+          break;
+
+        case 'ROOM_DISBANDED':
+          leaveRoom();
+          toast.error('The host disbanded the Live Room. This room link is no longer valid.');
           break;
 
         case 'CHAT_MESSAGE':
@@ -538,6 +556,7 @@ export const useLivePairRoom = ({
     createRoom,
     joinRoom,
     leaveRoom,
+    disbandRoom,
     sendChatMessage,
     broadcastCodeChange,
     broadcastSettingChange,

@@ -39,6 +39,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   const [roomInput, setRoomInput] = useState('');
   const [chatInput, setChatInput] = useState('');
   const [activeSidebarTab, setActiveSidebarTab] = useState<'chat' | 'settings'>('chat');
+  const [isDisbandModalOpen, setIsDisbandModalOpen] = useState(false);
 
   // Lobby form state
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('react-hook');
@@ -65,6 +66,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     roomId,
     username,
     setUsername,
+    isHost,
     isConnected,
     connectedPeerCount,
     timerSeconds,
@@ -74,6 +76,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     createRoom,
     joinRoom,
     leaveRoom,
+    disbandRoom,
     sendChatMessage,
     broadcastCodeChange,
     broadcastSettingChange,
@@ -346,6 +349,20 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     );
   }
 
+  const handleLeaveOrDisbandClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isHost) {
+      setIsDisbandModalOpen(true);
+    } else {
+      leaveRoom();
+    }
+  };
+
+  const handleConfirmDisband = () => {
+    setIsDisbandModalOpen(false);
+    disbandRoom();
+  };
+
   // STAGE 2: ACTIVE LIVE ROOM WORKSPACE (When inside a live room)
   return (
     <div
@@ -353,6 +370,44 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
         isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
       }`}
     >
+      {/* Host Disband Room Confirmation Modal */}
+      {isDisbandModalOpen && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-sm rounded-3xl border border-red-500/30 bg-zinc-950 p-6 text-zinc-100 shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/30">
+                <Info className="w-4 h-4 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold m-0 font-sans">Disband Live Room?</h3>
+                <p className="text-xs text-zinc-400 m-0">You are the host of this room.</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-300 m-0 leading-relaxed font-mono">
+              Are you sure you want to disband this session? All connected peers will be disconnected and this room link will be permanently invalidated.
+            </p>
+
+            <div className="flex gap-2 mt-1">
+              <button
+                type="button"
+                onClick={() => setIsDisbandModalOpen(false)}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDisband}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-red-500/30 bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-all cursor-pointer"
+              >
+                Disband Room
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Active Room Top Navbar */}
       <header
         className={`w-full border-b px-4 py-3 flex items-center justify-between sticky top-0 z-50 backdrop-blur-xl ${
@@ -362,7 +417,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
         <div className="flex items-center gap-3">
           <Link
             to="/live"
-            onClick={leaveRoom}
+            onClick={handleLeaveOrDisbandClick}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold no-underline transition-all ${
               isDark
                 ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white'
@@ -370,7 +425,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
             }`}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Leave Room</span>
+            <span>{isHost ? 'Disband Room' : 'Leave Room'}</span>
           </Link>
 
           <div className="hidden sm:flex items-center gap-2 border-l border-zinc-800 pl-3">
