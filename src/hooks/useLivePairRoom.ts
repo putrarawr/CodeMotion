@@ -23,6 +23,7 @@ export interface ChatMessage {
 export interface PeerStatePayload {
   type:
     | 'SYNC_STATE'
+    | 'REQUEST_SYNC'
     | 'CODE_CHANGE'
     | 'SETTING_CHANGE'
     | 'TIMER_START'
@@ -191,6 +192,30 @@ export const useLivePairRoom = ({
       }
 
       switch (payload.type) {
+        case 'REQUEST_SYNC':
+          if (isHostRef.current) {
+            const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
+            broadcastPayload({
+              type: 'SYNC_STATE',
+              senderId: peerIdRef.current,
+              username: username,
+              tabId: settings.activeTabId,
+              title: activeTab?.title,
+              code: activeTab?.code || '',
+              language: activeTab?.language || 'typescript',
+              timerSeconds: timerSeconds || undefined,
+              settings: {
+                theme: settings.theme,
+                background: settings.background,
+                fontFamily: settings.fontFamily,
+                fontSize: settings.fontSize,
+                diffMode: settings.diffMode,
+                windowStyle: settings.windowStyle,
+              },
+            });
+          }
+          break;
+
         case 'SYNC_STATE':
         case 'CODE_CHANGE':
           if (payload.code !== undefined) {
@@ -339,25 +364,41 @@ export const useLivePairRoom = ({
           username: username,
         });
 
-        // Send current active code & username to newly joined peer
-        const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
-        conn.send({
-          type: 'SYNC_STATE',
-          senderId: peerIdRef.current,
-          username: username,
-          tabId: settings.activeTabId,
-          code: activeTab?.code || '',
-          language: activeTab?.language || 'typescript',
-          timerSeconds: timerSeconds || undefined,
-          settings: {
-            theme: settings.theme,
-            background: settings.background,
-            fontFamily: settings.fontFamily,
-            fontSize: settings.fontSize,
-            diffMode: settings.diffMode,
-            windowStyle: settings.windowStyle,
-          },
-        });
+        // Guest sends REQUEST_SYNC to Host immediately
+        if (!isHostRef.current) {
+          conn.send({
+            type: 'REQUEST_SYNC',
+            senderId: peerIdRef.current,
+          });
+        }
+
+        // Host sends current active code & state to newly joined peer (immediately + after 150ms delay)
+        if (isHostRef.current) {
+          const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
+          const syncPayload: PeerStatePayload = {
+            type: 'SYNC_STATE',
+            senderId: peerIdRef.current,
+            username: username,
+            tabId: settings.activeTabId,
+            title: activeTab?.title,
+            code: activeTab?.code || '',
+            language: activeTab?.language || 'typescript',
+            timerSeconds: timerSeconds || undefined,
+            settings: {
+              theme: settings.theme,
+              background: settings.background,
+              fontFamily: settings.fontFamily,
+              fontSize: settings.fontSize,
+              diffMode: settings.diffMode,
+              windowStyle: settings.windowStyle,
+            },
+          };
+
+          conn.send(syncPayload);
+          setTimeout(() => {
+            if (conn.open) conn.send(syncPayload);
+          }, 150);
+        }
       });
 
       conn.on('data', (data: any) => {

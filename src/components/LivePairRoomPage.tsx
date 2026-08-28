@@ -52,10 +52,17 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   // Tab-isolated code update (does not force tab switch on remote peer)
   const updateActiveTabCode = (newCode: string, targetTabId?: string) => {
     setSettings((prev) => {
-      const activeId = targetTabId || prev.activeTabId;
+      const exists = prev.tabs.some((t) => t.id === targetTabId);
+      const activeId = exists && targetTabId ? targetTabId : prev.activeTabId;
+
       return {
         ...prev,
-        tabs: prev.tabs.map((t) => (t.id === activeId ? { ...t, code: newCode } : t)),
+        tabs: prev.tabs.map((t, idx) => {
+          if (t.id === activeId || (!exists && idx === 0)) {
+            return { ...t, code: newCode };
+          }
+          return t;
+        }),
       };
     });
   };
