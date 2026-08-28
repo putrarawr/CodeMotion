@@ -70,11 +70,19 @@ export const Canvas: React.FC<CanvasProps> = ({
 
   const handleAddTab = () => {
     const newId = `tab-${Date.now()}`;
+    const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
+
+    let ext = 'ts';
+    if (activeTab && activeTab.title.includes('.')) {
+      ext = activeTab.title.split('.').pop() || 'ts';
+    }
+
+    const inheritLanguage = activeTab ? activeTab.language : 'typescript';
     const newTab: SnippetTab = {
       id: newId,
-      title: `file-${tabs.length + 1}.tsx`,
-      language: 'typescript',
-      code: '// Type code here...',
+      title: `file-${tabs.length + 1}.${ext}`,
+      language: inheritLanguage,
+      code: `// New ${inheritLanguage} file\n`,
     };
     setSettings((prev) => ({
       ...prev,

@@ -13,7 +13,7 @@ import { PresetBar } from './components/PresetBar';
 import { LandingPage } from './components/LandingPage';
 import { TemplateGalleryPage } from './components/TemplateGalleryPage';
 import { VideoLoadingOverlay } from './components/VideoLoadingOverlay';
-import { UserJourneyTour } from './components/UserJourneyTour';
+import { UserJourneyTour, FloatingTourBanner } from './components/UserJourneyTour';
 import { ThankYouModal } from './components/ThankYouModal';
 import { Toaster, toast } from 'sonner';
 import { recordMotionVideo, downloadBlob } from './utils/recorder';
@@ -209,6 +209,11 @@ function EditorWorkspace({
         isOpen={isUserTourOpen}
         onClose={() => setIsUserTourOpen(false)}
         isDark={isDark}
+      />
+
+      <FloatingTourBanner
+        onStartTour={() => setIsUserTourOpen(true)}
+        language={language}
       />
 
       <ThankYouModal

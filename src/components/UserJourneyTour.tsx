@@ -8,6 +8,48 @@ interface UserJourneyTourProps {
   isDark: boolean;
 }
 
+export const FloatingTourBanner: React.FC<{ onStartTour: () => void; language?: 'id' | 'en' }> = ({
+  onStartTour,
+  language = 'en',
+}) => {
+  const [isDismissed, setIsDismissed] = useState<boolean>(() => {
+    return localStorage.getItem('codemotion_tour_dismissed') === 'true';
+  });
+
+  if (isDismissed) return null;
+
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    localStorage.setItem('codemotion_tour_dismissed', 'true');
+  };
+
+  return (
+    <div className="fixed bottom-4 right-4 z-40 max-w-sm p-3 rounded-2xl border border-zinc-800 bg-zinc-950/95 text-white shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3 font-sans">
+      <div className="flex items-center gap-2 text-xs">
+        <span className="text-base">💡</span>
+        <span className="text-[11px] font-medium text-zinc-300">
+          {language === 'id' ? 'Baru di CodeMotion? Pelajari 5 fitur utama' : 'New to CodeMotion? Take a 30s tour'}
+        </span>
+      </div>
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        <button
+          onClick={onStartTour}
+          className="px-2.5 py-1 text-[10px] font-extrabold rounded-lg bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer shadow-xs"
+        >
+          {language === 'id' ? 'Mulai' : 'Start'}
+        </button>
+        <button
+          onClick={handleDismiss}
+          className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+          title="Dismiss"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 interface StepItem {
   targetId: string;
   title: string;
