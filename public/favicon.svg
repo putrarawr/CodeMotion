@@ -1,28 +1,13 @@
 <svg width="64" height="64" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="cm-fav-grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#38BDF8" />
-      <stop offset="50%" stop-color="#818CF8" />
-      <stop offset="100%" stop-color="#C084FC" />
-    </linearGradient>
-    <linearGradient id="cm-fav-grad2" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#34D399" />
-      <stop offset="100%" stop-color="#38BDF8" />
-    </linearGradient>
-  </defs>
-
   <!-- Frame Background -->
   <rect x="2" y="2" width="28" height="28" rx="8" fill="#09090b" stroke="#27272a" stroke-width="1.5"/>
 
-  <!-- Left Code Bracket < -->
-  <path d="M11 11L7 16L11 21" stroke="url(#cm-fav-grad1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Option 2: Left Code Bracket < -->
+  <path d="M9.5 9.5L4 16L9.5 22.5" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
 
-  <!-- Right Code Bracket > -->
-  <path d="M21 11L25 16L21 21" stroke="url(#cm-fav-grad1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Option 2: Right Code Bracket > -->
+  <path d="M22.5 9.5L28 16L22.5 22.5" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
 
-  <!-- Motion Slash Streamer / -->
-  <path d="M18 9L14 23" stroke="url(#cm-fav-grad2)" stroke-width="2.5" stroke-linecap="round"/>
-
-  <!-- Pulse Dot -->
-  <circle cx="16" cy="16" r="1.5" fill="#38BDF8"/>
+  <!-- Option 2: Center Lightning Bolt ⚡ -->
+  <path d="M17.5 6L11.5 16.5H16L14.5 26L20.5 15.5H16L17.5 6Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0.5" stroke-linejoin="round"/>
 </svg>
