@@ -19,7 +19,7 @@ import {
 import { useLivePairRoom } from '../hooks/useLivePairRoom';
 import { Canvas } from './Canvas';
 import { ControlPanel } from './ControlPanel';
-import type { SnippetSettings } from '../types';
+import type { SnippetSettings, SupportedLanguage } from '../types';
 import { sanitizeRoomId } from '../utils/security';
 import { SNIPPET_TEMPLATES } from '../utils/snippetTemplates';
 import { toast } from 'sonner';
@@ -50,7 +50,12 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
 
   // Tab-isolated code update (does not force tab switch on remote peer)
-  const updateActiveTabCode = (newCode: string, targetTabId?: string) => {
+  const updateActiveTabCode = (
+    newCode: string,
+    targetTabId?: string,
+    title?: string,
+    language?: SupportedLanguage
+  ) => {
     setSettings((prev) => {
       const exists = prev.tabs.some((t) => t.id === targetTabId);
       const activeId = exists && targetTabId ? targetTabId : prev.activeTabId;
@@ -59,7 +64,12 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
         ...prev,
         tabs: prev.tabs.map((t, idx) => {
           if (t.id === activeId || (!exists && idx === 0)) {
-            return { ...t, code: newCode };
+            return {
+              ...t,
+              code: newCode,
+              title: title || t.title,
+              language: language || t.language,
+            };
           }
           return t;
         }),
@@ -171,12 +181,16 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     }));
 
     createRoom();
-    setIsCreatedRoomModalOpen(true);
+
+    // Host enters workspace first, then show modal 800ms later as requested
+    setTimeout(() => {
+      setIsCreatedRoomModalOpen(true);
+    }, 800);
 
     if (selectedTimerPreset > 0) {
       setTimeout(() => {
         startSprintTimer(selectedTimerPreset);
-      }, 500);
+      }, 1000);
     }
   };
 
