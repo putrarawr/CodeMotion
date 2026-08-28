@@ -73,6 +73,7 @@ export const useLivePairRoom = ({
   const [peerCursors, setPeerCursors] = useState<Map<string, PeerCursorInfo>>(new Map());
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [roomNotFoundError, setRoomNotFoundError] = useState<string | null>(null);
+  const [wasDisbandedByHost, setWasDisbandedByHost] = useState<boolean>(false);
 
   const peerRef = useRef<Peer | null>(null);
   const connectionsRef = useRef<Map<string, DataConnection>>(new Map());
@@ -248,6 +249,7 @@ export const useLivePairRoom = ({
 
         case 'ROOM_DISBANDED':
           leaveRoom();
+          setWasDisbandedByHost(true);
           toast.error('The host disbanded the Live Room. This room link is no longer valid.');
           break;
 
@@ -619,6 +621,8 @@ export const useLivePairRoom = ({
     chatMessages,
     roomNotFoundError,
     setRoomNotFoundError,
+    wasDisbandedByHost,
+    setWasDisbandedByHost,
     createRoom,
     joinRoom,
     leaveRoom,

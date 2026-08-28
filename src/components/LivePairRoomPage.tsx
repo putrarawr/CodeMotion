@@ -41,6 +41,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   const [activeSidebarTab, setActiveSidebarTab] = useState<'chat' | 'settings'>('chat');
   const [isDisbandModalOpen, setIsDisbandModalOpen] = useState(false);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [isCreatedRoomModalOpen, setIsCreatedRoomModalOpen] = useState(false);
 
   // Lobby form state
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('react-hook');
@@ -77,6 +78,8 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     chatMessages,
     roomNotFoundError,
     setRoomNotFoundError,
+    wasDisbandedByHost,
+    setWasDisbandedByHost,
     createRoom,
     joinRoom,
     leaveRoom,
@@ -84,6 +87,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     sendChatMessage,
     broadcastCodeChange,
     broadcastSettingChange,
+    broadcastCursor,
     startSprintTimer,
   } = useLivePairRoom({
     settings,
@@ -157,6 +161,7 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     }
 
     createRoom();
+    setIsCreatedRoomModalOpen(true);
 
     if (selectedTimerPreset > 0) {
       setTimeout(() => {
@@ -197,6 +202,39 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
           isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
         }`}
       >
+        {/* Room Disbanded Pop-up Modal for Guests */}
+        {wasDisbandedByHost && (
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <div className="w-full max-w-sm rounded-3xl border border-red-500/30 bg-zinc-950 p-6 text-zinc-100 shadow-2xl flex flex-col gap-4">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/30">
+                  <Info className="w-4 h-4 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold m-0 font-sans">Room Disbanded by Host</h3>
+                  <p className="text-xs text-zinc-400 m-0">Session Ended</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-zinc-300 m-0 leading-relaxed font-mono">
+                The host has disbanded this live pair coding room. All peers were disconnected and the link is no longer valid.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setWasDisbandedByHost(false);
+                  const cleanUrl = window.location.pathname;
+                  window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+                }}
+                className="w-full py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer"
+              >
+                Back to Live Lobby
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Upfront Username Modal for Incoming URL Share Links */}
         {isPendingUrlJoinModalOpen && (
           <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -459,6 +497,59 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
         isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
       }`}
     >
+      {/* Host Room Created Info Modal */}
+      {isCreatedRoomModalOpen && roomId && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-md rounded-3xl border border-emerald-500/30 bg-zinc-950 p-6 text-zinc-100 shadow-2xl flex flex-col gap-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30">
+                <Sparkles className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold m-0 font-sans">Live Room Created & Ready!</h3>
+                <p className="text-xs text-zinc-400 m-0">Share this Room Code with your team</p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 flex flex-col gap-2.5">
+              <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Room Code</span>
+              <div className="flex items-center justify-between gap-2">
+                <code className="text-lg font-mono font-bold text-emerald-300 tracking-wider select-all">{roomId}</code>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(roomId);
+                    toast.success('Room Code copied!');
+                  }}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy Code</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-zinc-700 bg-zinc-900 text-zinc-200 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copy Share Link</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsCreatedRoomModalOpen(false)}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-zinc-200 transition-all cursor-pointer"
+              >
+                Enter Workspace
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Room Not Found Error Modal */}
       {roomNotFoundError && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -663,19 +754,19 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
             <div className="w-full max-w-3xl mb-3 flex flex-wrap gap-2.5 items-center justify-center">
               {Array.from(peerCursors.values()).map((peer) => {
                 const codeLines = activeTab?.code ? activeTab.code.split('\n') : [];
-                const activeLineCode = codeLines[peer.line]?.trim();
+                const activeLineCode = codeLines[peer.line]?.trim() || '';
 
                 return (
                   <div
                     key={peer.peerId}
-                    className="px-4 py-2 rounded-2xl bg-zinc-950/90 border border-emerald-500/40 shadow-2xl flex items-center gap-3 backdrop-blur-md transition-all text-xs font-mono"
+                    className="px-4 py-2 rounded-2xl bg-zinc-950/95 border border-emerald-500/40 shadow-2xl flex items-center gap-3 backdrop-blur-md transition-all text-xs font-mono whitespace-nowrap flex-shrink-0"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
                       <span className="font-bold text-emerald-300">{peer.username || 'Anonymous'}</span>
                     </div>
-                    <div className="h-3.5 w-px bg-zinc-800" />
-                    <div className="text-zinc-400">
+                    <div className="h-3.5 w-px bg-zinc-800 flex-shrink-0" />
+                    <div className="text-zinc-400 flex-shrink-0">
                       Line <span className="text-zinc-200 font-semibold">{peer.line + 1}</span>
                     </div>
                     {activeLineCode && (
@@ -691,7 +782,12 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
 
           {/* Canvas Container */}
           <div className="w-full flex-1 flex items-center justify-center my-auto">
-            <Canvas settings={settings} setSettings={setSettings} />
+            <Canvas
+              settings={settings}
+              setSettings={setSettings}
+              peerCursors={peerCursors}
+              onCursorChange={broadcastCursor}
+            />
           </div>
         </div>
 

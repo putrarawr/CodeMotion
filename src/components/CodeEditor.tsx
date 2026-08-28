@@ -25,6 +25,8 @@ interface CodeEditorProps {
   focusedLines?: number[];
   annotations?: LineAnnotation[];
   onToggleFocusedLine?: (lineNum: number) => void;
+  peerCursors?: Map<string, { peerId: string; username: string; line: number; ch: number }>;
+  onCursorChange?: (line: number, ch: number) => void;
   isPlayingMotion?: boolean;
   motionSpeed?: number;
   controlledTypedLength?: number | null;
@@ -59,6 +61,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   focusedLines = [],
   annotations = [],
   onToggleFocusedLine,
+  peerCursors,
+  onCursorChange,
   isPlayingMotion = false,
   motionSpeed = 1,
   controlledTypedLength = null,
@@ -67,6 +71,9 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const timerRef = useRef<number | null>(null);
+
+  const onCursorChangeRef = useRef(onCursorChange);
+  onCursorChangeRef.current = onCursorChange;
   // True while we programmatically replace the doc (motion slicing, external sync).
   // Prevents those changes from being pushed back via onChange (which would
   // overwrite the real code with the motion slice).
@@ -190,6 +197,13 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               !isBridgeSuppressing()
             ) {
               onChangeRef.current(update.state.doc.toString());
+            }
+            if (update.selectionSet && onCursorChangeRef.current) {
+              const pos = update.state.selection.main.head;
+              const lineInfo = update.state.doc.lineAt(pos);
+              const line = lineInfo.number - 1;
+              const ch = pos - lineInfo.from;
+              onCursorChangeRef.current(line, ch);
             }
           }),
         ],
@@ -413,6 +427,34 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                       <span>{ann.text}</span>
                     </div>
                   )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Real-time Multiplayer Peer Cursor Flags Overlay */}
+        {peerCursors && peerCursors.size > 0 && (
+          <div
+            className="absolute inset-0 pointer-events-none z-30 font-mono"
+            style={{
+              fontFamily,
+              fontSize: `${fontSize}px`,
+              lineHeight: `${lineHeight}`,
+            }}
+          >
+            {Array.from(peerCursors.values()).map((peer) => {
+              const topOffset = peer.line * (fontSize * lineHeight) + 4;
+              return (
+                <div
+                  key={peer.peerId}
+                  className="absolute left-14 flex items-center gap-1.5 pointer-events-none transition-all duration-150"
+                  style={{ top: `${topOffset}px` }}
+                >
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500 text-black font-sans text-[10px] font-extrabold shadow-xl">
+                    <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
+                    <span>{peer.username || 'Anonymous'}</span>
+                  </div>
                 </div>
               );
             })}

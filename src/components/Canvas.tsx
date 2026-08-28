@@ -8,9 +8,16 @@ import { GripVertical, User } from 'lucide-react';
 interface CanvasProps {
   settings: SnippetSettings;
   setSettings: React.Dispatch<React.SetStateAction<SnippetSettings>>;
+  peerCursors?: Map<string, { peerId: string; username: string; line: number; ch: number }>;
+  onCursorChange?: (line: number, ch: number) => void;
 }
 
-export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
+export const Canvas: React.FC<CanvasProps> = ({
+  settings,
+  setSettings,
+  peerCursors,
+  onCursorChange,
+}) => {
   const {
     tabs,
     activeTabId,
@@ -198,6 +205,8 @@ export const Canvas: React.FC<CanvasProps> = ({ settings, setSettings }) => {
                 focusedLines={settings.focusedLines}
                 annotations={settings.annotations}
                 onToggleFocusedLine={handleToggleFocusedLine}
+                peerCursors={peerCursors}
+                onCursorChange={onCursorChange}
                 motionSpeed={motionSpeed}
                 isPlayingMotion={isPlayingMotion}
                 controlledTypedLength={controlledTypedLength}
