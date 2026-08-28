@@ -465,6 +465,12 @@ export const useLivePairRoom = ({
       }
 
       setIsConnecting(true);
+      setRoomId(safeRoomId);
+      setIsHost(false);
+      isHostRef.current = false;
+
+      const newUrl = `${window.location.pathname}?room=${safeRoomId}`;
+      window.history.replaceState({ path: newUrl }, '', newUrl);
 
       if (peerRef.current) {
         peerRef.current.destroy();
@@ -475,24 +481,18 @@ export const useLivePairRoom = ({
 
       peer.on('open', (id) => {
         peerIdRef.current = id;
-        setRoomId(safeRoomId);
-        setIsHost(false);
-        isHostRef.current = false;
 
-        const newUrl = `${window.location.pathname}?room=${safeRoomId}`;
-        window.history.replaceState({ path: newUrl }, '', newUrl);
-
-        const conn = peer.connect(safeRoomId);
+        const conn = peer.connect(safeRoomId, { reliable: true });
         setupConnection(conn);
 
-        // 12-Second Connection Timeout for Room Existence Validation
+        // 15-Second Connection Timeout for Room Existence Validation
         if (joinTimeoutRef.current) clearTimeout(joinTimeoutRef.current);
         joinTimeoutRef.current = setTimeout(() => {
           if (!connectionsRef.current.get(safeRoomId)?.open) {
             leaveRoom();
             setRoomNotFoundError(`Room ID '${safeRoomId}' was not found, is offline, or has ended.`);
           }
-        }, 12000);
+        }, 15000);
       });
 
       peer.on('error', (err) => {

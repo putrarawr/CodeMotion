@@ -145,12 +145,13 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   };
 
   const handleCreateRoomFromLobby = () => {
-    // Apply selected template code before launching room & reset old standalone tabs
+    // Apply selected template code before launching room & reset old standalone tabs + annotations
     const tpl = SNIPPET_TEMPLATES.find((t) => t.id === selectedTemplateId) || SNIPPET_TEMPLATES[0];
     setSettings((prev) => ({
       ...prev,
       theme: tpl.theme || prev.theme,
       background: tpl.background || prev.background,
+      annotations: [],
       activeTabId: 'live-tab-1',
       tabs: [
         {
@@ -180,9 +181,10 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
       return;
     }
 
-    // Clean old standalone editor session code immediately
+    // Clean old standalone editor session code + annotations immediately
     setSettings((prev) => ({
       ...prev,
+      annotations: [],
       activeTabId: 'live-tab-1',
       tabs: [
         {
