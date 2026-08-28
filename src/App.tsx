@@ -411,7 +411,7 @@ export default function App() {
     'codemotion_settings',
     DEFAULT_SETTINGS
   );
-  const [language, setLanguage] = useLocalStorage<Language>('codemotion_language', 'id');
+  const [language, setLanguage] = useLocalStorage<Language>('codemotion_language', 'en');
 
   useEffect(() => {
     // Force Obsidian Dark Mode permanently

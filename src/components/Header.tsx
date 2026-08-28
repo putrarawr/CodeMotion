@@ -1,15 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, Download, RefreshCw, FileCode2, Image, ChevronDown, Check, Home, Video, HelpCircle, Share2, Coffee, Undo2, Redo2 } from 'lucide-react';
+import { Copy, Download, RefreshCw, Image, ChevronDown, Check, Video, HelpCircle, Share2, Undo2, Redo2, Monitor } from 'lucide-react';
 import { encodeStateToHash } from '../utils/urlEncoder';
 import { toast } from 'sonner';
 import type { SnippetSettings } from '../types';
 import { Logo } from './Logo';
-
 import { LanguageSwitch } from './LanguageSwitch';
 import { translations, type Language } from '../utils/i18n';
-
-import { Monitor } from 'lucide-react';
 
 interface HeaderProps {
   settings: SnippetSettings;
@@ -50,10 +47,7 @@ export const Header: React.FC<HeaderProps> = ({
   const t = translations[language];
   const [showPngDropdown, setShowPngDropdown] = useState(false);
   const [selectedRatio, setSelectedRatio] = useState<number>(3);
-
   const pngDropdownRef = useRef<HTMLDivElement>(null);
-
-  const isDark = true;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -61,7 +55,6 @@ export const Header: React.FC<HeaderProps> = ({
         setShowPngDropdown(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -80,199 +73,129 @@ export const Header: React.FC<HeaderProps> = ({
     }
     const shareUrl = `${window.location.origin}/editor#code=${hash}`;
     navigator.clipboard.writeText(shareUrl);
-    toast.success('Share link copied to clipboard!');
+    toast.success(t.toastCopiedLink);
   };
 
   return (
-    <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-5xl px-3 sm:px-6 flex justify-center select-none pointer-events-auto">
-      <header
-        className="w-full rounded-2xl sm:rounded-3xl border border-zinc-800 shadow-2xl backdrop-blur-xl px-4 py-2 flex items-center justify-between relative bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 text-white shadow-black/60 transition-all duration-300"
-      >
-        {/* Left: Brand Logo & Title */}
-        <Link
-          to="/"
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-zinc-800 bg-zinc-950/80 hover:border-zinc-700 text-zinc-100 transition-all no-underline flex-shrink-0 z-10"
-        >
-          <Logo className="w-3.5 h-3.5" />
-          <span className="text-[11px] font-bold tracking-tight font-sans">CodeMotion</span>
-        </Link>
-
-        {/* Center Nav Links (Dynamic Island Style) */}
-        <nav className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-1 sm:gap-2 text-[11px] font-semibold">
+    <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-6xl px-3 sm:px-6 flex justify-center select-none pointer-events-auto">
+      <header className="w-full rounded-2xl sm:rounded-3xl border border-zinc-800 shadow-2xl backdrop-blur-xl px-3.5 py-2 flex items-center justify-between bg-gradient-to-tr from-zinc-900 via-zinc-950 to-zinc-900 text-white shadow-black/60 transition-all duration-300">
+        
+        {/* Left: Brand Logo + Primary Page Navigation */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <Link
             to="/"
-            className="px-2.5 py-1 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-950/80 transition-all no-underline"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-zinc-800 bg-zinc-950/80 hover:border-zinc-700 text-zinc-100 transition-all no-underline flex-shrink-0"
           >
-            {t.navHome}
+            <Logo className="w-3.5 h-3.5" />
+            <span className="text-[11px] font-bold tracking-tight font-sans">CodeMotion</span>
           </Link>
-          <Link
-            to="/editor"
-            className="px-2.5 py-1 rounded-lg text-white font-bold bg-zinc-800 transition-all no-underline"
-          >
-            {t.navEditor}
-          </Link>
-          <Link
-            to="/templates"
-            className="px-2.5 py-1 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-950/80 transition-all no-underline"
-          >
-            {t.navTemplates}
-          </Link>
-          <Link
-            to="/live"
-            className="px-2.5 py-1 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-950/80 transition-all no-underline"
-          >
-            {t.navLivePair}
-          </Link>
-        </nav>
 
-        {/* Right Obsidian Section: All Actions & Controls (Clean Flex Row, 0 Overlap) */}
-        <div id="header-export-actions" className="flex items-center gap-1.5 sm:gap-2">
+          <nav className="hidden sm:flex items-center gap-1 text-[11px] font-semibold border-l border-zinc-800/80 pl-2">
+            <Link
+              to="/"
+              className="px-2 py-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all no-underline"
+            >
+              {t.navHome}
+            </Link>
+            <Link
+              to="/templates"
+              className="px-2 py-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all no-underline"
+            >
+              {t.navTemplates}
+            </Link>
+            <Link
+              to="/live"
+              className="px-2 py-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all no-underline"
+            >
+              {t.navLivePair}
+            </Link>
+          </nav>
+        </div>
 
-          {/* Presentation Deck Mode Button */}
+        {/* Right: Actions & Tools */}
+        <div id="header-export-actions" className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          {/* Presentation Deck Button */}
           {onOpenPresentationDeck && (
             <button
               onClick={onOpenPresentationDeck}
-              title="Open Code Presentation Deck (Fullscreen Slideshow)"
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
-                isDark
-                  ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
-                  : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
-              }`}
+              title="Open Presentation Deck"
+              className="hidden lg:flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-xl border border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer"
             >
               <Monitor className="w-3.5 h-3.5 text-zinc-300" />
-              <span className="hidden sm:inline">Present</span>
+              <span>{t.btnPresent}</span>
             </button>
           )}
-          {/* User Guide Tour Pill */}
+
+          {/* User Guide Tour */}
           <button
             onClick={onOpenUserTour}
-            title="Open Interactive User Guide"
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
-              isDark
-                ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
-                : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
-            }`}
+            title="Open Interactive Guide"
+            className="hidden md:flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-xl border border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer"
           >
             <HelpCircle className="w-3.5 h-3.5 text-zinc-300" />
-            <span className="hidden sm:inline">Guide</span>
+            <span>{t.btnGuide}</span>
           </button>
 
-          {/* Home / Landing Link Pill */}
-          <Link
-            to="/"
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all no-underline ${
-              isDark
-                ? 'bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
-                : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:text-black hover:bg-zinc-200'
-            }`}
-            title="Return to Landing Page"
-          >
-            <Home className="w-3.5 h-3.5 text-zinc-300" />
-            <span className="hidden sm:inline">Landing</span>
-          </Link>
-
-          {/* Language Switcher Pill (Indonesian ID vs English EN) */}
+          {/* Language Switcher Pill */}
           <LanguageSwitch language={language} onLanguageChange={onLanguageChange} />
 
-          {/* Reset Pill */}
+          {/* Reset Editor */}
           <button
             onClick={onReset}
-            title="Reset to default settings"
-            className={`p-2 rounded-xl border transition-all cursor-pointer ${
-              isDark
-                ? 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
-                : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black hover:bg-zinc-200'
-            }`}
+            title={t.btnReset}
+            className="p-1.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
 
-          {/* Undo Settings Pill */}
+          {/* Undo */}
           <button
             onClick={onUndo}
             disabled={!canUndo}
-            title="Undo settings change (Cmd/Ctrl + Z)"
-            className={`p-2 rounded-xl border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
-              isDark
-                ? 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
-                : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black hover:bg-zinc-200'
-            }`}
+            title="Undo (Ctrl+Z)"
+            className="p-1.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <Undo2 className="w-3.5 h-3.5" />
           </button>
 
-          {/* Redo Settings Pill */}
+          {/* Redo */}
           <button
             onClick={onRedo}
             disabled={!canRedo}
-            title="Redo settings change (Cmd/Ctrl + Shift + Z)"
-            className={`p-2 rounded-xl border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
-              isDark
-                ? 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
-                : 'bg-zinc-100 border-zinc-300 text-zinc-600 hover:text-black hover:bg-zinc-200'
-            }`}
+            title="Redo (Ctrl+Shift+Z)"
+            className="p-1.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <Redo2 className="w-3.5 h-3.5" />
           </button>
 
-          {/* Saweria Donation Button */}
-          <a
-            href="https://saweria.co/codemotion"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all no-underline cursor-pointer whitespace-nowrap flex-shrink-0 ${
-              isDark
-                ? 'bg-zinc-950 border-zinc-800 text-amber-300 hover:bg-zinc-800 hover:text-amber-200'
-                : 'bg-zinc-100 border-zinc-300 text-amber-700 hover:bg-zinc-200'
-            }`}
-            title="Support CodeMotion development via Saweria"
-          >
-            <Coffee className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-            <span className="whitespace-nowrap">Buy me a coffee</span>
-          </a>
-
-          {/* Share Link Button */}
+          {/* Share Link */}
           <button
             onClick={handleShareLink}
             disabled={isExporting}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all disabled:opacity-50 cursor-pointer whitespace-nowrap flex-shrink-0 ${
-              isDark
-                ? 'bg-zinc-950 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
-                : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-zinc-200'
-            }`}
-            title="Share snippet via URL hash link"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-200 hover:bg-zinc-800 hover:text-white transition-all disabled:opacity-50 cursor-pointer"
+            title="Share snippet link"
           >
-            <Share2 className="w-3.5 h-3.5 flex-shrink-0" />
-            <span className="hidden sm:inline whitespace-nowrap">Share</span>
+            <Share2 className="w-3.5 h-3.5" />
+            <span>{t.btnShare}</span>
           </button>
 
-          {/* Copy Image Button */}
+          {/* Copy Image */}
           <button
             onClick={onCopyImage}
             disabled={isExporting}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl border transition-all disabled:opacity-50 cursor-pointer whitespace-nowrap flex-shrink-0 ${
-              isDark
-                ? 'bg-zinc-950 border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white'
-                : 'bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-zinc-200'
-            }`}
+            className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-200 hover:bg-zinc-800 hover:text-white transition-all disabled:opacity-50 cursor-pointer"
           >
             <Copy className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Copy</span>
+            <span className="hidden sm:inline">{t.btnCopyImage}</span>
           </button>
 
-          {/* Export Pill Dropdown */}
+          {/* Export Dropdown */}
           <div id="header-export-btn" className="relative" ref={pngDropdownRef}>
-            <div
-              className={`flex items-center rounded-xl border shadow-xs transition-all overflow-hidden ${
-                isDark
-                  ? 'bg-white text-black border-white hover:bg-zinc-200'
-                  : 'bg-black text-white border-black hover:bg-zinc-800'
-              }`}
-            >
+            <div className="flex items-center rounded-xl border border-white bg-white text-black hover:bg-zinc-200 transition-all overflow-hidden shadow-sm">
               <button
                 onClick={() => setShowPngDropdown((prev) => !prev)}
                 disabled={isExporting}
-                className="flex items-center gap-1.5 px-3.5 py-1 text-xs font-extrabold transition-colors disabled:opacity-50 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-extrabold disabled:opacity-50 cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Export</span>
@@ -280,76 +203,59 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={() => setShowPngDropdown((prev) => !prev)}
                 disabled={isExporting}
-                className={`pr-2.5 py-1 transition-colors cursor-pointer ${
-                  isDark ? 'hover:text-zinc-700' : 'hover:text-zinc-300'
-                }`}
+                className="pr-2 py-1 hover:text-zinc-700 transition-colors cursor-pointer"
               >
                 <ChevronDown className="w-3 h-3" />
               </button>
             </div>
 
             {showPngDropdown && (
-              <div
-                className={`absolute right-0 mt-3 w-56 rounded-2xl border shadow-2xl p-2 z-50 transition-all ${
-                  isDark ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-white border-zinc-200 text-zinc-900'
-                }`}
-              >
+              <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-zinc-800 bg-zinc-950 text-zinc-100 shadow-2xl p-2 z-50 transition-all">
                 <button
                   onClick={() => handleExportPng(2)}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                    isDark ? 'hover:bg-zinc-900' : 'hover:bg-zinc-100'
-                  }`}
+                  className="w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between hover:bg-zinc-900 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
                     <Image className="w-3.5 h-3.5 opacity-60" />
-                    <span>PNG Standard (2x DPI)</span>
+                    <span>{t.btnDownloadPng} (2x)</span>
                   </div>
                   {selectedRatio === 2 && <Check className="w-3.5 h-3.5 text-zinc-400" />}
                 </button>
 
                 <button
                   onClick={() => handleExportPng(3)}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                    isDark ? 'hover:bg-zinc-900 font-semibold' : 'hover:bg-zinc-100 font-semibold'
-                  }`}
+                  className="w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between hover:bg-zinc-900 font-semibold transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
                     <Image className="w-3.5 h-3.5 opacity-80" />
-                    <span>PNG Retina High (3x DPI)</span>
+                    <span>{t.btnDownloadPng} Retina (3x)</span>
                   </div>
                   {selectedRatio === 3 && <Check className="w-3.5 h-3.5 text-zinc-400" />}
                 </button>
 
-                {/* Record Video Option */}
                 <button
                   onClick={() => {
-                    onRecordVideo();
                     setShowPngDropdown(false);
+                    onDownloadSvg();
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between border-t mt-1 pt-2 transition-colors cursor-pointer ${
-                    isDark
-                      ? 'hover:bg-zinc-900 border-zinc-800/80 text-zinc-100 font-semibold'
-                      : 'hover:bg-zinc-100 border-zinc-200 text-zinc-900 font-semibold'
-                  }`}
+                  className="w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between hover:bg-zinc-900 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
-                    <Video className="w-3.5 h-3.5 opacity-80" />
-                    <span>Record Motion (MP4 / GIF)</span>
+                    <Image className="w-3.5 h-3.5 opacity-60" />
+                    <span>{t.btnDownloadSvg}</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => {
-                    onDownloadSvg();
                     setShowPngDropdown(false);
+                    onRecordVideo();
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                    isDark ? 'hover:bg-zinc-900' : 'hover:bg-zinc-100'
-                  }`}
+                  className="w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between hover:bg-zinc-900 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
-                    <FileCode2 className="w-3.5 h-3.5 opacity-70" />
-                    <span>Export as SVG</span>
+                    <Video className="w-3.5 h-3.5 text-zinc-300" />
+                    <span>{t.btnRecordVideo}</span>
                   </div>
                 </button>
               </div>

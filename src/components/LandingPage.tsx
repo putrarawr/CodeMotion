@@ -42,7 +42,7 @@ import { SNIPPET_TEMPLATES, TEMPLATE_CATEGORIES, type SnippetTemplate } from '..
 import { Logo } from './Logo';
 
 import { LanguageSwitch } from './LanguageSwitch';
-import { type Language } from '../utils/i18n';
+import { translations, type Language } from '../utils/i18n';
 
 interface LandingPageProps {
   settings: SnippetSettings;
@@ -84,8 +84,9 @@ const MOTION_PREVIEW_TOKENS: CodeToken[] = [
 
 const TOTAL_MOTION_CHARS = MOTION_PREVIEW_TOKENS.reduce((acc, t) => acc + t.text.length, 0);
 
-export const LandingPage: React.FC<LandingPageProps> = ({ language = 'id', onLanguageChange, onSelectTemplate }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ language = 'en', onLanguageChange, onSelectTemplate }) => {
   const isDark = true;
+  const t = translations[language];
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   // Interactive 3D Background Parallax & Spotlight Cursor State
@@ -371,7 +372,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'id', onLan
                 isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
-              Motion Demo
+              {t.navDemo}
             </a>
             <a
               href="#features"
@@ -380,7 +381,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'id', onLan
                 isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
-              Features
+              {t.navFeatures}
             </a>
             <Link
               to="/templates"
@@ -388,7 +389,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'id', onLan
                 isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
-              Community Gallery
+              {t.navTemplates}
             </Link>
             <Link
               to="/live"
@@ -396,7 +397,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'id', onLan
                 isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
-              Live Room
+              {t.navLivePair}
             </Link>
             <a
               href="#faq"
@@ -405,7 +406,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'id', onLan
                 isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-950/80' : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
               }`}
             >
-              FAQ
+              {t.navFaq}
             </a>
           </nav>
 
@@ -422,7 +423,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ language = 'id', onLan
                 isDark ? 'bg-white text-black hover:bg-zinc-200' : 'bg-black text-white hover:bg-zinc-800'
               }`}
             >
-              <span>Open Editor</span>
+              <span>{t.landingBtnLaunchEditor}</span>
               <ArrowRight className="w-3 h-3" />
             </Link>
           </div>

@@ -4,12 +4,15 @@ export const translations = {
   id: {
     // Dynamic Island Nav
     navHome: 'Beranda',
-    navEditor: 'Editor Kode',
+    navDemo: 'Demo Animasi',
+    navFeatures: 'Fitur Utama',
     navTemplates: 'Galeri Komunitas',
     navLivePair: 'Live Room',
+    navFaq: 'FAQ',
+    navEditor: 'Editor Kode',
     navBuyCoffee: 'Dukung Kami',
 
-    // Editor Actions
+    // Header Actions
     btnCopyImage: 'Salin Gambar',
     btnDownloadPng: 'Unduh PNG',
     btnDownloadSvg: 'Unduh SVG',
@@ -17,13 +20,32 @@ export const translations = {
     btnReset: 'Reset Editor',
     btnPresent: 'Presentasi',
     btnGuide: 'Panduan',
+    btnShare: 'Bagikan Link',
 
-    // Landing Page
+    // Landing Page Hero & Features
     landingBadge: 'Multiplayer Real-time Code Editor',
-    landingTitle: 'Buat & Bagikan Code Snippet Animasi Presisi Tinggi',
+    landingTitle: 'Didesain Khusus untuk Developer Modern',
     landingSubtitle: 'Platform visual penulisan kode modern dengan fitur Live Pair Coding WebRTC, animasi mp4, preset sosial media, dan kustomisasi obsidian dark.',
-    landingBtnLaunchEditor: 'Buka Editor Kode',
+    landingBtnLaunchEditor: 'Buka Editor',
     landingBtnJoinLive: 'Ruang Live Coding',
+
+    // Feature Cards
+    featShikiTitle: 'Mesin VS Code Shiki',
+    featShikiDesc: 'Ditenagai oleh Shiki dan grammar resmi TextMate untuk penyorotan sintaks presisi tinggi.',
+    featTabTitle: 'Navigasi File Multi-Tab',
+    featTabDesc: 'Kelola beberapa tab berkas dalam satu bingkai jendela dengan judul kustom.',
+    featDiffTitle: 'Mode Perbandingan Kode',
+    featDiffDesc: 'Sorot penambahan (+) dan penghapusan (-) kode untuk peninjauan kode dan refactoring.',
+    featP2PTitle: 'Live Pair Coding P2P',
+    featP2PDesc: 'Kolaborasi P2P tanpa server via WebRTC dengan kursor lawan, obrolan live, dan timer sprint.',
+    featMotionTitle: 'Perekam Animasi Kode',
+    featMotionDesc: 'Simulasikan ketikan kode secara langsung dan ekspor menjadi video MP4 atau GIF animasi.',
+    featSocialTitle: 'Preset Sosial & Ekspor',
+    featSocialDesc: 'Rasio aspect sosial media siap pakai untuk Twitter, LinkedIn, Instagram, dan YouTube.',
+
+    // Motion Section
+    motionTitle: 'Simulasi Animasi Ketikan Kode secara Real-Time',
+    motionSubtitle: 'Format langsung ke MP4 HD 60 FPS atau GIF animasi untuk kebutuhan konten tutorial Anda.',
 
     // Template Gallery Page
     galleryTitle: 'Galeri Komunitas CodeMotion',
@@ -82,12 +104,15 @@ export const translations = {
   en: {
     // Dynamic Island Nav
     navHome: 'Home',
-    navEditor: 'Code Editor',
+    navDemo: 'Motion Demo',
+    navFeatures: 'Features',
     navTemplates: 'Community Gallery',
     navLivePair: 'Live Room',
+    navFaq: 'FAQ',
+    navEditor: 'Code Editor',
     navBuyCoffee: 'Support Us',
 
-    // Editor Actions
+    // Header Actions
     btnCopyImage: 'Copy Image',
     btnDownloadPng: 'Download PNG',
     btnDownloadSvg: 'Download SVG',
@@ -95,13 +120,32 @@ export const translations = {
     btnReset: 'Reset Editor',
     btnPresent: 'Present',
     btnGuide: 'Guide',
+    btnShare: 'Share Link',
 
-    // Landing Page
+    // Landing Page Hero & Features
     landingBadge: 'Real-time Multiplayer Code Editor',
-    landingTitle: 'Create & Share Pixel-Perfect Animated Code Snippets',
-    landingSubtitle: 'Modern visual code platform with WebRTC Live Pair Coding, mp4 animation recording, social presets, and obsidian dark customization.',
-    landingBtnLaunchEditor: 'Open Code Editor',
+    landingTitle: 'Built for Modern Developers',
+    landingSubtitle: 'Essential tools for rendering pixel-perfect code snippet images and motion videos.',
+    landingBtnLaunchEditor: 'Open Editor',
     landingBtnJoinLive: 'Live Coding Room',
+
+    // Feature Cards
+    featShikiTitle: 'VS Code Shiki Engine',
+    featShikiDesc: 'Powered by Shiki and official TextMate grammars for accurate syntax highlighting.',
+    featTabTitle: 'Multi-Tab File Navigation',
+    featTabDesc: 'Organize multiple file tabs inside a single window frame with custom titles.',
+    featDiffTitle: 'Code Diff Mode',
+    featDiffDesc: 'Highlight line additions (+) and deletions (-) for code reviews and refactoring.',
+    featP2PTitle: 'P2P Live Pair Coding',
+    featP2PDesc: 'Zero-server WebRTC P2P collaboration with peer cursor badges, live chat, and timers.',
+    featMotionTitle: 'Code Motion Recorder',
+    featMotionDesc: 'Simulate live typing animations and export directly to MP4 or animated GIF.',
+    featSocialTitle: 'Social Presets & Export',
+    featSocialDesc: 'Ready-to-use canvas aspect ratios for Twitter, LinkedIn, Instagram, and YouTube.',
+
+    // Motion Section
+    motionTitle: 'Simulate Live Code Typing Animations in Real-Time',
+    motionSubtitle: 'Format directly to 60 FPS HD MP4 or animated GIF for your tutorial content.',
 
     // Template Gallery Page
     galleryTitle: 'CodeMotion Community Gallery',
