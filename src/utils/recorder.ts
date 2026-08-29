@@ -212,31 +212,77 @@ async function doRecordMotionVideo({
     await forceDomPaint();
 
     // Compute snapshot char positions
-    const charPositions: number[] = [];
-    if (motionStyle === 'lineByLine') {
-      const lines = (code || element.innerText || '').split('\n');
-      const maxLineSteps = 50;
-      const lineGroupSize = Math.max(1, Math.ceil(lines.length / maxLineSteps));
-      let cumulative = 0;
-      for (let i = 0; i < lines.length; i++) {
-        cumulative += lines[i].length + (i < lines.length - 1 ? 1 : 0);
-        if ((i + 1) % lineGroupSize === 0 || i === lines.length - 1) {
-          charPositions.push(Math.min(totalChars, cumulative));
+     const charPositions: number[] = [];
+     if (motionStyle === 'lineByLine') {
+       const lines = (code || element.innerText || '').split('\n');
+       const maxLineSteps = 50;
+       const lineGroupSize = Math.max(1, Math.ceil(lines.length / maxLineSteps));
+       let cumulative = 0;
+       for (let i = 0; i < lines.length; i++) {
+         cumulative += lines[i].length + (i < lines.length - 1 ? 1 : 0);
+         if ((i + 1) % lineGroupSize === 0 || i === lines.length - 1) {
+           charPositions.push(Math.min(totalChars, cumulative));
+         }
+       }
+      } else if (motionStyle === 'glitch') {
+        // Glitch: chaotic jumps with frequent stutters and backtracking
+        const glitchSteps = 80;
+        const charStep = Math.max(1, Math.ceil(totalChars / glitchSteps));
+        let cur = 0;
+        while (cur < totalChars) {
+          const nextPos = Math.min(totalChars, cur + charStep);
+          charPositions.push(nextPos);
+          
+          // Frequent glitch stutters - 30% chance of backtrack
+          if (Math.random() < 0.3 && charPositions.length > 2) {
+            const glitchBack = Math.max(0, nextPos - Math.floor(charStep * 0.5));
+            if (glitchBack < nextPos) {
+              charPositions.push(glitchBack);
+              // Sometimes jump forward aggressively
+              if (Math.random() < 0.4) {
+                const glitchJump = Math.min(totalChars, nextPos + Math.floor(charStep * 0.3));
+                charPositions.push(glitchJump);
+                cur = glitchJump - charStep;
+              }
+            }
+          }
+          cur = nextPos;
         }
-      }
-    } else {
-      // Typewriter: 50 keyframes (smooth enough, 2.8x less than 140)
-      const charStep = Math.max(1, Math.ceil(totalChars / 50));
-      let cur = 0;
-      while (cur < totalChars) {
-        cur = Math.min(totalChars, cur + charStep);
-        charPositions.push(cur);
-      }
-    }
-    // Ensure final position is totalChars
-    if (charPositions[charPositions.length - 1] !== totalChars) {
-      charPositions.push(totalChars);
-    }
+      } else if (motionStyle === 'wave') {
+        // Wave: oscillating motion - forward then slightly back
+        const waveSteps = 60;
+        const charStep = Math.max(1, Math.ceil(totalChars / waveSteps));
+        let cur = 0;
+        let lastPush = 0;
+        
+        while (cur < totalChars) {
+          // Push forward
+          cur = Math.min(totalChars, cur + charStep);
+          charPositions.push(cur);
+          lastPush = cur;
+          
+          // Wave back slightly if we haven't reached end
+          if (cur < totalChars) {
+            const backPos = Math.max(lastPush - Math.floor(charStep * 0.3), 0);
+            if (backPos > 0 && backPos < lastPush) {
+              charPositions.push(backPos);
+              cur = backPos;
+            }
+          }
+        }
+     } else {
+       // Typewriter: 50 keyframes (smooth enough, 2.8x less than 140)
+       const charStep = Math.max(1, Math.ceil(totalChars / 50));
+       let cur = 0;
+       while (cur < totalChars) {
+         cur = Math.min(totalChars, cur + charStep);
+         charPositions.push(cur);
+       }
+     }
+     // Ensure final position is totalChars
+     if (charPositions[charPositions.length - 1] !== totalChars) {
+       charPositions.push(totalChars);
+     }
 
     const snapshotCount = charPositions.length;
 

@@ -216,6 +216,7 @@ export const Canvas: React.FC<CanvasProps> = ({
                 peerCursors={peerCursors}
                 onCursorChange={onCursorChange}
                 motionSpeed={motionSpeed}
+                motionStyle={settings.motionStyle || 'typewriter'}
                 isPlayingMotion={isPlayingMotion}
                 controlledTypedLength={controlledTypedLength}
                 onMotionFinish={handleMotionFinish}

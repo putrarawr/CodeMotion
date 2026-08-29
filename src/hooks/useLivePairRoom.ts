@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Peer from 'peerjs';
 type DataConnection = ReturnType<InstanceType<typeof Peer>['connect']>;
 import type { SnippetSettings, SupportedLanguage } from '../types';
@@ -176,7 +176,6 @@ export const useLivePairRoom = ({
       });
     }
     leaveRoom();
-    toast.info('Live Room disbanded. The room link has been invalidated.');
   }, [broadcastPayload, isConnected, leaveRoom]);
 
   // Handle incoming data payload from a peer + Relay if Host
@@ -278,7 +277,7 @@ export const useLivePairRoom = ({
         case 'ROOM_DISBANDED':
           leaveRoom();
           setWasDisbandedByHost(true);
-          toast.error('The host disbanded the Live Room. This room link is no longer valid.');
+          // Modal popup will show on live page, no need for toast
           break;
 
         case 'CHAT_MESSAGE':
@@ -630,6 +629,13 @@ export const useLivePairRoom = ({
     (seconds: number) => {
       setTimerSeconds(seconds);
       setIsTimerActive(true);
+      
+      // Persist timer state to localStorage
+      localStorage.setItem('codemotion_live_timer_state', JSON.stringify({
+        seconds,
+        startTime: Date.now(),
+        roomId: roomId || 'standalone',
+      }));
 
       broadcastPayload({
         type: 'TIMER_START',
@@ -645,16 +651,55 @@ export const useLivePairRoom = ({
       timerIntervalRef.current = setInterval(() => {
         current -= 1;
         setTimerSeconds(current);
+        
+        // Update persisted state every second
+        localStorage.setItem('codemotion_live_timer_state', JSON.stringify({
+          seconds: current,
+          startTime: Date.now(),
+          roomId: roomId || 'standalone',
+        }));
 
         if (current <= 0) {
           if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
           setIsTimerActive(false);
+          localStorage.removeItem('codemotion_live_timer_state');
           toast.success('Sprint Timer finished.');
         }
       }, 1000);
     },
-    [broadcastPayload]
+    [broadcastPayload, roomId]
   );
+
+  // Restore timer state on mount if it exists
+  useEffect(() => {
+    const timerState = localStorage.getItem('codemotion_live_timer_state');
+    if (timerState) {
+      try {
+        const { seconds, startTime } = JSON.parse(timerState);
+        const elapsedMs = Date.now() - startTime;
+        const elapsedSeconds = Math.floor(elapsedMs / 1000);
+        const remainingSeconds = Math.max(0, seconds - elapsedSeconds);
+        
+        if (remainingSeconds > 0) {
+          startSprintTimer(remainingSeconds);
+          toast.info(`Timer restored: ${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s remaining`);
+        } else {
+          localStorage.removeItem('codemotion_live_timer_state');
+        }
+      } catch (e) {
+        localStorage.removeItem('codemotion_live_timer_state');
+      }
+    }
+  }, []);
+
+  // Clear timer state on leave
+  useEffect(() => {
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, []);
 
   return {
     roomId,

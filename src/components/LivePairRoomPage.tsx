@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Toaster } from 'sonner';
 import {
   Users,
   Copy,
@@ -56,7 +57,22 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('react-hook');
   const [selectedTimerPreset, setSelectedTimerPreset] = useState<number>(300);
 
+  // Save original editor settings when entering live room to restore on exit
+  const [savedEditorSettings, setSavedEditorSettings] = useState<SnippetSettings | null>(null);
+
   const activeTab = settings.tabs.find((t) => t.id === settings.activeTabId) || settings.tabs[0];
+
+  // Save current editor settings before entering live room
+  const saveEditorSettings = useCallback(() => {
+    setSavedEditorSettings(settings);
+  }, [settings]);
+
+  // Restore original editor settings when leaving live room
+  const restoreEditorSettings = useCallback(() => {
+    if (savedEditorSettings) {
+      setSettings(savedEditorSettings);
+    }
+  }, [setSettings, savedEditorSettings]);
 
   // Tab-isolated code update (does not force tab switch on remote peer)
   const updateActiveTabCode = (
@@ -121,6 +137,13 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
     updateActiveTabCode,
   });
 
+  // Restore settings when room is left (roomId becomes null) - handles browser back button, etc.
+  useEffect(() => {
+    if (!roomId && savedEditorSettings) {
+      restoreEditorSettings();
+    }
+  }, [roomId, savedEditorSettings, restoreEditorSettings]);
+
   const isDark = settings.appTheme === 'dark';
 
   const [isPendingUrlJoinModalOpen, setIsPendingUrlJoinModalOpen] = useState<boolean>(() => {
@@ -171,6 +194,9 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   };
 
   const handleCreateRoomFromLobby = () => {
+    // Save current editor settings before entering live room
+    saveEditorSettings();
+
     // Apply selected template code before launching room & reset old standalone tabs + annotations
     const tpl = SNIPPET_TEMPLATES.find((t) => t.id === selectedTemplateId) || SNIPPET_TEMPLATES[0];
     setSettings((prev) => ({
@@ -210,6 +236,9 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
       toast.error('Invalid Room ID format.');
       return;
     }
+
+    // Save current editor settings before joining live room
+    saveEditorSettings();
 
     // Clean old standalone editor session code + annotations immediately
     setSettings((prev) => ({
@@ -580,11 +609,15 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
   const handleConfirmDisband = () => {
     setIsDisbandModalOpen(false);
     disbandRoom();
+    // Restore original editor settings after disband
+    restoreEditorSettings();
   };
 
   const handleConfirmLeave = () => {
     setIsLeaveModalOpen(false);
     leaveRoom();
+    // Restore original editor settings after leaving
+    restoreEditorSettings();
   };
 
   // STAGE 2: ACTIVE LIVE ROOM WORKSPACE (When inside a live room)
@@ -594,6 +627,9 @@ export const LivePairRoomPage: React.FC<LivePairRoomPageProps> = ({
         isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
       }`}
     >
+      {/* Toast Notifications - Live Room Specific */}
+      <Toaster position="bottom-right" theme={isDark ? 'dark' : 'light'} visibleToasts={3} duration={2500} closeButton toastOptions={{ classNames: { toast: 'z-[9999]' } }} />
+      
       {/* Host Room Created Info Modal */}
       {isCreatedRoomModalOpen && roomId && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">

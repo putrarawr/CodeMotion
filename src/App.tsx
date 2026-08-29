@@ -183,7 +183,7 @@ function EditorWorkspace({
         isDark ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-zinc-900'
       }`}
     >
-      <Toaster position="bottom-right" theme={isDark ? 'dark' : 'light'} visibleToasts={2} duration={2500} closeButton />
+      <Toaster position="bottom-right" theme={isDark ? 'dark' : 'light'} visibleToasts={2} duration={2500} closeButton toastOptions={{ classNames: { toast: 'z-[9999]' } }} />
 
       {/* Full Screen Video Recording Overlay Spinner */}
       <AnimatePresence>
@@ -238,39 +238,38 @@ function EditorWorkspace({
         currentSettings={settings}
       />
 
-      <Header
-        settings={settings}
-        setSettings={setSettings}
-        language={language}
-        onLanguageChange={setLanguage}
-        onCopyImage={async () => {
-          await copyToClipboard(3, 'export-container');
-          setIsThankYouOpen(true);
-        }}
-        onDownloadPng={async (ratio) => {
-          const rawTitle = activeTab?.title || 'snippet';
-          const titleWithoutExt = rawTitle.replace(/\.[^/.]+$/, '');
-          const cleanTitle = titleWithoutExt.replace(/[^a-zA-Z0-9_-]/g, '-');
-          await downloadPng(ratio, `codemotion-${cleanTitle}.png`, 'export-container');
-          setIsThankYouOpen(true);
-        }}
-        onDownloadSvg={async () => {
-          const rawTitle = activeTab?.title || 'snippet';
-          const titleWithoutExt = rawTitle.replace(/\.[^/.]+$/, '');
-          const cleanTitle = titleWithoutExt.replace(/[^a-zA-Z0-9_-]/g, '-');
-          await downloadSvg(`codemotion-${cleanTitle}.svg`, 'export-container');
-          setIsThankYouOpen(true);
-        }}
-        onRecordVideo={handleRecordVideo}
-        onReset={handleReset}
-        onOpenUserTour={() => setIsUserTourOpen(true)}
-        onOpenPresentationDeck={() => setIsPresentationDeckOpen(true)}
-        onUndo={undo}
-        onRedo={redo}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        isExporting={isExporting || recordingProgress !== null || batchExportProgress !== null}
-      />
+       <Header
+         settings={settings}
+         language={language}
+         onLanguageChange={setLanguage}
+         onCopyImage={async () => {
+           await copyToClipboard(3, 'export-container');
+           setIsThankYouOpen(true);
+         }}
+         onDownloadPng={async (ratio) => {
+           const rawTitle = activeTab?.title || 'snippet';
+           const titleWithoutExt = rawTitle.replace(/\.[^/.]+$/, '');
+           const cleanTitle = titleWithoutExt.replace(/[^a-zA-Z0-9_-]/g, '-');
+           await downloadPng(ratio, `codemotion-${cleanTitle}.png`, 'export-container');
+           setIsThankYouOpen(true);
+         }}
+         onDownloadSvg={async () => {
+           const rawTitle = activeTab?.title || 'snippet';
+           const titleWithoutExt = rawTitle.replace(/\.[^/.]+$/, '');
+           const cleanTitle = titleWithoutExt.replace(/[^a-zA-Z0-9_-]/g, '-');
+           await downloadSvg(`codemotion-${cleanTitle}.svg`, 'export-container');
+           setIsThankYouOpen(true);
+         }}
+         onRecordVideo={handleRecordVideo}
+         onReset={handleReset}
+         onOpenUserTour={() => setIsUserTourOpen(true)}
+         onOpenPresentationDeck={() => setIsPresentationDeckOpen(true)}
+         onUndo={undo}
+         onRedo={redo}
+         canUndo={canUndo}
+         canRedo={canRedo}
+         isExporting={isExporting || recordingProgress !== null || batchExportProgress !== null}
+       />
 
       <div className="flex-1 w-full flex flex-col min-h-0 pt-16 sm:pt-16">
         <main className="flex-1 lg:h-[calc(100vh-4rem)] grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-0">

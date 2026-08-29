@@ -21,7 +21,17 @@ export const PresentationDeckModal: React.FC<PresentationDeckModalProps> = ({
   // Use library snapshots as presentation slides; fallback to active tab snippet
   const slides: LibrarySnapshot[] =
     librarySnapshots.length > 0
-      ? librarySnapshots
+      ? [
+          // Always include current editor content as first slide
+          {
+            id: 'current-slide',
+            name: currentSettings.tabs[0]?.title || 'Current Code',
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            settings: currentSettings,
+          },
+          ...librarySnapshots,
+        ]
       : [
           {
             id: 'current-slide',

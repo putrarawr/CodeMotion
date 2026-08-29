@@ -11,6 +11,7 @@ import { MessageSquare } from 'lucide-react';
 import { getLanguageExtension } from '../utils/cmLanguages';
 import { getCmThemeExtensions, cmBaseTheme } from '../utils/cmThemes';
 import { registerEditorView, isImperativeSyncing, isBridgeSuppressing } from '../utils/editorBridge';
+import { getPeerCursorColor } from '../utils/peerColors';
 
 interface CodeEditorProps {
   code: string;
@@ -29,6 +30,7 @@ interface CodeEditorProps {
   onCursorChange?: (line: number, ch: number) => void;
   isPlayingMotion?: boolean;
   motionSpeed?: number;
+  motionStyle?: 'typewriter' | 'lineByLine' | 'glitch' | 'wave';
   controlledTypedLength?: number | null;
   onMotionFinish?: () => void;
 }
@@ -65,6 +67,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   onCursorChange,
   isPlayingMotion = false,
   motionSpeed = 1,
+  motionStyle = 'typewriter',
   controlledTypedLength = null,
   onMotionFinish,
 }) => {
@@ -110,22 +113,104 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       return;
     }
 
-    const intervalMs = Math.max(10, Math.floor(35 / motionSpeed));
-    timerRef.current = window.setInterval(() => {
-      setInternalTypedLength((prev) => {
-        if (prev >= code.length) {
-          if (timerRef.current !== null) window.clearInterval(timerRef.current);
-          if (onMotionFinish) onMotionFinish();
-          return code.length;
-        }
-        return prev + 1;
-      });
-    }, intervalMs);
+    const baseIntervalMs = Math.max(10, Math.floor(35 / motionSpeed));
+
+    if (motionStyle === 'lineByLine') {
+      const lines = code.split('\n');
+      const lineEndIndices: number[] = [];
+      let acc = 0;
+      for (let i = 0; i < lines.length; i++) {
+        acc += lines[i].length + (i < lines.length - 1 ? 1 : 0);
+        lineEndIndices.push(acc);
+      }
+
+      const lineIntervalMs = Math.max(80, Math.floor(250 / motionSpeed));
+      timerRef.current = window.setInterval(() => {
+        setInternalTypedLength((prev) => {
+          const nextIdx = lineEndIndices.find((idx) => idx > prev);
+          if (nextIdx === undefined || nextIdx >= code.length) {
+            if (timerRef.current !== null) window.clearInterval(timerRef.current);
+            if (onMotionFinish) onMotionFinish();
+            return code.length;
+          }
+          return nextIdx;
+        });
+      }, lineIntervalMs);
+    } else if (motionStyle === 'glitch') {
+      let stepCount = 0;
+      const glitchIntervalMs = Math.max(12, Math.floor(30 / motionSpeed));
+      timerRef.current = window.setInterval(() => {
+        setInternalTypedLength((prev) => {
+          stepCount++;
+          if (prev >= code.length) {
+            if (timerRef.current !== null) window.clearInterval(timerRef.current);
+            if (onMotionFinish) onMotionFinish();
+            return code.length;
+          }
+
+          // 25% chance of random glitch stutter or jump
+          const rand = Math.random();
+          if (rand < 0.2 && prev > 4) {
+            // Stutter backwards 1-3 chars
+            return Math.max(0, prev - (Math.floor(Math.random() * 3) + 1));
+          } else if (rand > 0.85) {
+            // Burst forward 2-4 chars
+            const burst = prev + (Math.floor(Math.random() * 3) + 2);
+            return Math.min(code.length, burst);
+          }
+
+          return Math.min(code.length, prev + 1);
+        });
+      }, glitchIntervalMs);
+    } else if (motionStyle === 'wave') {
+      let waveState: 'forward' | 'backward' = 'forward';
+      let waveAnchor = 0;
+      const waveIntervalMs = Math.max(15, Math.floor(32 / motionSpeed));
+
+      timerRef.current = window.setInterval(() => {
+        setInternalTypedLength((prev) => {
+          if (prev >= code.length) {
+            if (timerRef.current !== null) window.clearInterval(timerRef.current);
+            if (onMotionFinish) onMotionFinish();
+            return code.length;
+          }
+
+          if (waveState === 'forward') {
+            const next = prev + 3;
+            if (next >= code.length) {
+              if (timerRef.current !== null) window.clearInterval(timerRef.current);
+              if (onMotionFinish) onMotionFinish();
+              return code.length;
+            }
+            waveAnchor = next;
+            waveState = 'backward';
+            return next;
+          } else {
+            // Step back 1 char then continue forward
+            waveState = 'forward';
+            const back = Math.max(0, waveAnchor - 1);
+            return back;
+          }
+        });
+      }, waveIntervalMs);
+    } else {
+      // Default: typewriter
+      timerRef.current = window.setInterval(() => {
+        setInternalTypedLength((prev) => {
+          if (prev >= code.length) {
+            if (timerRef.current !== null) window.clearInterval(timerRef.current);
+            if (onMotionFinish) onMotionFinish();
+            return code.length;
+          }
+          return prev + 1;
+        });
+      }, baseIntervalMs);
+    }
 
     return () => {
       if (timerRef.current !== null) window.clearInterval(timerRef.current);
     };
-  }, [isPlayingMotion, controlledTypedLength, code, motionSpeed, onMotionFinish]);
+  }, [isPlayingMotion, controlledTypedLength, code, motionSpeed, motionStyle, onMotionFinish]);
 
   // Effective typed length (manually controlled during video recording, or internal state during playback)
   const isCurrentlyInMotion = isPlayingMotion || (controlledTypedLength !== null && controlledTypedLength !== undefined);
@@ -443,16 +528,17 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               lineHeight: `${lineHeight}`,
             }}
           >
-            {Array.from(peerCursors.values()).map((peer) => {
+            {Array.from(peerCursors.values()).map((peer, index) => {
               const topOffset = peer.line * (fontSize * lineHeight) - 2;
+              const colorClass = getPeerCursorColor(peer.peerId, index);
               return (
                 <div
                   key={peer.peerId}
                   className="absolute left-14 flex items-center gap-1 pointer-events-none transition-all duration-150 -translate-y-full"
                   style={{ top: `${topOffset}px` }}
                 >
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-t-lg rounded-br-lg bg-emerald-500 text-black font-sans text-[10px] font-extrabold shadow-xl">
-                    <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+                  <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-t-lg rounded-br-lg ${colorClass.bg} ${colorClass.text} font-sans text-[10px] font-extrabold shadow-xl border ${colorClass.border}`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
                     <span>{peer.username || 'Anonymous'}</span>
                   </div>
                 </div>
